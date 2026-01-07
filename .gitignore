@@ -65,3 +65,7 @@ yarn-error.log
 *-debug.log
 .runtimeconfig.json
 Readme(讀我).md.old
+
+
+#Ignore vscode AI rules
+.github\instructions\codacy.instructions.md
