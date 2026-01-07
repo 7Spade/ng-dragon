@@ -1,0 +1,10 @@
+name: Deploy Placeholder
+
+on:
+  workflow_dispatch:
+
+jobs:
+  note:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Deploy pipelines should be authored with MCP (filesystem/everything/fetch/time); placeholder only."

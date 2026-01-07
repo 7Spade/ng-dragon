@@ -1,36 +1,66 @@
 version: '1.0'
 core_tools:
   context7:
-    description: '查詢最新的 library 文檔和 best practices'
+    description: '查快速庫文件與升級差異'
     when_to_use:
-      - '需要最新的 Angular/Firebase/ng-alain 文檔'
-      - '檢查 library 版本和升級建議'
-      - '查詢 API 正確用法'
+      - '需要最新 API 用法或 Breaking change'
+      - '需要查核 Angular/Firebase/ng-alain 官方建議'
     example: |
-      // 使用 Context7 查詢 Angular 20 最新用法
       @context7 resolve-library-id angular
       @context7 get-library-docs /angular/angular signals
 
-  sequential_thinking:
-    description: '逐步推理複雜問題'
+  server-sequential-thinking:
+    description: '用結構化步驟拆解問題'
     when_to_use:
-      - '設計複雜的 Event-Sourcing 流程'
-      - '分析 Blueprint 權限邏輯'
-      - '規劃多步驟重構'
+      - '事件溯源、流程或多階段重構'
+      - '需要清楚的行動序列'
     example: |
-      // 使用 Sequential-Thinking 分析問題
-      STEP 1: 理解當前 Event Store 架構
-      STEP 2: 識別 Causality 追蹤需求
-      STEP 3: 設計 Event Replay 機制
+      STEP 1: 描述當前狀態
+      STEP 2: 標記風險/阻塞
+      STEP 3: 定義下一步
 
-  software_planning:
-    description: '管理任務和追蹤進度'
+  software-planning-mcp:
+    description: '任務、依賴與進度跟蹤'
     when_to_use:
-      - '拆解大型功能為小任務'
-      - '追蹤 Sprint 進度'
-      - '管理技術債務'
+      - '拆解需求並排定優先順序'
+      - '同步待辦、子任務與完成條件'
     example: |
-      // 使用 Software-Planning-Tool 追蹤任務
-      Task: "實現 Task Event 查詢"
-      Dependencies: ["EventStore", "BlueprintService"]
+      Task: "新增事件查詢"
+      Dependencies: ["Firestore", "Causality"]
       Status: "In Progress"
+
+  server-everything:
+    description: '一次取用常見 OS/網路工具組'
+    when_to_use:
+      - '需要快速嘗試命令或雛形腳本'
+      - '要把多個 MCP 工具組合使用'
+    example: |
+      @server-everything run "ls && node -v"
+
+  server-filesystem:
+    description: '最小化地操作工作區檔案'
+    when_to_use:
+      - '讀寫專案檔案或產生暫存輸出'
+    example: |
+      @server-filesystem read ./README.md
+
+  playwright-mcp-server:
+    description: '真實瀏覽器互動與截圖'
+    when_to_use:
+      - '驗證 UI 行為、登入流程、E2E 旅程'
+    example: |
+      @playwright-mcp-server navigate https://localhost:4200
+
+  server-time:
+    description: '取得標準時間或進行時區計算'
+    when_to_use:
+      - '需要可追蹤的時間戳或排程計算'
+    example: |
+      @server-time now
+
+  server-fetch:
+    description: '對外部 HTTP 端點做快速請求'
+    when_to_use:
+      - '驗證 API 回應或拉取小型 JSON 配置'
+    example: |
+      @server-fetch get https://example.com/health

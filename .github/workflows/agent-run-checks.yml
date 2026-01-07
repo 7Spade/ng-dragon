@@ -20,3 +20,10 @@ jobs:
               exit 1
             fi
           done
+
+      - name: Ensure MCP servers present
+        run: |
+          required=(context7 server-sequential-thinking software-planning-mcp server-everything server-filesystem playwright-mcp-server server-time server-fetch)
+          for key in "${required[@]}"; do
+            jq -e ".mcpServers[\"$key\"]" .github/copilot/mcp-servers.json > /dev/null || { echo "Missing server: $key"; exit 1; }
+          done
