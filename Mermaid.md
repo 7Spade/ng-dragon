@@ -139,3 +139,16 @@ flowchart TD
 ```
 
 // END OF FILE
+
+## Readiness Assessment
+- Packages already mirror the planned layers (`core-engine`, `saas-domain`, `platform-adapters`, `ui-angular`); added `account-domain` scaffolding so identity/workspace roles can live separately from SaaS entities.
+- Event metadata in the plan (workspaceId, moduleKey, actorId, causedBy/traceId) should be enforced at the aggregate boundary; core-engine remains the right place for shared `DomainEvent` and causality helpers.
+- Workspace ACL and module gating should be asserted before domain actions; adapters must inject session-selected `workspaceId` to every event/command and reject when a module is disabled.
+- Session flow needs a workspace switcher in UI plus query adapters that filter by `workspaceId`; platform adapters should expose a single entry point that already validates membership.
+- Technical SDK work stays inside platform-adapters; a reserved `@google/genai` folder keeps future AI calls isolated from domain code.
+
+### Immediate Next Steps (pre-work)
+- Flesh out `account-domain` aggregates/events for workspace, membership, and module registry so ACL checks occur before SaaS entities mutate.
+- Define a shared `DomainEvent<T>` shape in `core-engine` that includes workspace/module/actor metadata and trace ids; ensure replay guards module enablement.
+- Provide Angular-side services (ui-angular) that cache memberships and enforce `assertWorkspaceAccess` + `assertModuleEnabled` before navigation.
+- Hook platform adapter implementations (firebase-admin/angular-fire) to stamp causality metadata automatically when emitting events.
