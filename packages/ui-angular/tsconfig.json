@@ -12,6 +12,7 @@
       "@core/*": ["src/app/core/*"],
       "@shared": ["src/app/shared/index.ts"],
       "@shared/*": ["src/app/shared/*"],
+      "@features/*": ["src/app/features/*"],
       "@env/*": ["src/environments/*"],
       "@core-engine": ["../core-engine/index.ts"],
       "@core-engine/*": ["../core-engine/*"],

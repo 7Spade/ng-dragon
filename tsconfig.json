@@ -41,6 +41,9 @@
       "@app/*": [
         "packages/ui-angular/src/app/*"
       ],
+      "@features/*": [
+        "packages/ui-angular/src/app/features/*"
+      ],
       "@core-engine": [
         "packages/core-engine/index"
       ],

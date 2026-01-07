@@ -19,7 +19,7 @@ export default tseslint.config(
       'schematics/**/files/**/*',
       'packages/ui-angular/src/dist/**/*',
       'packages/ui-angular/src/templates/**/*',
-      'packages/ui-angular/src/app/routes/gen/**/*',
+      'packages/ui-angular/src/app/features/gen/**/*',
       'packages/**/node_modules/'
     ]
   },

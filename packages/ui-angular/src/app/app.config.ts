@@ -36,7 +36,7 @@ import { FirebaseAuthBridgeService } from './core/auth/firebase-auth-bridge.serv
 
 import { ICONS } from '../style-icons';
 import { ICONS_AUTO } from '../style-icons-auto';
-import { routes } from './routes/routes';
+import { routes } from './features/routes';
 import { getStorage, provideStorage } from '@angular/fire/storage';
 import { getRemoteConfig, provideRemoteConfig } from '@angular/fire/remote-config';
 import { getVertexAI, provideVertexAI } from '@angular/fire/vertexai';
