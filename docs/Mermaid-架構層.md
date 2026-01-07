@@ -1,3 +1,5 @@
+<!-- 用途：描述 Firebase 導向的架構層與事件流 Mermaid 圖。 -->
+
 ## 架構層（Firebase 導向）
 - 身分層（Account/User/Bot）與容器層（Organization/Team）分離；Workspace=Project 或 Personal Space，事件與資料都繫結 `workspaceId`。
 - 模組層是功能邊界，Entity 只負責狀態；ACL 由 Workspace/Module 共同決定，先 `assertWorkspaceAccess`、再 `assertModuleEnabled`。

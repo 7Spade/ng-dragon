@@ -56,6 +56,40 @@ Ensure the `flowchart` block uses supported syntax and matches repo style; keep 
 - **Dependencies**:
   - Phase 1 completion.
 
+## Phase 3: Prep Mermaid doc files for future development
+
+### Task 3.1: Ensure listed Mermaid docs exist with a one-line purpose comment
+
+Create or verify the Mermaid documentation files listed in the request (Mermaid.md plus the A/B/C and layered variants). Add a single HTML comment near the top of each file briefly describing its intent to guide future edits.
+
+- **Files**:
+  - docs/Mermaid.md
+  - docs/Mermaid-A.md
+  - docs/Mermaid-B.md
+  - docs/Mermaid-C.md
+  - docs/Mermaid-架構層.md
+  - docs/Mermaid-基礎設施層.md
+  - docs/Mermaid-概念層.md
+  - docs/Mermaid-實作指引.md
+  - docs/Mermaid-模組層.md
+  - docs/Mermaid-總結層.md
+- **Success**:
+  - Each listed file exists (create if missing).
+  - A one-line HTML comment documents the file's purpose without altering existing headings or diagrams.
+- **Dependencies**:
+  - None.
+
+### Task 3.2: Remove or note any conflicting Mermaid artifacts blocking future implementation
+
+Scan the Mermaid docs for stale placeholders or blocks that would block future changes. Remove obvious conflicts or record that no removals were necessary.
+
+- **Files**:
+  - docs/Mermaid.md and related layer docs if conflicts are found.
+- **Success**:
+  - Conflicting or duplicate placeholders are cleared, or explicitly noted as not present.
+- **Dependencies**:
+  - Task 3.1 completion.
+
 ## Dependencies
 
 - None beyond repository markdown editing capabilities.
