@@ -1,7 +1,7 @@
-import { DomainEvent, EventContext, toEventMetadata } from '../../src/events/domain-event';
-import { ModuleStatus, ModuleType } from '../../src/value-objects/module-types';
-import { WorkspaceType } from '../../src/value-objects/workspace-type';
-import { AccountId, ModuleKey, WorkspaceId } from '../../src/types/identifiers';
+import { DomainEvent, EventContext, toEventMetadata } from '../events/domain-event';
+import { ModuleStatus, ModuleType } from '../value-objects/module-types';
+import { WorkspaceType } from '../value-objects/workspace-type';
+import { AccountId, ModuleKey, WorkspaceId } from '../types/identifiers';
 
 export interface WorkspaceSnapshot {
   workspaceId: WorkspaceId;

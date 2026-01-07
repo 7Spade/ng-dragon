@@ -126,8 +126,8 @@ stateDiagram-v2
 
 ## Packages Directory Tree
 - packages 目錄下主要子資料夾概覽。
-- 預留 platform-adapters/@google/genai 子資料夾。
-- 為避免分歧，先標出各套件預期的 src 目錄（如未存在則為規劃中）。
+- 平台 SDK 入口集中在 `platform-adapters/src/external-apis/google/genai/`。
+- 為避免分歧，標出各套件實際存在的 src 目錄。
 
 ```mermaid
 flowchart TD
@@ -137,12 +137,14 @@ flowchart TD
     packages --> adapters["platform-adapters/"]
     packages --> saas["saas-domain/"]
     packages --> ui["ui-angular/"]
-    acc --> accSrc["src/ (planned)"]
-    core --> coreSrc["src/ (planned)"]
-    adapters --> googleScope["@google/"]
-    googleScope --> googleGenAI["genai/"]
-    googleGenAI --> genaiSrc["src/ (planned)"]
-    saas --> saasSrc["src/ (planned)"]
+    acc --> accSrc["src/ (existing)"]
+    core --> coreSrc["src/ (existing)"]
+    adapters --> adaptersSrc["src/ (existing)"]
+    adaptersSrc --> adaptersExternal["external-apis/"]
+    adaptersExternal --> adaptersGoogle["google/"]
+    adaptersGoogle --> adaptersGenai["genai/"]
+    adaptersGenai --> genaiSrc["src/ (placeholder)"]
+    saas --> saasSrc["src/ (existing)"]
     ui --> uiSrc["src/ (existing)"]
 ```
 
@@ -153,7 +155,7 @@ flowchart TD
 - Event metadata in the plan (workspaceId, moduleKey, actorId, causedBy/traceId) should be enforced at the aggregate boundary; core-engine remains the right place for shared `DomainEvent` and causality helpers.
 - Workspace ACL and module gating should be asserted before domain actions; adapters must inject session-selected `workspaceId` to every event/command and reject when a module is disabled.
 - Session flow needs a workspace switcher in UI plus query adapters that filter by `workspaceId`; platform adapters should expose a single entry point that already validates membership.
-- Technical SDK work stays inside platform-adapters; a reserved `@google/genai` folder keeps future AI calls isolated from domain code.
+- Technical SDK work stays inside platform-adapters; Google AI calls live in `src/external-apis/google/genai/` to keep adapters consistent and isolated from domain code.
 
 ### Immediate Next Steps (pre-work)
 - Flesh out `account-domain` aggregates/events for workspace, membership, and module registry so ACL checks occur before SaaS entities mutate.

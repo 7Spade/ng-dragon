@@ -221,5 +221,5 @@ MIT
 ## Readiness alignment
 
 - `@account-domain` path aliases are now available in the root `tsconfig.json` so Angular and tooling can import identity/workspace aggregates without local path hacks.
-- Scaffolded `account-domain` module folders (`account/`, `workspace/`, `membership/`, `module-registry/`) to match the Mermaid plan; each exports placeholders ready for aggregates/events once implemented.
-- Reserved `platform-adapters/@google/genai` for future Google GenAI adapters, keeping SDK usage isolated per the separation rules.
+- Consolidated `account-domain` under `src/aggregates` to remove duplicate module folders and keep one clear entrypoint.
+- Google GenAI adapters live under `platform-adapters/src/external-apis/google/genai` to avoid a parallel `@google` root and keep third-party SDKs in one place.
