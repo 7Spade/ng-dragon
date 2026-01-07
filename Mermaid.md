@@ -116,4 +116,16 @@ stateDiagram-v2
 4) Event 對應 Entity 變更；因果以 `causedBy/traceId` 追蹤。
 5) 多 Workspace：Session 必選 Workspace，事件/資料綁 `workspaceId`。
 
+
+## Packages Folder Tree
+```mermaid
+%% Folder-level structure for packages workspace
+mindmap
+  root((packages))
+    account-domain
+    core-engine
+    platform-adapters
+    saas-domain
+    ui-angular
+```
 // END OF FILE
