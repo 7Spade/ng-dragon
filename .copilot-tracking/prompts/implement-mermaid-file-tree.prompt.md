@@ -15,8 +15,9 @@ You WILL create `20260107-mermaid-file-tree-changes.md` in #file:../changes/ if 
 
 ### Step 2: Execute Implementation
 
+You WILL review the Mermaid documentation set (docs/Mermaid.md、Mermaid-A/B/C、Mermaid-架構層、Mermaid-基礎設施層、Mermaid-概念層、Mermaid-實作指引、Mermaid-模組層、Mermaid-總結層) to keep wording consistent with existing diagrams.
 You WILL follow #file:../../.github/instructions/task-implementation.instructions.md
-You WILL systematically implement #file:../plans/20260107-mermaid-file-tree-plan.instructions.md task-by-task
+You WILL systematically implement #file:../plans/20260107-mermaid-file-tree-plan.instructions.md task-by-task using #file:../research/20260107-mermaid-file-tree-research.md as context
 You WILL follow ALL project standards and conventions
 
 **CRITICAL**: If ${input:phaseStop:true} is true, you WILL stop after each Phase for user review.
