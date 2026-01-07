@@ -20,3 +20,5 @@ export * from './causality';
 export * from './event-store';
 export * from './aggregates';
 export * from './projection';
+
+export * from './src/use-cases/organization.use-case';

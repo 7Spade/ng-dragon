@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
-import { DA_SERVICE_TOKEN } from '@delon/auth';
+import { RouterLink } from '@angular/router';
 import { I18nPipe, SettingsService, User } from '@delon/theme';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
+import { OrganizationSessionFacade } from '../../core/session/organization-session.facade';
 
 @Component({
   selector: 'header-user',
@@ -16,13 +16,7 @@ import { NzMenuModule } from 'ng-zorro-antd/menu';
         {{ user.name }}
       </div>
     } @else {
-      <div
-        class="alain-default__aside-user"
-        nz-dropdown
-        [nzDropdownMenu]="userMenu"
-        nzTrigger="click"
-        nzPlacement="bottomLeft"
-      >
+      <div class="alain-default__aside-user" nz-dropdown [nzDropdownMenu]="userMenu" nzTrigger="click" nzPlacement="bottomLeft">
         <nz-avatar class="alain-default__aside-user-avatar" [nzSrc]="user.avatar" />
         <div class="alain-default__aside-user-info">
           <strong>{{ user.name }}</strong>
@@ -58,7 +52,7 @@ import { NzMenuModule } from 'ng-zorro-antd/menu';
         </div>
         <ng-container *ngIf="selectedOrganizationName">
           <div nz-menu-item class="text-muted">{{ selectedOrganizationName }}</div>
-          <div nz-menu-item [nzDisabled]="!isMember(selectedOrganizationId)" (click)="createTeam()">
+          <div nz-menu-item [nzDisabled]="!canCreateTeam" (click)="createTeam()">
             <i nz-icon nzType="team" class="mr-sm"></i>{{ 'menu.account.organizations.createTeam' | i18n : 'Create team' }}
           </div>
           <div nz-menu-item (click)="createPartner()">
@@ -80,64 +74,45 @@ export class HeaderUserComponent {
   @Input() layout: 'header' | 'aside' = 'aside';
 
   private readonly settings = inject(SettingsService);
-  private readonly router = inject(Router);
-  private readonly tokenService = inject(DA_SERVICE_TOKEN);
-
-  readonly ownedOrganizations = [
-    { id: 'org-001', name: 'Acme Corp' },
-    { id: 'org-002', name: 'Beta Labs' }
-  ];
-
-  readonly joinedOrganizations = [
-    { id: 'org-003', name: 'Gamma Partners' },
-    { id: 'org-004', name: 'Delta Studio' }
-  ];
-
-  selectedOrganizationId: string | null = null;
+  private readonly organizationFacade = inject(OrganizationSessionFacade);
 
   get user(): User {
     return this.settings.user;
   }
 
-  private findOrg(orgId: string | null) {
-    if (!orgId) return null;
-    return [...this.ownedOrganizations, ...this.joinedOrganizations].find(o => o.id === orgId) || null;
+  get ownedOrganizations(): ReadonlyArray<{ id: string; name: string }> {
+    return this.organizationFacade.ownedOrganizations();
   }
 
-  private isMember(orgId: string | null): boolean {
-    if (!orgId) return false;
-    return [...this.ownedOrganizations, ...this.joinedOrganizations].some(o => o.id === orgId);
+  get joinedOrganizations(): ReadonlyArray<{ id: string; name: string }> {
+    return this.organizationFacade.joinedOrganizations();
   }
 
   get selectedOrganizationName(): string | null {
-    return this.findOrg(this.selectedOrganizationId)?.name ?? null;
+    return this.organizationFacade.selectedOrganizationName();
+  }
+
+  get canCreateTeam(): boolean {
+    return this.organizationFacade.canCreateTeam();
   }
 
   selectOrganization(orgId: string): void {
-    this.selectedOrganizationId = orgId;
-    // TODO: replace with actual navigation / workspace switch facade
-    this.router.navigateByUrl(`/organizations/${orgId}`).catch(() => void 0);
+    void this.organizationFacade.selectOrganization(orgId);
   }
 
   createOrganization(): void {
-    // TODO: replace with actual create-organization flow
-    this.router.navigateByUrl('/organizations/create').catch(() => void 0);
+    void this.organizationFacade.createOrganization();
   }
 
   createTeam(): void {
-    if (!this.isMember(this.selectedOrganizationId)) return;
-    // TODO: replace with actual create-team flow via facade/adapters
-    this.router.navigateByUrl(`/organizations/${this.selectedOrganizationId}/teams/create`).catch(() => void 0);
+    void this.organizationFacade.createTeam();
   }
 
   createPartner(): void {
-    // Partner creation allowed even if not a member (external/vendor)
-    const orgId = this.selectedOrganizationId ?? 'select-org-first';
-    this.router.navigateByUrl(`/organizations/${orgId}/partners/create`).catch(() => void 0);
+    void this.organizationFacade.createPartner();
   }
 
   logout(): void {
-    this.tokenService.clear();
-    this.router.navigateByUrl(this.tokenService.login_url!);
+    void this.organizationFacade.logout();
   }
 }

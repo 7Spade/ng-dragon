@@ -1,1 +1,3 @@
-User request: research organization功能完整實現 currently UI only, use .github/collections/edge-ai-tasks.md iterate to zero-knowledge implementable, maintain structure and SRP. Role: Task Researcher, only research files under .copilot-tracking/research.
+Issue: Implement organization functionality per planning doc from PR #24, ensuring single responsibility and structural boundaries.
+Date: 2026-01-07T23:04:18.386Z
+Notes: Follow Beast Mode instructions, use plan via manage_todo_list and report_progress, prefer custom agents, minimal changes.

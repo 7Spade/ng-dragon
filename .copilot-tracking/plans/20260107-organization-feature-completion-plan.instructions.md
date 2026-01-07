@@ -26,35 +26,35 @@ Design and implement end-to-end organization functionality using event-sourced d
 
 ## Implementation Checklist
 
-### [ ] Phase 1: Domain modeling and events
+### [x] Phase 1: Domain modeling and events
 
-- [ ] Task 1.1: Define OrganizationAggregate with invariants and events (OrganizationCreated, OrgMemberAdded/RoleUpdated/Removed, TeamCreated/MemberAdded/Removed, OrgProjectLinked)
+- [x] Task 1.1: Define OrganizationAggregate with invariants and events (OrganizationCreated, OrgMemberAdded/RoleUpdated/Removed, TeamCreated/MemberAdded/Removed, OrgProjectLinked)
   - Details: .copilot-tracking/details/20260107-organization-feature-completion-details.md (Lines 15-46)
-- [ ] Task 1.2: Add repositories/specifications for organization/team membership and module gating hooks
+- [x] Task 1.2: Add repositories/specifications for organization/team membership and module gating hooks
   - Details: .copilot-tracking/details/20260107-organization-feature-completion-details.md (Lines 48-62)
 
-### [ ] Phase 2: Event store integration and projectors
+### [x] Phase 2: Event store integration and projectors
 
-- [ ] Task 2.1: Persist org/team events through event store with workspaceId/moduleKey/actorId/traceId/causedBy
+- [x] Task 2.1: Persist org/team events through event store with workspaceId/moduleKey/actorId/traceId/causedBy
   - Details: .copilot-tracking/details/20260107-organization-feature-completion-details.md (Lines 64-78)
-- [ ] Task 2.2: Implement projectors for OrganizationDoc, OrgMemberDoc, TeamDoc, and account denormalization maps
+- [x] Task 2.2: Implement projectors for OrganizationDoc, OrgMemberDoc, TeamDoc, and account denormalization maps
   - Details: .copilot-tracking/details/20260107-organization-feature-completion-details.md (Lines 80-104)
 
-### [ ] Phase 3: Application services and session facade
+### [x] Phase 3: Application services and session facade
 
-- [ ] Task 3.1: Expose application services for create org, invite/add member, create team, link project with workspace/module gating
+- [x] Task 3.1: Expose application services for create org, invite/add member, create team, link project with workspace/module gating
   - Details: .copilot-tracking/details/20260107-organization-feature-completion-details.md (Lines 106-130)
-- [ ] Task 3.2: Build Angular workspace/organization session facade with permission cache + ACL wiring
+- [x] Task 3.2: Build Angular workspace/organization session facade with permission cache + ACL wiring
   - Details: .copilot-tracking/details/20260107-organization-feature-completion-details.md (Lines 132-156)
 
-### [ ] Phase 4: UI refactor
+### [x] Phase 4: UI refactor
 
-- [ ] Task 4.1: Refactor header user dropdown to consume facade signals (org lists, selection, commands) and remove hardcoded data/logic
+- [x] Task 4.1: Refactor header user dropdown to consume facade signals (org lists, selection, commands) and remove hardcoded data/logic
   - Details: .copilot-tracking/details/20260107-organization-feature-completion-details.md (Lines 158-176)
 
-### [ ] Phase 5: Validation and change log
+### [x] Phase 5: Validation and change log
 
-- [ ] Task 5.1: Update changes log with added aggregates, projectors, services, facade, and UI refactor; verify tests/guards and SRP compliance
+- [x] Task 5.1: Update changes log with added aggregates, projectors, services, facade, and UI refactor; verify tests/guards and SRP compliance
   - Details: .copilot-tracking/details/20260107-organization-feature-completion-details.md (Lines 178-194)
 
 ## Dependencies
