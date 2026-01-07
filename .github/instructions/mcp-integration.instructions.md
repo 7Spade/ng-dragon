@@ -1,65 +1,31 @@
 ---
-description: 'MCP 工具使用指南（三個核心工具）'
+description: 'MCP 快速使用指南（重點工具）'
 applyTo: '**'
 ---
 
-# MCP 工具整合指南
+# MCP 工具整合重點
 
-## 三個核心 MCP 工具
+- **Context7**：查文檔、版本差異、最佳實踐。
+- **server-sequential-thinking**：產出明確步驟與風險列表。
+- **software-planning-mcp**：維護 tasks.yaml、拆任務與依賴。
+- **server-everything / server-filesystem**：最小化的工作區指令與檔案讀寫。
+- **playwright-mcp-server**：真實瀏覽器動作、截圖、登入腳本。
+- **server-time**：可信時間戳、時區計算。
+- **server-fetch**：對外 HTTP 驗證或抓取輕量設定。
 
-### 1. Context7 - 文檔查詢專家
-**用途**: 查詢最新 library 文檔
-**觸發**: 當程式碼涉及外部 library 時自動建議
+## 觸發原則
+- 遇到不確定的 API 或版本 → 先 @context7。
+- 需要拆解流程、排定下一步 → @server-sequential-thinking。
+- 要同步進度或依賴 → @software-planning-mcp。
+- 需要即時檢驗檔案、指令或外部 API → filesystem/everything/fetch/time。
+- 驗證 UI/E2E → playwright-mcp-server，全程回傳截圖或狀態。
 
-```typescript
-// Copilot 偵測到 Angular 相關問題
-// 自動建議: "查詢 Angular 20 最新 Signals 用法？"
-```
-
-### 2. Sequential-Thinking - 逐步推理
-**用途**: 複雜問題的邏輯分析
-**觸發**: 多步驟任務或複雜邏輯
-
-```typescript
-// Copilot 偵測到複雜的 Event-Sourcing 需求
-// 自動建議逐步分析:
-// STEP 1: 分析現有 Event Store
-// STEP 2: 設計 Causality Chain
-// STEP 3: 實作 Event Replay
-```
-
-### 3. Software-Planning-Tool - 任務管理
-**用途**: 追蹤任務和管理進度
-**觸發**: 讀取/更新 tasks.yaml
-
-## 被動增強機制
-
-Copilot 會自動:
-1. 偵測程式碼上下文
-2. 判斷需要哪個 MCP 工具
-3. 提供智能建議
-4. 不需手動觸發
-
-## 實際範例
-
-**範例 1**: 查詢 Firebase 用法
-```typescript
-// 你輸入:
-// TODO: Query Firestore collection
-
-// Copilot 自動建議 (via Context7):
-import { collection, query, where } from '@angular/fire/firestore';
-// 基於 Firebase 20.0.1 最新文檔
-```
-
-**範例 2**: 規劃複雜任務
-```typescript
-// 你輸入:
-// TODO: Implement Event Replay with Causality
-
-// Copilot 自動建議 (via Sequential-Thinking):
-// STEP 1: 設計 Event Store schema
-// STEP 2: 實作 Causality metadata
-// STEP 3: 建立 Replay engine
-// STEP 4: 驗證 Deterministic replay
+## 使用範例
+```markdown
+@context7 get-library-docs /angular/angular signals
+@server-sequential-thinking 3-step plan for replay
+@software-planning-mcp update task 2 status "Blocked by index"
+@server-filesystem read ./README.md
+@server-fetch get https://example.com/health
+@playwright-mcp-server navigate https://localhost:4200
 ```

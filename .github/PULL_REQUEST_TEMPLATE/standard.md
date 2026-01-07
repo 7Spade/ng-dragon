@@ -1,23 +1,17 @@
 ---
 name: Standard Pull Request
-about: Pull request template for general features or bug fixes
+about: 一般修正/增強
 ---
 
 ### Description
-Provide a brief summary of what this PR changes and why it is needed.
+- 變更摘要與原因
+- 相關 Issue: #
 
-### Related Issue
-- Related issue(s): #
-
-### Changes
-- List key changes made in this PR
-- Examples: new function, UI adjustment, bug fix
-
-### Checklist
-- [ ] Code style checks passed (ESLint / Prettier)
-- [ ] Unit tests updated or added as appropriate
-- [ ] Documentation updated (if applicable)
-- [ ] If Copilot-generated, all non-Markdown files comply with the **4000-character** limit (UTF-8 characters)
+### Checks
+- [ ] ESLint / Prettier
+- [ ] 測試（若適用）
+- [ ] 檔案長度守則：非 .md 檔 <4000 UTF-8 字元
+- [ ] 若使用 Copilot：context7 → server-sequential-thinking → software-planning-mcp，必要時 filesystem/everything/fetch/time/playwright。
 
 ### Notes
-- Additional context or guidance for reviewers
+- 其他 reviewer 需知的風險或假設

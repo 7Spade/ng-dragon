@@ -7,13 +7,14 @@ tasks:
     priority: 'High'
     status: 'In Progress'
     mcp_hints:
-      - '使用 @context7 查詢 Firebase Auth 20.x 最新用法'
-      - '用 @sequential-thinking 規劃登入流程'
+      - '用 @context7 比對 Firebase Auth 20.x API'
+      - '用 @server-sequential-thinking 排定動線與風險'
+      - '用 @playwright-mcp-server 走完登入流程並截圖'
     steps:
-      - 'STEP 1: 查詢 Firebase Auth 文檔 (Context7)'
-      - 'STEP 2: 設計登入流程 (Sequential-Thinking)'
+      - 'STEP 1: 查 Firebase Auth 文檔'
+      - 'STEP 2: 規劃與拆分任務 (server-sequential-thinking + software-planning-mcp)'
       - 'STEP 3: 實作 AuthService'
-      - 'STEP 4: 撰寫測試'
+      - 'STEP 4: E2E 驗證並更新文件'
 
   - id: 2
     task: 'Query task events by Blueprint'
@@ -22,8 +23,9 @@ tasks:
     status: 'Active'
     mcp_hints:
       - '用 @context7 查詢 Firestore Query 最佳實踐'
-      - '用 @sequential-thinking 分析 Event Causality 邏輯'
-      - '用 @software-planning 追蹤子任務完成度'
+      - '用 @software-planning-mcp 追蹤子任務完成度'
+      - '用 @server-filesystem/ @server-everything 驗證查詢樣本'
+      - '用 @server-time 為事件加上可重播時間戳'
     steps:
       - 'STEP 1: 驗證 Blueprint 權限'
       - 'STEP 2: 查詢 Firestore collection'
