@@ -1,1 +1,1 @@
-User request: Implement changes per problem statement referencing PR #19 and tracking files (.copilot-tracking plan/details/changes/prompts/research) in ng-dragon repo.
+User request: translate avatar dropdown texts and relocate dropdown to left avatar (not right). Files: i18n en/zh-CN/zh-TW, user.component.ts, basic.component.ts.
