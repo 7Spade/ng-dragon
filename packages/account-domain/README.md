@@ -6,14 +6,19 @@
 
 ```
 account-domain/
-├── account/           # Account lifecycle (active, suspended, closed)
-├── workspace/         # Workspace creation and lifecycle state
-├── membership/        # Member ↔ workspace roles
-├── module-registry/   # Enabled capabilities per workspace
-└── __tests__/         # Domain tests
+├── src/
+│   ├── aggregates/        # Account / workspace / module registry aggregates
+│   ├── value-objects/     # Roles, module types, workspace types
+│   ├── events/            # Domain events + metadata helpers
+│   ├── policies/          # Cross-aggregate guards
+│   ├── repositories/      # Interfaces only
+│   ├── entities/          # Base entity helpers
+│   ├── domain-services/   # Stateless domain logic
+│   └── types/             # Shared identifiers
+└── __tests__/             # Domain tests
 ```
 
-Each domain module contains `aggregates/`, `value-objects/`, `events/`, and `__tests__/` with `.gitkeep` placeholders until concrete implementations land.
+All domain code lives under `src/` to keep a single, predictable entrypoint—no parallel `account/`, `workspace/`, or `module-registry/` folders.
 
 ## Domain Responsibilities
 
@@ -38,3 +43,9 @@ Compensation events (`AccountSuspended`, `WorkspaceArchived`, module disablement
 - Exported types live under `@ng-events/account-domain`.
 - Consumers (platform adapters, UI) should read projections, not mutate aggregates directly.
 - Keep all new code free from Angular/Firebase SDKs; integrate through adapters instead.
+
+## Planned additions
+
+- Membership / Invitation policies aligned with Workspace onboarding (Mermaid 架構層).
+- Module enablement dependency rules (task/issue/finance/quality/acceptance) kept in `policies/`.
+- Read model / projection contracts stay in core-engine; account-domain 僅定義事件與聚合。

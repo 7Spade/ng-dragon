@@ -1,70 +1,53 @@
 # UI Angular
 
-💅 **Angular user interface layer**
+💅 **Angular 前端層** — 僅透過 adapters 使用後端 / domain 能力，禁止直接觸碰 SDK 或核心。
 
-## Principles
-
-> **前端只能碰 @angular/fire，永遠不能碰 firebase-admin**
-
-This package contains the Angular application:
-
-- ✅ Uses @angular/fire for Firebase client SDK
-- ✅ Uses @platform-adapters for backend integration
-- ❌ CANNOT use firebase-admin
-- ❌ Should NOT import @core-engine or @saas-domain directly
-
-## Structure
+## 結構（位於專案根目錄 `src/app`）
 
 ```
 src/app/
-├── adapters/         # Facades for accessing core functionality
-│   └── core-engine.facade.ts
-├── features/         # Domain-aligned feature modules
-│   ├── task/
-│   ├── payment/
-│   └── issue/
-├── core/            # Angular infrastructure
-│   ├── i18n/
-│   ├── startup/
-│   └── net/
-├── routes/          # Page routes
-├── shared/          # Shared UI components
-└── layout/          # Layout components
+├── adapters/         # Facade，封裝 @platform-adapters 呼叫
+├── features/         # task / issue / finance / quality / acceptance 等功能模組（預留）
+├── core/             # i18n / startup / net / guards / state
+├── routes/           # 路由設定
+├── shared/           # 共用 UI 元件
+└── layout/           # 版面配置
 ```
+
+> 新增功能時請放在 `features/`，並透過 `adapters/` 注入；避免元件直接呼叫 SDK。
+
+## 依賴與禁制
+
+- ✅ 可以使用 `@platform-adapters`（client 介面）、`@angular/fire`
+- ❌ 禁止 `firebase-admin`
+- ❌ 不直接引用 `@core-engine` / `@saas-domain` / `@account-domain`
 
 ## Access Pattern
 
-**✅ GOOD: Use facade**
+**✅ GOOD: 使用 Facade**
 ```typescript
 import { CoreEngineFacade } from '@app/adapters';
 
-class MyComponent {
-  facade = inject(CoreEngineFacade);
-  
-  async loadTasks() {
-    return this.facade.getTasksByBlueprint('workspace-123');
+@Component({...})
+export class TasksPage {
+  private facade = inject(CoreEngineFacade);
+  load(workspaceId: string) {
+    return this.facade.getTasks(workspaceId);
   }
 }
 ```
 
-**❌ BAD: Direct import from core**
+**❌ BAD: 直接依賴核心或 SDK**
 ```typescript
-// DON'T DO THIS!
+// 不要這樣做
 import { EventStore } from '@core-engine';
 ```
 
-## Dependencies
+## 原則
 
-- `@platform-adapters` - For Firebase and domain access
-- `@angular/fire` - Firebase client SDK
-- Angular 20+
-
-## Rules
-
-- All backend access goes through `@platform-adapters`
-- No direct Firebase imports outside of adapters
-- No firebase-admin imports (compile-time error via ESLint)
-- Features should be organized by domain (task, payment, issue)
+1. 介面隔離：UI 只知道 Facade，不知道具體 SDK。
+2. SDK 最小化：僅允許 `@angular/fire`，其餘 SDK 交給 `platform-adapters`。
+3. 文件先行：新增 feature 時同步更新 README/AGENTS 與 Mermaid 圖。
 
 ## License
 

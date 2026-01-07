@@ -6,9 +6,18 @@ on:
       - .github/workflows/copilot-setup-steps.yml
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: copilot-setup-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   copilot-setup-steps:
     runs-on: ubuntu-latest
+    env:
+      YARN_CACHE_FOLDER: .yarn/cache
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -18,6 +27,9 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
+          cache-dependency-path: |
+            package.json
+            packages/*/package.json
 
       - name: Enable Corepack
         run: corepack enable

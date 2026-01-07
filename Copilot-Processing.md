@@ -1,1 +1,1 @@
-User request: Prepare development by creating mermaid-related doc files with purpose comment, adjust existing code/files if they hinder future implementation per problem statement.
+User request: Implement changes per problem statement referencing PR #19 and tracking files (.copilot-tracking plan/details/changes/prompts/research) in ng-dragon repo.

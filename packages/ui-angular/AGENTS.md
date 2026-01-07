@@ -2,55 +2,30 @@
 
 ## 目標
 
-說明 `ui-angular` 的責任範圍、邊界與依賴，作為 Angular 前端應用層。
-
----
-
-## 目標與責任
-
-- 提供 Angular 前端應用界面  
-  - 登入、註冊與身份驗證  
-  - 組織 / 工作區切換器  
-  - SaaS 相關頁面呈現  
-- 與使用者互動，捕獲事件並調用 domain / SaaS 服務  
-- 封裝 UI 元件、路由與狀態管理  
-
----
+提供 Angular 前端應用，透過 adapters 使用後端能力，保持與 domain/engine 隔離。
 
 ## 邊界
 
-- **依賴**：  
-  - `saas-domain` 提供業務服務與資料  
-  - 間接依賴 `account-domain` 與 `core-engine` 的聚合與事件框架  
-- **不依賴**：直接操作 `platform-adapters` 或核心業務邏輯  
-- **不實作** domain 或核心事件邏輯，只做呈現與橋接
+- **依賴**：`@platform-adapters`（client 介面）、`@angular/fire`。
+- **禁止**：直接引用 `core-engine` / `saas-domain` / `account-domain`，禁止 `firebase-admin`。
+- **位置**：前端程式碼位於專案根目錄 `src/app`（packages/ui-angular 本身僅承載說明）。
 
----
-
-## 依賴圖示 (簡單 ASCII)
+## 結構（現況 + 預備）
 
 ```
-
-account-domain       core-engine
-│                   │
-▼                   ▼
-saas-domain
-│
-▼
-ui-angular
-
+src/app/
+├── adapters/         # Facade / service，封裝對 adapters 的呼叫
+├── features/         # domain 對齊的功能 (task/issue/finance/quality/acceptance 預留)
+├── core/             # i18n、startup、net、guards 等基礎設施
+├── routes/           # 路由設定
+├── shared/           # 共用 UI 元件
+└── layout/           # 版面
 ```
 
-**說明**：  
-- `ui-angular` 位於最上層，僅使用 SaaS domain 提供的服務  
-- 不涉及業務規則或事件聚合  
-- 將使用者操作轉換成 domain / SaaS 的服務調用
-
----
+> 新增 feature 時請放在 `features/` 並走 Facade；禁止在元件中直接呼叫 SDK。
 
 ## 原則
 
-1. **UI-first, domain-driven**：所有業務邏輯依賴 domain / SaaS 提供的 API  
-2. **單一責任**：只管理前端呈現、狀態與用戶互動  
-3. **清晰依賴**：僅依賴 SaaS domain 與間接的 domain / core-engine  
-4. **可維護性**：組件、路由與狀態管理分層清楚，避免混合業務邏輯
+1. **Facade-first**：UI 僅透過 adapters/facade 呼叫後端或 domain 功能。
+2. **SDK 最小化**：僅允許 `@angular/fire`；其他 SDK 一律封裝在 `platform-adapters`。
+3. **單一入口**：所有 UI 代碼集中於 `src/app`，新增前先更新 README/AGENTS 對齊 Mermaid 圖。
