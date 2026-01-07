@@ -12,10 +12,35 @@ Added a packages directory tree Mermaid flowchart section to document key packag
 
 ### Added
 
-- packages/account-domain/src/.gitkeep - start tracking planned src folder
-- packages/core-engine/src/.gitkeep - start tracking planned src folder
+- packages/account-domain/src/entities/.gitkeep - scaffold domain structure
+- packages/account-domain/src/value-objects/.gitkeep
+- packages/account-domain/src/aggregates/.gitkeep
+- packages/account-domain/src/domain-services/.gitkeep
+- packages/account-domain/src/repositories/.gitkeep
+- packages/account-domain/src/events/.gitkeep
+- packages/account-domain/src/policies/.gitkeep
+- packages/saas-domain/src/entities/.gitkeep
+- packages/saas-domain/src/value-objects/.gitkeep
+- packages/saas-domain/src/aggregates/.gitkeep
+- packages/saas-domain/src/domain-services/.gitkeep
+- packages/saas-domain/src/repositories/.gitkeep
+- packages/saas-domain/src/events/.gitkeep
+- packages/saas-domain/src/specifications/.gitkeep
+- packages/core-engine/src/use-cases/.gitkeep
+- packages/core-engine/src/commands/.gitkeep
+- packages/core-engine/src/queries/.gitkeep
+- packages/core-engine/src/dtos/.gitkeep
+- packages/core-engine/src/ports/.gitkeep
+- packages/core-engine/src/mappers/.gitkeep
+- packages/core-engine/src/schedulers/.gitkeep
+- packages/core-engine/src/jobs/.gitkeep
+- packages/platform-adapters/src/persistence/.gitkeep
+- packages/platform-adapters/src/messaging/.gitkeep
+- packages/platform-adapters/src/auth/.gitkeep
+- packages/platform-adapters/src/ai/.gitkeep
+- packages/platform-adapters/src/external-apis/.gitkeep
+
 - packages/platform-adapters/@google/genai/src/.gitkeep - start tracking planned adapter src folder
-- packages/saas-domain/src/.gitkeep - start tracking planned src folder
 
 ### Modified
 
