@@ -1,0 +1,7 @@
+{
+  "name": "Minimal Dev Container",
+  "image": "mcr.microsoft.com/vscode/devcontainers/base:ubuntu",
+  "features": {},
+  "postCreateCommand": "echo 'Dev Container ready!'",
+  "remoteUser": "vscode"
+}
