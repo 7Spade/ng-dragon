@@ -1,100 +1,49 @@
 # Core Engine
 
-💎 **Pure TypeScript domain core with ZERO framework dependencies**
+💎 **Pure TypeScript CQRS / Event Sourcing 基礎層，零框架依賴**
 
-## Principles
+> **核心永遠不知道 Angular 是什麼，也不碰任何 SDK**
 
-> **核心永遠不知道 Angular 是什麼**
+## 結構（現況 + 預備）
 
-This package contains the pure domain logic and event sourcing infrastructure:
+```
+core-engine/
+└── src/
+    ├── commands/      # Command 定義與處理介面
+    ├── queries/       # Query 定義
+    ├── use-cases/     # 應用服務 / handler（純 TS）
+    ├── ports/         # EventStore / Projection / Bus 等抽象介面
+    ├── mappers/       # DTO ↔ Domain 轉換
+    ├── dtos/          # 輸入/輸出 DTO
+    ├── jobs/          # 背景工作定義
+    ├── schedulers/    # 排程介面
+    └── __tests__/     # 核心規則測試（新增元件時同步補齊）
+```
 
-- ❌ NO Angular imports
-- ❌ NO Firebase imports  
-- ❌ NO framework-specific code
-- ✅ Pure TypeScript only
-- ✅ Framework-agnostic
+## 原則
 
-## What's Inside
+- ❌ 禁止 Angular / Firebase / 任意 SDK
+- ✅ 只定義介面與純邏輯，實作放在 `platform-adapters`
+- ✅ 可由 `account-domain` / `saas-domain` 引用
+- ✅ 單一入口 `src/`，新增元件前先更新 README/AGENTS
 
-### 1. Causality Tracking (`causality/`)
-
-Correlation and causation tracking for event chains:
+## 使用範例
 
 ```typescript
-import { CausalityMetadata, CausalityMetadataFactory } from '@core-engine/causality';
+import { DomainEvent } from '@core-engine/ports';
+import { CommandHandler } from '@core-engine/commands';
 
-const metadata = CausalityMetadataFactory.create({
-  causedBy: 'parent-event-id',
-  causedByUser: 'user-123',
-  causedByAction: 'CreateTask',
-  blueprintId: 'workspace-456'
-});
+// 在 adapters 中實作 EventStore，再注入 use-case
 ```
 
-### 2. Event Store (`event-store/`)
-
-Abstract interface for event persistence:
-
-```typescript
-import { EventStore, DomainEvent } from '@core-engine/event-store';
-
-interface EventStore {
-  append(event: DomainEvent): Promise<void>;
-  load(streamId: string): Promise<DomainEvent[]>;
-}
-```
-
-**Note:** Core-engine only defines the interface. Platform-adapters provide the implementation.
-
-### 3. Aggregates (`aggregates/`)
-
-Base class for domain aggregates:
-
-```typescript
-import { AggregateRoot } from '@core-engine/aggregates';
-
-class TaskAggregate extends AggregateRoot {
-  // Aggregate implementation
-  protected applyEvent(event: DomainEvent): void {
-    // Apply event to state
-  }
-}
-```
-
-### 4. Projections (`projection/`)
-
-Read model definitions (not implementations):
-
-```typescript
-import { ProjectionBuilder, ReadModelQuery } from '@core-engine/projection';
-
-// Define the shape - implementation is in platform-adapters
-interface TaskReadModel {
-  id: string;
-  title: string;
-  status: string;
-}
-```
-
-## Usage
-
-This package is imported by:
-
-- ✅ `saas-domain` - Domain models and business rules
-- ✅ `platform-adapters` - Technical implementations
-- ❌ Should NOT be imported directly by UI layer
-
-## Architecture Rule
+## 依賴位置
 
 ```
-Core Engine → ZERO dependencies
-     ↑
-     | (implements interfaces)
-     |
-Platform Adapters → Firebase, Angular, etc.
+core-engine (純抽象) <-- platform-adapters (具體實作)
+         ^
+         |
+account-domain / saas-domain (呼叫抽象介面)
 ```
-
-**If you see Angular or Firebase imports in this package = architecture violation! 🚨**
 
 ## License
 

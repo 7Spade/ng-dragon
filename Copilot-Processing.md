@@ -1,1 +1,1 @@
-User request: Update mermaid-related documentation and copilot tracking files per problem statement referencing docs/Mermaid-*.md files.
+User request: Implement changes per problem statement referencing PR #19 and tracking files (.copilot-tracking plan/details/changes/prompts/research) in ng-dragon repo.

@@ -1071,8 +1071,9 @@ flowchart TD
     ui --> services["services/"]
     ui --> components["components/"]
     
-    adapters --> google["@google/"]
-    google --> genai["genai/"]
+    adapters --> adaptersExternal["external-apis/"]
+    adaptersExternal --> adaptersGoogle["google/"]
+    adaptersGoogle --> genai["genai/"]
     
     classDef domainStyle fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
     classDef infraStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
