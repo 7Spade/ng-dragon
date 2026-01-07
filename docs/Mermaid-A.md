@@ -749,153 +749,75 @@ sequenceDiagram
 
 ---
 
-## Supabase Schema Design
+## Firestore Schema Design (Firebase)
 
-### Core Tables
+### Root Collections & Subcollections
+- **accounts/{accountId}**：帳號主檔，反正規化組織/團隊/專案權限快取，支援快速查詢登入者可見的 Workspace。
+- **organizations/{orgId}**：組織主檔，子集合 `members/`、`teams/`、`projects/`。`members/{accountId}` 內嵌 email/displayName 以減少往返。
+- **teams/{teamId}**：子集合 `members/`，並冗餘 `organizationId` 以利 Collection Group Query。
+- **projects/{projectId}**：子集合 `modules/`、`permissions/`、`events/`、`tasks/`、`issues/`、`expenses/`，每個文件冗餘 `organizationId`/`projectId` 以利跨集合查詢。
+- **domain_events/{eventId}/causality/**：全域事件存檔，子集合紀錄 causedBy/affects 以支援因果追蹤與重播。
 
-```sql
--- Accounts (登入主體)
-CREATE TABLE accounts (
-  account_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  account_type TEXT NOT NULL CHECK (account_type IN ('user', 'bot')),
-  email TEXT UNIQUE,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
+```mermaid
+flowchart TD
+    subgraph Root["Root Collections"]
+        ACC[accounts/]
+        ORG[organizations/]
+        PROJ[projects/]
+        EVENTS[domain_events/]
+    end
 
--- Organizations (實體容器)
-CREATE TABLE organizations (
-  organization_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  slug TEXT UNIQUE NOT NULL,
-  owner_id UUID NOT NULL REFERENCES accounts(account_id),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
+    subgraph Org["organizations/{orgId}"]
+        OM[members/]
+        OT[teams/]
+        OP[projects/]
+    end
 
--- Organization Members
-CREATE TABLE organization_members (
-  organization_id UUID NOT NULL REFERENCES organizations(organization_id) ON DELETE CASCADE,
-  account_id UUID NOT NULL REFERENCES accounts(account_id) ON DELETE CASCADE,
-  role TEXT NOT NULL CHECK (role IN ('owner', 'admin', 'member')),
-  joined_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  PRIMARY KEY (organization_id, account_id)
-);
+    subgraph Team["teams/{teamId}"]
+        TM[members/]
+    end
 
--- Teams
-CREATE TABLE teams (
-  team_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  organization_id UUID NOT NULL REFERENCES organizations(organization_id) ON DELETE CASCADE,
-  slug TEXT NOT NULL,
-  default_permission TEXT CHECK (default_permission IN ('admin', 'write', 'read', 'none')),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE (organization_id, slug)
-);
+    subgraph Project["projects/{projectId}"]
+        MOD[modules/]
+        PERM[permissions/]
+        EVT[events/]
+        TASK[tasks/]
+        ISSUE[issues/]
+        EXP[expenses/]
+    end
 
--- Team Members
-CREATE TABLE team_members (
-  team_id UUID NOT NULL REFERENCES teams(team_id) ON DELETE CASCADE,
-  account_id UUID NOT NULL REFERENCES accounts(account_id) ON DELETE CASCADE,
-  role TEXT NOT NULL CHECK (role IN ('maintainer', 'member')),
-  joined_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  PRIMARY KEY (team_id, account_id)
-);
+    subgraph Event["domain_events/{eventId}"]
+        CAU[causality/]
+    end
 
--- Projects (Workspace)
-CREATE TABLE projects (
-  project_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name TEXT NOT NULL,
-  slug TEXT NOT NULL,
-  belongs_to_type TEXT NOT NULL CHECK (belongs_to_type IN ('organization', 'user')),
-  belongs_to_id UUID NOT NULL,  -- organization_id or account_id
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE (belongs_to_type, belongs_to_id, slug)
-);
+    ORG --> OM
+    ORG --> OT
+    ORG --> OP
+    OT --> TM
+    PROJ --> MOD
+    PROJ --> PERM
+    PROJ --> EVT
+    PROJ --> TASK
+    PROJ --> ISSUE
+    PROJ --> EXP
+    EVENTS --> CAU
 
--- Project Permissions
-CREATE TABLE project_permissions (
-  project_id UUID NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
-  granted_to_type TEXT NOT NULL CHECK (granted_to_type IN ('user', 'team')),
-  granted_to_id UUID NOT NULL,  -- account_id or team_id
-  role TEXT NOT NULL CHECK (role IN ('owner', 'admin', 'write', 'read')),
-  granted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  PRIMARY KEY (project_id, granted_to_type, granted_to_id)
-);
+    classDef root fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    classDef sub fill:#fff3e0,stroke:#f57c00,stroke-width:2px
 
--- Module Status (per Project)
-CREATE TABLE module_status (
-  project_id UUID NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
-  module_key TEXT NOT NULL,
-  module_type TEXT NOT NULL CHECK (module_type IN ('core', 'addon', 'beta')),
-  enabled BOOLEAN NOT NULL DEFAULT FALSE,
-  enabled_at TIMESTAMPTZ,
-  PRIMARY KEY (project_id, module_key)
-);
+    class ACC,ORG,PROJ,EVENTS root
+    class OM,OT,OP,TM,MOD,PERM,EVT,TASK,ISSUE,EXP,CAU sub
 ```
 
-### Event Store
+### Event Store in Firestore
+- 使用 `domain_events/{eventId}` 作為 append-only 儲存，metadata 內含 `workspaceId/projectId/organizationId/moduleKey/actorId/causedBy/traceId`。
+- 重播時以 `collectionGroup('events')` 查詢專案範圍事件，或用 Cloud Functions/Batch 處理 offline projector。
+- 需要大量寫入時以 Batched Writes / BulkWriter，單批 <= 500 筆並控制速率；跨批次以 traceId 分段保證順序。
 
-```sql
--- Domain Events (Event Sourcing)
-CREATE TABLE domain_events (
-  event_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  event_type TEXT NOT NULL,
-  aggregate_id UUID NOT NULL,
-  
-  -- ✅ Scope (支援組織層級查詢)
-  project_id UUID NOT NULL REFERENCES projects(project_id),
-  organization_id UUID REFERENCES organizations(organization_id),
-  personal_user_id UUID REFERENCES accounts(account_id),
-  
-  -- Module context
-  module_key TEXT,
-  
-  -- Metadata
-  actor_id UUID NOT NULL REFERENCES accounts(account_id),
-  actor_type TEXT NOT NULL CHECK (actor_type IN ('user', 'bot', 'system')),
-  trace_id TEXT NOT NULL,
-  
-  -- Payload
-  payload JSONB NOT NULL,
-  metadata JSONB NOT NULL,  -- causality, context, etc.
-  
-  timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  
-  -- ✅ 關鍵索引
-  INDEX idx_project_events (project_id, module_key, timestamp),
-  INDEX idx_org_events (organization_id, timestamp) WHERE organization_id IS NOT NULL,
-  INDEX idx_aggregate_events (aggregate_id, timestamp),
-  INDEX idx_trace_events (trace_id, timestamp),
-  
-  -- ✅ 支援 Event Replay
-  INDEX idx_event_type_time (event_type, timestamp)
-);
-
--- Event Causality (多對多因果關係)
-CREATE TABLE event_causality (
-  event_id UUID NOT NULL REFERENCES domain_events(event_id) ON DELETE CASCADE,
-  caused_by_event_id UUID REFERENCES domain_events(event_id) ON DELETE SET NULL,
-  affects_entity_id UUID,
-  causality_type TEXT NOT NULL CHECK (causality_type IN ('direct', 'cascading', 'cross_module', 'automation')),
-  PRIMARY KEY (event_id, caused_by_event_id)
-);
-
--- Cross-Module References
-CREATE TABLE cross_module_references (
-  reference_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  source_id UUID NOT NULL,
-  source_type TEXT NOT NULL,  -- 'task', 'issue', 'comment', etc.
-  source_project_id UUID NOT NULL REFERENCES projects(project_id),
-  target_id UUID NOT NULL,
-  target_type TEXT NOT NULL,
-  target_project_id UUID NOT NULL REFERENCES projects(project_id),
-  reference_type TEXT NOT NULL CHECK (reference_type IN ('mentions', 'closes', 'references', 'blocks', 'duplicates', 'relates_to')),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  
-  INDEX idx_source_refs (source_id, source_type),
-  INDEX idx_target_refs (target_id, target_type),
-  INDEX idx_cross_project_refs (source_project_id, target_project_id) WHERE source_project_id != target_project_id
-);
-```
-
----
+### Security Rules 重點
+- 所有讀寫以 `request.auth.uid` + `customClaims` 驗證組織/專案角色。
+- `projects/{projectId}/modules/{moduleKey}` 需先檢查啟用狀態才能讀寫子集合。
+- domain_events 僅後端服務寫入：以 Callable Function 或 Admin SDK，前端只讀 projection。
 
 ## Critical Validation Rules
 
@@ -1190,7 +1112,7 @@ flowchart TD
 ### 🎯 Implementation Priorities
 
 **P0 (立即實作)**
-1. Supabase Schema 建立
+1. Firestore 集合與規則建立
 2. 權限計算 API (`/projects/{id}/permissions`)
 3. Angular Permission Service
 

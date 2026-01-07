@@ -1,3 +1,11 @@
+## 層級導讀（Firebase 版本）
+- 架構層：docs/Mermaid-架構層.md
+- 基礎設施層：docs/Mermaid-基礎設施層.md
+- 概念層：docs/Mermaid-概念層.md
+- 實作指引：docs/Mermaid-實作指引.md
+- 模組層：docs/Mermaid-模組層.md
+- 總結層：docs/Mermaid-總結層.md
+
 ## Event Flow Overview
 ```mermaid
 flowchart TD
