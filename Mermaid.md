@@ -116,6 +116,8 @@ stateDiagram-v2
 4) Event 對應 Entity 變更；因果以 `causedBy/traceId` 追蹤。
 5) 多 Workspace：Session 必選 Workspace，事件/資料綁 `workspaceId`。
 
+_PR #3/#6 anchor log: see `docs/divergence-anchors.md` for branch comparison and risk notes tied to Mermaid.md._
+
 ## Packages Directory Tree
 - packages 目錄下主要子資料夾概覽。
 - 預留 platform-adapters/@google/genai 子資料夾。
