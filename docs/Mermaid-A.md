@@ -1064,7 +1064,7 @@ flowchart TD
     
     infra --> events["event-sourcing/"]
     infra --> permissions["permissions/"]
-    infra --> supabase["supabase-client/"]
+    infra --> firebase["firebase-adapter/"]
     
     ui --> uiSrc["src/"]
     ui --> guards["guards/"]
@@ -1079,7 +1079,7 @@ flowchart TD
     classDef uiStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px
     
     class domain,account,org,project,modules,task,issue,finance,quality,acceptance domainStyle
-    class infra,events,permissions,supabase infraStyle
+    class infra,events,permissions,firebase infraStyle
     class ui,uiSrc,guards,services,components uiStyle
 ```
 
