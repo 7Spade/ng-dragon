@@ -36,28 +36,28 @@ Produce a phased, conflict-free alignment of .copilot-tracking workflow with edg
 
 ## Implementation Checklist
 
-### [ ] Phase 1: Inventory and guardrails
+### [x] Phase 1: Inventory and guardrails
 
-- [ ] Task 1.1: Validate existing .copilot-tracking assets and collision risks
+- [x] Task 1.1: Validate existing .copilot-tracking assets and collision risks
 
   - Details: .copilot-tracking/details/20260107-edge-ai-tracking-alignment-details.md (Lines 11-27)
 
-- [ ] Task 1.2: Confirm research coverage for planning and implementation
+- [x] Task 1.2: Confirm research coverage for planning and implementation
   - Details: .copilot-tracking/details/20260107-edge-ai-tracking-alignment-details.md (Lines 28-44)
 
-### [ ] Phase 2: Plan and mapping alignment
+### [x] Phase 2: Plan and mapping alignment
 
-- [ ] Task 2.1: Ensure plan applyTo and changes file mapping is scoped to this slug
+- [x] Task 2.1: Ensure plan applyTo and changes file mapping is scoped to this slug
   - Details: .copilot-tracking/details/20260107-edge-ai-tracking-alignment-details.md (Lines 45-63)
 
-### [ ] Phase 3: VS Code visibility alignment
+### [x] Phase 3: VS Code visibility alignment
 
-- [ ] Task 3.1: Add or update chat visibility settings for plans and prompts
+- [x] Task 3.1: Add or update chat visibility settings for plans and prompts
   - Details: .copilot-tracking/details/20260107-edge-ai-tracking-alignment-details.md (Lines 65-81)
 
-### [ ] Phase 4: Validation and change tracking
+### [x] Phase 4: Validation and change tracking
 
-- [ ] Task 4.1: Validate cross-references and update change log
+- [x] Task 4.1: Validate cross-references and update change log
   - Details: .copilot-tracking/details/20260107-edge-ai-tracking-alignment-details.md (Lines 83-101)
 
 ## Dependencies

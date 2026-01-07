@@ -1,2 +1,1 @@
-User request: Plan edge-ai .copilot-tracking alignment
-Goal: produce phased plan aligning .copilot-tracking workflow with edge-ai task collection guidance, ensure unique filenames, correct applyTo/changes mapping, VS Code visibility; output plan instructions, details, implementation prompt for edge-ai-tracking-alignment.
+User request: Implement changes per problem statement referencing PR #19 and tracking files (.copilot-tracking plan/details/changes/prompts/research) in ng-dragon repo.
