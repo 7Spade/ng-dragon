@@ -1,1 +1,1 @@
-User request: Update mermaid-related documentation and copilot tracking files per problem statement referencing docs/Mermaid-*.md files.
+User request: Prepare development by creating mermaid-related doc files with purpose comment, adjust existing code/files if they hinder future implementation per problem statement.

@@ -1,3 +1,5 @@
+<!-- 用途：收納 Angular + Firebase 的實作指引與範例。 -->
+
 ## 實作指引（Angular + Firebase）
 
 ### Auth 與 Session

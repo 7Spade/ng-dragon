@@ -1,3 +1,5 @@
+<!-- 用途：彙總 Firebase 策略與事件溯源重點的 Mermaid 說明。 -->
+
 ## 總結層
 - Firebase 生態專注：Firestore 文件式設計、Security Rules 為第一層 ACL、Cloud Functions 維護事件與投影。
 - Workspace/Module 先驗：所有請求必帶 workspaceId，模組未啟用即拒絕；事件 metadata 必填 `actorId/moduleKey/causedBy/traceId`。
