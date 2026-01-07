@@ -116,4 +116,17 @@ stateDiagram-v2
 4) Event 對應 Entity 變更；因果以 `causedBy/traceId` 追蹤。
 5) 多 Workspace：Session 必選 Workspace，事件/資料綁 `workspaceId`。
 
+## Packages Directory Tree
+- packages 目錄下主要子資料夾概覽。
+
+```mermaid
+flowchart TD
+    packages["packages/"]
+    packages --> acc["account-domain/"]
+    packages --> core["core-engine/"]
+    packages --> adapters["platform-adapters/"]
+    packages --> saas["saas-domain/"]
+    packages --> ui["ui-angular/"]
+```
+
 // END OF FILE
