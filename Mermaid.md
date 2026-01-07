@@ -118,6 +118,7 @@ stateDiagram-v2
 
 ## Packages Directory Tree
 - packages 目錄下主要子資料夾概覽。
+- 預留 platform-adapters/@google/genai 子資料夾。
 
 ```mermaid
 flowchart TD
@@ -127,6 +128,7 @@ flowchart TD
     packages --> adapters["platform-adapters/"]
     packages --> saas["saas-domain/"]
     packages --> ui["ui-angular/"]
+    adapters --> googleGenAI["platform-adapters/@google/genai/"]
 ```
 
 // END OF FILE
