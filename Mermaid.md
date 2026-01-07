@@ -1,71 +1,41 @@
 ## Event Flow Overview
 ```mermaid
-%% Event Flow + Event Sourcing + Causality Tracking with Causality Links
 flowchart TD
-    %% 層級節點
     subgraph Identity["Identity Layer"]
         A[Account]
     end
-
     subgraph WorkspaceLayer["Workspace Layer"]
         B[Workspace]
     end
-
     subgraph Domain["Domain Layer"]
         C[Module]
         D[Entity]
     end
-
     subgraph EventLayer["Event Layer"]
         E1[Event 1]
         E2[Event 2]
         E3[Event 3]
     end
-
     subgraph Processing["Processing Layer"]
         F[Event Sourcing]
         G[Causality Tracking]
     end
-
-    %% 核心流程
-    A --> B
-    B --> C
-    C --> D
-    D --> E1
-    E1 --> E2
-    E2 --> E3
-    E3 --> F
-    F --> G
-
-    %% Event 延伸處理箭頭
+    A --> B --> C --> D --> E1 --> E2 --> E3 --> F --> G
     E1 -.-> F
     E2 -.-> F
     E3 -.-> F
     E1 -.-> G
     E2 -.-> G
     E3 -.-> G
-
-    %% 因果鏈示意（Causality Tracking）
     E1 ==> E2
     E2 ==> E3
-
-    %% 节点样式
-    style A fill:#ffe0b2,stroke:#fb8c00,stroke-width:2px
-    style B fill:#fff59d,stroke:#fbc02d,stroke-width:2px
-    style C fill:#b2dfdb,stroke:#00796b,stroke-width:2px
-    style D fill:#80cbc4,stroke:#004d40,stroke-width:2px
-    style E1 fill:#ffccbc,stroke:#d84315,stroke-width:2px
-    style E2 fill:#ffab91,stroke:#d84315,stroke-width:2px
-    style E3 fill:#ff8a65,stroke:#d84315,stroke-width:2px
-    style F fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
-    style G fill:#bbdefb,stroke:#1565c0,stroke-width:2px
 ```
 
-## Workspace Model & Permission APIs
-- `workspaceId` 與 `workspaceType`：`organization | project | personal`
-- 成員角色：`owner | admin | member | viewer`，用於權限界定。
-- 可用模組列表需記錄 `moduleKey`、啟用狀態、模組類型。
-- 權限檢查 API：`assertWorkspaceAccess(accountId, workspaceId, requiredRole)`、`assertModuleEnabled(workspaceId, moduleKey)`。
+## Workspace / Account / Module Core
+- Workspace = 業務空間 (`workspaceType`: organization|project|personal)。Organization=Workspace；User/Bot=Actor。
+- `accountType`: `user | bot | organization`；Actor ≠ Workspace，API/ACL 強制區分。
+- 成員角色：`owner | admin | member | viewer`；模組列表含 `moduleKey/moduleType/enabled`。
+- ACL 層級：`assertWorkspaceAccess(accountId, workspaceId, requiredRole)`、`assertModuleEnabled(workspaceId, moduleKey)`；Entity 只記錄狀態。
 
 ```mermaid
 classDiagram
@@ -75,28 +45,24 @@ classDiagram
       modules: ModuleStatus[]
       assertWorkspaceAccess(accountId, requiredRole)
     }
-
     class Member {
       accountId: UUID
       accountType: user|organization|bot
       role: owner|admin|member|viewer
     }
-
     class ModuleStatus {
       moduleKey: string
       moduleType: core|addon|beta
       enabled: boolean
       assertModuleEnabled(moduleKey)
     }
-
     Workspace "1" o-- "*" Member : members
     Workspace "1" o-- "*" ModuleStatus : modules
 ```
 
-## Account Context & Authentication Flow
-- `accountId` + `accountType (user | organization | bot)` 定義 Actor。
-- Actor 與 Workspace 需透過 membership 連結；登入後可檢查所屬 Workspace 權限。
-- 登入/驗證流程需串接 Workspace / Module 的權限檢查。
+## Auth Chain & Session (Angular)
+- 登入鏈：`@angular/fire/auth → @delon/auth → DA_SERVICE_TOKEN → @delon/acl`，以 ACL 驗證 Workspace / Module。
+- 多 Workspace：登入後列 memberships → 選 Workspace → 進入 Module/Entity；所有事件必綁 `workspaceId`。
 
 ```mermaid
 sequenceDiagram
@@ -104,19 +70,17 @@ sequenceDiagram
     participant Auth as AuthService
     participant WS as Workspace
     participant Mod as Module
-
     Actor->>Auth: signIn(credentials)
     Auth->>WS: lookupMembership(accountId, workspaceId)
     WS-->>Auth: assertWorkspaceAccess()
     Auth->>Mod: assertModuleEnabled(moduleKey)
-    Mod-->>Auth: module enabled/disabled
-    Auth-->>Actor: session/accessToken
+    Mod-->>Auth: enabled/disabled
+    Auth-->>Actor: session (Workspace scoped)
 ```
 
-## Module Lifecycle & Enablement
-- 每個模組記錄 `moduleKey`、`moduleType` 與所屬 Workspace。
-- 模組狀態：啟用 / 停用；需透過 `assertModuleEnabled()` 進行權限檢查。
-- 啟用/停用應保留審計事件以供後續追蹤。
+## Module Boundary & Permissions
+- Module = 功能邊界；先 `assertModuleEnabled()` 再操作 Entity。
+- Entity = 資料單位 (Task/File/Issue)；不處理 ACL，只記錄狀態與事件。
 
 ```mermaid
 stateDiagram-v2
@@ -128,5 +92,17 @@ stateDiagram-v2
         Active --> Active: assertModuleEnabled(moduleKey)
     }
 ```
+
+## Event Sourcing & Causality
+- Event 型態：`DomainEvent<T>` 含 `eventType, aggregateId, workspaceId, payload, metadata{actorId, causedBy, traceId, timestamp, moduleKey}`。
+- Event Sourcing：Aggregate apply(event) 儲存於 EventStore；重播前需驗證 Workspace/Module 啟用。
+- Causality：使用 `causedBy/traceId` 串事件鏈；Event 必對應 Entity 變更，ACL 在 Workspace/Module。
+
+## Divergence Watchlist
+1) Workspace=Organization，Actor 不是 Workspace。
+2) AccountType：User/Bot=Actor；Organization=Workspace。
+3) Module 控功能，Entity 控資料，ACL 在 Workspace/Module。
+4) Event 對應 Entity 變更；因果鏈以 `causedBy/traceId` 追蹤。
+5) 多 Workspace：Session 必選 Workspace，事件/資料綁 `workspaceId`。
 
 // END OF FILE
