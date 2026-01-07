@@ -1,3 +1,5 @@
+<!-- 用途：紀錄 Firebase 基礎設施（Firestore/Rules）設計的 Mermaid 摘要。 -->
+
 ## 基礎設施層（Firebase）
 
 ### Firestore 佈局

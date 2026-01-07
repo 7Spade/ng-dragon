@@ -1,3 +1,5 @@
+<!-- 用途：整理核心概念與因果關係的 Mermaid 說明。 -->
+
 ## 概念層
 - **Account / Actor**：登入主體 (user|bot)，永遠不是 Organization；透過 Firebase Auth 驗證。
 - **Organization / Team**：資源擁有者，決定 Project 權限繼承；Organization 不是 Actor。

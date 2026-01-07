@@ -1,3 +1,5 @@
+<!-- 用途：彙整 Mermaid 圖表索引與分層導讀。 -->
+
 ## 層級導讀（Firebase 版本）
 - 架構層：docs/Mermaid-架構層.md
 - 基礎設施層：docs/Mermaid-基礎設施層.md

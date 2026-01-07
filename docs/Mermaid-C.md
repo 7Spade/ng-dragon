@@ -1,3 +1,5 @@
+<!-- 用途：替代架構草稿的 Mermaid 圖，對應 Identity/Workspace 流程。 -->
+
 # Project Architecture Design
 
 ## Core Concepts

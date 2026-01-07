@@ -1,3 +1,5 @@
+<!-- 用途：Firestore 版本的架構與事件流程 Mermaid 圖。 -->
+
 # Project Architecture Design (Firestore Version)
 
 ## Core Concepts

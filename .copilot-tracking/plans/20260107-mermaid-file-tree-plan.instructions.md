@@ -46,11 +46,11 @@ Add or adjust the Packages Directory Tree section in `docs/Mermaid.md`, keeping 
 - [x] Task 2.1: Confirm diagram syntax matches Mermaid documentation
   - Details: .copilot-tracking/details/20260107-mermaid-file-tree-details.md (Lines 48-61)
 
-### [ ] Phase 3: Prep Mermaid doc files for future development
+### [x] Phase 3: Prep Mermaid doc files for future development
 
-- [ ] Task 3.1: Ensure listed Mermaid docs exist with a one-line purpose comment
+- [x] Task 3.1: Ensure listed Mermaid docs exist with a one-line purpose comment
   - Details: .copilot-tracking/details/20260107-mermaid-file-tree-details.md (Lines 63-83)
-- [ ] Task 3.2: Remove or note any conflicting Mermaid artifacts blocking future implementation
+- [x] Task 3.2: Remove or note any conflicting Mermaid artifacts blocking future implementation
   - Details: .copilot-tracking/details/20260107-mermaid-file-tree-details.md (Lines 85-94)
 
 ## Dependencies

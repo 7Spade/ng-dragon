@@ -1,3 +1,5 @@
+<!-- 用途：通用架構與事件流程的 Mermaid 圖示（基礎版本）。 -->
+
 # Project Architecture Design
 
 ## Core Concepts
