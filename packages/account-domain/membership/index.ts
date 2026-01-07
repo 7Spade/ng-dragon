@@ -1,3 +1,3 @@
-// Membership domain placeholder exports
-// TODO: add aggregates/events when implementing membership roles
+// Membership domain surface: placeholder for workspace role aggregates and events.
+// Maintains account-role bindings (owner/admin/member/viewer) per workspace.
 export {};

@@ -1,3 +1,3 @@
-// Account domain placeholder exports
-// TODO: add aggregates/events when implementing account lifecycle
+// Account domain surface: placeholder for account lifecycle aggregates and events.
+// Defines account creation/suspension gatekeeping workspace onboarding.
 export {};
