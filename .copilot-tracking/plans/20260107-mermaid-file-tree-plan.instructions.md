@@ -7,23 +7,23 @@ applyTo: ".copilot-tracking/changes/20260107-mermaid-file-tree-changes.md"
 # Task Checklist: Mermaid file tree diagram
 
 ## Overview
-
-Add a Mermaid diagram to document the packages directory tree in `Mermaid.md`.
+Add or adjust the Packages Directory Tree section in `docs/Mermaid.md`, keeping wording consistent with the existing Mermaid documentation set.
 
 ## Objectives
 
-- Introduce a `Packages Directory Tree` section in Mermaid.md.
-- Visualize the five key package folders under `packages/` with a Mermaid flowchart.
+- Introduce或維持 `Packages Directory Tree` 區段於 Mermaid.md。
+- 以 Mermaid flowchart 呈現 packages 目錄下的主要套件資料夾。
 
 ## Research Summary
 
 ### Project Files
 
-- Mermaid.md - target markdown file containing existing Mermaid diagrams and style to follow.
+- `docs/Mermaid.md` – 目前已包含 Packages Directory Tree 區塊（含 src/ 預留節點與 `platform-adapters/@google/genai` 子樹）。
+- 分層與概念來源：`docs/Mermaid-A.md`、`docs/Mermaid-B.md`、`docs/Mermaid-C.md`、`docs/Mermaid-架構層.md`、`docs/Mermaid-基礎設施層.md`、`docs/Mermaid-概念層.md`、`docs/Mermaid-實作指引.md`、`docs/Mermaid-模組層.md`、`docs/Mermaid-總結層.md`。
 
 ### External References
 
-- #file:../research/20260107-mermaid-file-tree-research.md - repo findings, folder list, and diagram pattern to reuse.
+- #file:../research/20260107-mermaid-file-tree-research.md - repo findings、套件列表與 Mermaid block 範例。
 - #fetch:https://mermaid.js.org/syntax/flowchart.html - Mermaid flowchart syntax reference.
 
 ### Standards References
@@ -36,22 +36,22 @@ Add a Mermaid diagram to document the packages directory tree in `Mermaid.md`.
 
 - [x] Task 1.1: Add new heading and context for the packages tree
 
-  - Details: .copilot-tracking/details/20260107-mermaid-file-tree-details.md (Lines 11-24)
+  - Details: .copilot-tracking/details/20260107-mermaid-file-tree-details.md (Lines 11-26)
 
 - [x] Task 1.2: Insert Mermaid flowchart for package folders
-  - Details: .copilot-tracking/details/20260107-mermaid-file-tree-details.md (Lines 26-39)
+  - Details: .copilot-tracking/details/20260107-mermaid-file-tree-details.md (Lines 28-46)
 
 ### [x] Phase 2: Verify formatting references
 
 - [x] Task 2.1: Confirm diagram syntax matches Mermaid documentation
-  - Details: .copilot-tracking/details/20260107-mermaid-file-tree-details.md (Lines 41-54)
+  - Details: .copilot-tracking/details/20260107-mermaid-file-tree-details.md (Lines 48-61)
 
 ## Dependencies
 
 - Mermaid flowchart syntax understanding
-- Access to edit Mermaid.md
+- Access to edit Mermaid.md and the referenced Mermaid layer docs for consistent terminology
 
 ## Success Criteria
 
-- Mermaid.md contains a `Packages Directory Tree` section with accurate folder nodes.
-- The new flowchart renders with valid Mermaid syntax and consistent formatting.
+- Mermaid.md contains a `Packages Directory Tree` section對齊內部用語，涵蓋主要套件資料夾（`account-domain`、`core-engine`、`platform-adapters`、`saas-domain`、`ui-angular`）。
+- 若保留 src/ 或 `@google/genai` 子節點，維持現有層級與縮排，並符合 Mermaid 語法。
