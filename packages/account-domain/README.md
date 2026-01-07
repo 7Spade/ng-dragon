@@ -43,3 +43,9 @@ Compensation events (`AccountSuspended`, `WorkspaceArchived`, module disablement
 - Exported types live under `@ng-events/account-domain`.
 - Consumers (platform adapters, UI) should read projections, not mutate aggregates directly.
 - Keep all new code free from Angular/Firebase SDKs; integrate through adapters instead.
+
+## Planned additions
+
+- Membership / Invitation policies aligned with Workspace onboarding (Mermaid 架構層).
+- Module enablement dependency rules (task/issue/finance/quality/acceptance) kept in `policies/`.
+- Read model / projection contracts stay in core-engine; account-domain 僅定義事件與聚合。

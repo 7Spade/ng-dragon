@@ -2,61 +2,50 @@
 
 ## 目標
 
-說明 `core-engine` 的責任範圍、邊界與依賴，作為專案的核心基礎架構層。
+提供 CQRS / Event Sourcing 的基礎設施（命令、事件、聚合、投影、排程、工作），純 TypeScript，零 SDK。
 
----
+## 邊界與依賴
 
-## 目標與責任
+- **僅依賴**：`account-domain` 模型（選擇性），TypeScript 標準庫。
+- **禁止**：Angular、Firebase、任何第三方 SDK。
+- **服務對象**：`saas-domain`、`platform-adapters`、`ui-angular`（透過 adapters 間接）。
 
-- 提供 **CQRS / Event Sourcing** 基礎設施  
-  - 聚合根 (Aggregate Root)  
-  - 事件存儲 (Event Store)  
-  - 投影 (Projection)  
-  - 命令 (Command) 處理與事件分發 (Event Dispatcher)  
-- 支援 domain 層進行業務操作  
-- 提供可重用的核心架構給上層應用與平台適配器使用
-
----
-
-## 邊界
-
-- **依賴**：可依賴 `account-domain` 提供的聚合與模型  
-- **不依賴** UI (`ui-angular`) 或平台 (`platform-adapters`)  
-- 核心邏輯獨立，保持純粹基礎架構層角色  
-- 提供統一事件流與聚合管理，避免 domain 層重複實作
-
----
-
-## 依賴圖示 (簡單 ASCII)
+## 結構（現況 + 預備）
 
 ```
+core-engine/
+└── src/
+    ├── commands/      # Command 定義與處理介面
+    ├── queries/       # Query 定義
+    ├── use-cases/     # 應用服務 / handler（純 TS）
+    ├── ports/         # 介面/抽象 (EventStore, Projection 等)
+    ├── mappers/       # DTO/領域物件轉換
+    ├── dtos/          # 輸入/輸出 DTO
+    ├── jobs/          # 背景工作定義
+    ├── schedulers/    # 定時 / 排程介面
+    └── __tests__/     # 核心行為測試（待補）
+```
 
-account-domain
-│
-▼
+> 實作端（Firebase、DB、AI）一律放在 `platform-adapters/src`，此處只定義介面與純邏輯。
+
+## 依賴圖（單一路徑）
+
+```
 core-engine
-│
-▼
-platform-adapters
-│
-▼
-saas-domain
-│
-▼
-ui-angular
-
+   ^      \
+   |       \
+account-domain  platform-adapters
+        \        /
+         \      /
+         saas-domain
+             ^
+             |
+          ui-angular (透過 adapters)
 ```
-
-**說明**：  
-- `core-engine` 位於 domain 與外部平台之間，提供事件與聚合管理  
-- `platform-adapters` 對接資料庫與外部服務，依賴 core-engine 提供的框架  
-- `saas-domain` 與 `ui-angular` 間接依賴 core-engine 的事件與聚合管理
-
----
 
 ## 原則
 
-1. **框架專注**：只提供事件、聚合、命令、投影等核心架構  
-2. **Domain-first**：依賴 domain，但不包含 UI 或平台邏輯  
-3. **單一責任**：保持核心引擎純粹，不混合業務或外部接口  
-4. **明確依賴**：僅向上依賴 domain，向下提供接口給平台與應用層
+1. **純淨**：零 SDK、零框架依賴。
+2. **抽象優先**：僅定義介面與行為，具體實作交給 `platform-adapters`。
+3. **單一入口**：所有程式碼放在 `src/`；新增元件前先更新 README/AGENTS。
+4. **測試導向**：新增 command/handler/port 時，為核心規則撰寫對應測試（`__tests__/`）。

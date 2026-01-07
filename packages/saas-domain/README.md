@@ -1,83 +1,36 @@
 # SaaS Domain
 
-🏢 **Pure TypeScript business domain models**
+🏢 **SaaS 業務模型（純 TypeScript，零 SDK）**
 
-## Principles
+> 依賴 `account-domain`（身份 / 工作區 / 模組啟用）與 `core-engine` 抽象，所有程式碼集中於 `src/`。
 
-This package contains business domain logic for the SaaS application:
-
-- ✅ Pure TypeScript only
-- ✅ Can depend on `@core-engine`
-- ❌ NO Angular imports
-- ❌ NO Firebase imports
-- ❌ NO framework dependencies
-
-## Domain Models
-
-### 1. Task (`task/`)
-
-Task management domain logic:
-
-```typescript
-import { Task } from '@saas-domain/task';
-
-// Task aggregate, events, and business rules
-// - TaskCreated, TaskUpdated, TaskCompleted events
-// - Task assignment rules
-// - Task status transitions
-```
-
-### 2. Payment (`payment/`)
-
-Payment processing domain logic:
-
-```typescript
-import { Payment } from '@saas-domain/payment';
-
-// Payment aggregate, events, and business rules
-// - PaymentInitiated, PaymentProcessed, PaymentFailed events
-// - Payment validation rules
-// - Refund policies
-```
-
-### 3. Issue (`issue/`)
-
-Issue tracking domain logic:
-
-```typescript
-import { Issue } from '@saas-domain/issue';
-
-// Issue aggregate, events, and business rules
-// - IssueCreated, IssueAssigned, IssueClosed events
-// - Priority management
-// - Workflow rules
-```
-
-## Dependencies
-
-- `@core-engine` - Event sourcing infrastructure
-- TypeScript only - No framework dependencies
-
-## Usage
-
-This package is imported by:
-
-- ✅ `platform-adapters` - For event handling and persistence
-- ✅ `ui-angular` (via adapters) - For business logic access
-- ❌ Should NOT import framework-specific code
-
-## Architecture
+## 結構（現況 + 預備）
 
 ```
-SaaS Domain → depends on → Core Engine
-     ↓
-     | (used by)
-     ↓
-Platform Adapters
-     ↓
-     | (used by)
-     ↓
-UI Angular
+saas-domain/
+└── src/
+    ├── aggregates/        # task / issue / finance / quality / acceptance 等聚合（預留）
+    ├── value-objects/     # 模組 VO
+    ├── events/            # 模組事件
+    ├── domain-services/   # 無狀態的跨聚合邏輯
+    ├── repositories/      # 介面定義
+    ├── entities/          # 共享 Entity 型別
+    ├── policies/          # 模組依賴 / 啟用檢查
+    └── __tests__/         # 測試（新增實作時補齊）
+```
+
+> 新增模組時，直接落在上述子資料夾，避免再產生平行根目錄；若新增 task/issue/finance/quality/acceptance，請同步更新 README/AGENTS 與 Mermaid 文件。
+
+## 原則
+
+- ❌ 禁止引入 Angular / Firebase / 任何 SDK
+- ✅ 僅依賴 `@core-engine` 抽象與 `account-domain` 前置邏輯
+- ✅ 單一入口 `src/`，新增前先更新文件，保持對齊架構圖
+
+## 依賴
+
+```
+account-domain + core-engine -> saas-domain -> ui-angular (透過 adapters)
 ```
 
 ## License
