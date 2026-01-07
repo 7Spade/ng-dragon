@@ -726,7 +726,7 @@ sequenceDiagram
     
     Admin->>Replay: rebuild-projection(projectId, moduleKey)
     Replay->>Store: query events
-    Note over Store: SELECT * FROM domain_events<br/>WHERE project_id = ?<br/>AND module_key = ?<br/>ORDER BY timestamp ASC
+    Note over Store: query(domain_events,<br/> where('projectId','==', projectId),<br/> where('moduleKey','==', moduleKey),<br/> orderBy('timestamp','asc'))
     
     Store-->>Replay: events[]
     
@@ -749,151 +749,102 @@ sequenceDiagram
 
 ---
 
-## Supabase Schema Design
+## Firestore Data Model
 
-### Core Tables
+### Core Collections
 
-```sql
--- Accounts (登入主體)
-CREATE TABLE accounts (
-  account_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  account_type TEXT NOT NULL CHECK (account_type IN ('user', 'bot')),
-  email TEXT UNIQUE,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
+- `accounts`（collection，登入主體）
+  ```json
+  {
+    "accountType": "user | bot",
+    "email": "alice@example.com",
+    "createdAt": "serverTimestamp"
+  }
+  ```
 
--- Organizations (實體容器)
-CREATE TABLE organizations (
-  organization_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  slug TEXT UNIQUE NOT NULL,
-  owner_id UUID NOT NULL REFERENCES accounts(account_id),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
+- `organizations`（collection，實體容器）
+  - Fields: `slug`, `ownerId`, `createdAt`
+  - Subcollections:
+    - `members`（docId = accountId）: `{ role, joinedAt }`
+    - `teams`（docId = teamId）: `{ slug, defaultPermission, createdAt }`
+      - `members` subcollection（docId = accountId）: `{ role, joinedAt }`
 
--- Organization Members
-CREATE TABLE organization_members (
-  organization_id UUID NOT NULL REFERENCES organizations(organization_id) ON DELETE CASCADE,
-  account_id UUID NOT NULL REFERENCES accounts(account_id) ON DELETE CASCADE,
-  role TEXT NOT NULL CHECK (role IN ('owner', 'admin', 'member')),
-  joined_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  PRIMARY KEY (organization_id, account_id)
-);
+- `projects`（collection = Workspace）
+  - Fields: `name`, `slug`, `belongsTo: { type: 'organization' | 'user', id }`, `createdAt`
+  - Subcollections:
+    - `permissions`（docId = `${grantedToType}_${grantedToId}`）
+      ```json
+      {
+        "grantedToType": "user | team",
+        "grantedToId": "accountId | teamId",
+        "role": "owner | admin | write | read",
+        "grantedAt": "serverTimestamp"
+      }
+      ```
+    - `modules`（docId = moduleKey）
+      ```json
+      {
+        "moduleType": "core | addon | beta",
+        "enabled": true,
+        "enabledAt": "serverTimestamp"
+      }
+      ```
 
--- Teams
-CREATE TABLE teams (
-  team_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  organization_id UUID NOT NULL REFERENCES organizations(organization_id) ON DELETE CASCADE,
-  slug TEXT NOT NULL,
-  default_permission TEXT CHECK (default_permission IN ('admin', 'write', 'read', 'none')),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE (organization_id, slug)
-);
+> 🔒 關聯約束（唯一 slug、owner 驗證等）透過 Firestore Security Rules + Cloud Functions 實現，避免在客戶端信任資料。
 
--- Team Members
-CREATE TABLE team_members (
-  team_id UUID NOT NULL REFERENCES teams(team_id) ON DELETE CASCADE,
-  account_id UUID NOT NULL REFERENCES accounts(account_id) ON DELETE CASCADE,
-  role TEXT NOT NULL CHECK (role IN ('maintainer', 'member')),
-  joined_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  PRIMARY KEY (team_id, account_id)
-);
+### Event Store（Firestore Collections）
 
--- Projects (Workspace)
-CREATE TABLE projects (
-  project_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name TEXT NOT NULL,
-  slug TEXT NOT NULL,
-  belongs_to_type TEXT NOT NULL CHECK (belongs_to_type IN ('organization', 'user')),
-  belongs_to_id UUID NOT NULL,  -- organization_id or account_id
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE (belongs_to_type, belongs_to_id, slug)
-);
+- `domain_events`（collection）
+  ```json
+  {
+    "eventType": "task.created",
+    "aggregateId": "task_xyz789",
+    "scope": {
+      "projectId": "proj_456",
+      "organizationId": "org_123",
+      "personalUserId": null
+    },
+    "moduleKey": "task-module",
+    "metadata": {
+      "actorId": "user_alice",
+      "actorType": "user | bot | system",
+      "causality": {
+        "causedBy": ["evt_abc123"],
+        "affects": ["task_xyz789"],
+        "type": "direct | cascading | cross_module | automation"
+      },
+      "traceId": "trace_abc",
+      "context": {}
+    },
+    "payload": { "title": "Implement login" },
+    "timestamp": "serverTimestamp"
+  }
+  ```
+  - 使用 `collectionGroup('domain_events')` + `orderBy('timestamp')` 進行 replay
+  - 事件因果使用 array 欄位（`causedBy`, `affects`），不需額外 join
 
--- Project Permissions
-CREATE TABLE project_permissions (
-  project_id UUID NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
-  granted_to_type TEXT NOT NULL CHECK (granted_to_type IN ('user', 'team')),
-  granted_to_id UUID NOT NULL,  -- account_id or team_id
-  role TEXT NOT NULL CHECK (role IN ('owner', 'admin', 'write', 'read')),
-  granted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  PRIMARY KEY (project_id, granted_to_type, granted_to_id)
-);
+- `cross_module_references`（collection）
+  ```json
+  {
+    "sourceId": "taskId",
+    "sourceType": "task | issue | comment",
+    "sourceProjectId": "proj_456",
+    "targetId": "issueId",
+    "targetType": "issue",
+    "targetProjectId": "proj_789",
+    "referenceType": "mentions | closes | references | blocks | duplicates | relates_to",
+    "createdAt": "serverTimestamp"
+  }
+  ```
 
--- Module Status (per Project)
-CREATE TABLE module_status (
-  project_id UUID NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
-  module_key TEXT NOT NULL,
-  module_type TEXT NOT NULL CHECK (module_type IN ('core', 'addon', 'beta')),
-  enabled BOOLEAN NOT NULL DEFAULT FALSE,
-  enabled_at TIMESTAMPTZ,
-  PRIMARY KEY (project_id, module_key)
-);
-```
+#### Index Recommendations（firestore.indexes.json）
 
-### Event Store
+- `domain_events`: `projectId + moduleKey + timestamp`, `aggregateId + timestamp`, `traceId + timestamp`
+- `domain_events`（條件 index）: `organizationId + timestamp`，where `organizationId != null`
+- `cross_module_references`: `sourceId + sourceType`、`targetId + targetType`、`sourceProjectId + targetProjectId`
+- 若使用 collectionGroup replay：建立 `collectionGroup('domain_events')` 的複合索引 `projectId + moduleKey + timestamp`
 
-```sql
--- Domain Events (Event Sourcing)
-CREATE TABLE domain_events (
-  event_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  event_type TEXT NOT NULL,
-  aggregate_id UUID NOT NULL,
-  
-  -- ✅ Scope (支援組織層級查詢)
-  project_id UUID NOT NULL REFERENCES projects(project_id),
-  organization_id UUID REFERENCES organizations(organization_id),
-  personal_user_id UUID REFERENCES accounts(account_id),
-  
-  -- Module context
-  module_key TEXT,
-  
-  -- Metadata
-  actor_id UUID NOT NULL REFERENCES accounts(account_id),
-  actor_type TEXT NOT NULL CHECK (actor_type IN ('user', 'bot', 'system')),
-  trace_id TEXT NOT NULL,
-  
-  -- Payload
-  payload JSONB NOT NULL,
-  metadata JSONB NOT NULL,  -- causality, context, etc.
-  
-  timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  
-  -- ✅ 關鍵索引
-  INDEX idx_project_events (project_id, module_key, timestamp),
-  INDEX idx_org_events (organization_id, timestamp) WHERE organization_id IS NOT NULL,
-  INDEX idx_aggregate_events (aggregate_id, timestamp),
-  INDEX idx_trace_events (trace_id, timestamp),
-  
-  -- ✅ 支援 Event Replay
-  INDEX idx_event_type_time (event_type, timestamp)
-);
-
--- Event Causality (多對多因果關係)
-CREATE TABLE event_causality (
-  event_id UUID NOT NULL REFERENCES domain_events(event_id) ON DELETE CASCADE,
-  caused_by_event_id UUID REFERENCES domain_events(event_id) ON DELETE SET NULL,
-  affects_entity_id UUID,
-  causality_type TEXT NOT NULL CHECK (causality_type IN ('direct', 'cascading', 'cross_module', 'automation')),
-  PRIMARY KEY (event_id, caused_by_event_id)
-);
-
--- Cross-Module References
-CREATE TABLE cross_module_references (
-  reference_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  source_id UUID NOT NULL,
-  source_type TEXT NOT NULL,  -- 'task', 'issue', 'comment', etc.
-  source_project_id UUID NOT NULL REFERENCES projects(project_id),
-  target_id UUID NOT NULL,
-  target_type TEXT NOT NULL,
-  target_project_id UUID NOT NULL REFERENCES projects(project_id),
-  reference_type TEXT NOT NULL CHECK (reference_type IN ('mentions', 'closes', 'references', 'blocks', 'duplicates', 'relates_to')),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  
-  INDEX idx_source_refs (source_id, source_type),
-  INDEX idx_target_refs (target_id, target_type),
-  INDEX idx_cross_project_refs (source_project_id, target_project_id) WHERE source_project_id != target_project_id
-);
-```
+> 🧰 Cloud Functions 可在事件寫入後推送到 Pub/Sub 供 projector 使用，避免在客戶端直接更新投影。
 
 ---
 
@@ -1112,9 +1063,9 @@ async function createTaskIssueReference(
    - Dead Letter Queue 處理異常事件
 
 3. **Performance Optimization**
-   - `domain_events` 表需要分區 (partition by project_id)
-   - 組織層級查詢使用 Materialized View
-   - 跨專案引用建立專用索引
+   - `domain_events` 使用複合索引（`projectId + moduleKey + timestamp`、`aggregateId + timestamp`）
+   - 組織層級查詢透過 BigQuery Export / Scheduled Aggregation 產出報表 snapshot
+   - 跨專案引用建立 `sourceProjectId + targetProjectId`、`sourceId + sourceType` 的索引，並在 query 前使用 cursor/limit
 
 ---
 
@@ -1142,7 +1093,7 @@ flowchart TD
     
     infra --> events["event-sourcing/"]
     infra --> permissions["permissions/"]
-    infra --> supabase["supabase-client/"]
+    infra --> firebase["firebase-client/"]
     
     ui --> uiSrc["src/"]
     ui --> guards["guards/"]
@@ -1157,7 +1108,7 @@ flowchart TD
     classDef uiStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px
     
     class domain,account,org,project,modules,task,issue,finance,quality,acceptance domainStyle
-    class infra,events,permissions,supabase infraStyle
+    class infra,events,permissions,firebase infraStyle
     class ui,uiSrc,guards,services,components uiStyle
 ```
 
@@ -1190,7 +1141,7 @@ flowchart TD
 ### 🎯 Implementation Priorities
 
 **P0 (立即實作)**
-1. Supabase Schema 建立
+1. Firestore Collections & Security Rules 建立
 2. 權限計算 API (`/projects/{id}/permissions`)
 3. Angular Permission Service
 
