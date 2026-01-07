@@ -71,8 +71,11 @@ import { HeaderUserComponent } from './widgets/user.component';
           </div>
         </nz-dropdown-menu>
       </layout-default-header-item>
+      <layout-default-header-item direction="right">
+        <header-user layout="header" />
+      </layout-default-header-item>
       <ng-template #asideUserTpl>
-        <header-user />
+        <header-user layout="aside" />
       </ng-template>
       <ng-template #contentTpl>
         <router-outlet />

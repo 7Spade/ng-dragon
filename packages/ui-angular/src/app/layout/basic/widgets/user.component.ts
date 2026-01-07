@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { DA_SERVICE_TOKEN } from '@delon/auth';
 import { I18nPipe, SettingsService, User } from '@delon/theme';
@@ -10,19 +10,26 @@ import { NzMenuModule } from 'ng-zorro-antd/menu';
 @Component({
   selector: 'header-user',
   template: `
-    <div
-      class="alain-default__aside-user"
-      nz-dropdown
-      [nzDropdownMenu]="userMenu"
-      nzTrigger="click"
-      nzPlacement="bottomLeft"
-    >
-      <nz-avatar class="alain-default__aside-user-avatar" [nzSrc]="user.avatar" />
-      <div class="alain-default__aside-user-info">
-        <strong>{{ user.name }}</strong>
-        <p class="mb0">{{ user.email }}</p>
+    @if (layout === 'header') {
+      <div class="alain-default__nav-item d-flex align-items-center px-sm">
+        <nz-avatar [nzSrc]="user.avatar" nzSize="small" class="mr-sm" />
+        {{ user.name }}
       </div>
-    </div>
+    } @else {
+      <div
+        class="alain-default__aside-user"
+        nz-dropdown
+        [nzDropdownMenu]="userMenu"
+        nzTrigger="click"
+        nzPlacement="bottomLeft"
+      >
+        <nz-avatar class="alain-default__aside-user-avatar" [nzSrc]="user.avatar" />
+        <div class="alain-default__aside-user-info">
+          <strong>{{ user.name }}</strong>
+          <p class="mb0">{{ user.email }}</p>
+        </div>
+      </div>
+    }
     <nz-dropdown-menu #userMenu="nzDropdownMenu">
       <div nz-menu class="width-lg">
         <div class="px-sm py-sm text-muted">{{ 'menu.account.organizations' | i18n : 'Organizations' }}</div>
@@ -70,6 +77,8 @@ import { NzMenuModule } from 'ng-zorro-antd/menu';
   imports: [RouterLink, NzDropDownModule, NzMenuModule, NzIconModule, I18nPipe, NzAvatarModule]
 })
 export class HeaderUserComponent {
+  @Input() layout: 'header' | 'aside' = 'aside';
+
   private readonly settings = inject(SettingsService);
   private readonly router = inject(Router);
   private readonly tokenService = inject(DA_SERVICE_TOKEN);
