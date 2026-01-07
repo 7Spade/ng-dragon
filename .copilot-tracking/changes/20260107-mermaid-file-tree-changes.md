@@ -12,7 +12,10 @@ Added a packages directory tree Mermaid flowchart section to document key packag
 
 ### Added
 
-- None.
+- packages/account-domain/src/.gitkeep - start tracking planned src folder
+- packages/core-engine/src/.gitkeep - start tracking planned src folder
+- packages/platform-adapters/@google/genai/src/.gitkeep - start tracking planned adapter src folder
+- packages/saas-domain/src/.gitkeep - start tracking planned src folder
 
 ### Modified
 
