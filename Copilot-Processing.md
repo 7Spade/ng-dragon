@@ -1,1 +1,1 @@
-User request: Optimize Mermaid.md by documenting key workspace/account/module details to avoid future divergence. Include workspaceId/workspaceType, member-role relationships, module list and enablement, permission check APIs (assertWorkspaceAccess, assertModuleEnabled), accountId/accountType, actor-workspace membership, login/auth flow, moduleKey/moduleType, belonging workspace, enable/disable status, permission check interface.
+User request: Update mermaid-related documentation and copilot tracking files per problem statement referencing docs/Mermaid-*.md files.

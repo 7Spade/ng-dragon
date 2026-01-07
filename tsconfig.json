@@ -44,6 +44,12 @@
       "@features/*": [
         "packages/ui-angular/src/app/features/*"
       ],
+      "@account-domain": [
+        "packages/account-domain/index"
+      ],
+      "@account-domain/*": [
+        "packages/account-domain/*"
+      ],
       "@core-engine": [
         "packages/core-engine/index"
       ],
