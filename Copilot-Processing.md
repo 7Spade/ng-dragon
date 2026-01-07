@@ -1,1 +1,1 @@
-User request: Update mermaid-related documentation and copilot tracking files per problem statement referencing docs/Mermaid-*.md files.
+User request: 查看 docs Mermaid files and build Account→Workspace→Module→Entity skeleton; auth chain uses @angular/fire/auth -> @delon/auth -> DA_SERVICE_TOKEN, permissions with @delon/acl later.
