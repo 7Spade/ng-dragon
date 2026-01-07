@@ -217,3 +217,9 @@ The project includes ESLint rules to prevent SDK mixing:
 ## License
 
 MIT
+
+## Readiness alignment
+
+- `@account-domain` path aliases are now available in the root `tsconfig.json` so Angular and tooling can import identity/workspace aggregates without local path hacks.
+- Scaffolded `account-domain` module folders (`account/`, `workspace/`, `membership/`, `module-registry/`) to match the Mermaid plan; each exports placeholders ready for aggregates/events once implemented.
+- Reserved `platform-adapters/@google/genai` for future Google GenAI adapters, keeping SDK usage isolated per the separation rules.

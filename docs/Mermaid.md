@@ -1,3 +1,11 @@
+## 層級導讀（Firebase 版本）
+- 架構層：docs/Mermaid-架構層.md
+- 基礎設施層：docs/Mermaid-基礎設施層.md
+- 概念層：docs/Mermaid-概念層.md
+- 實作指引：docs/Mermaid-實作指引.md
+- 模組層：docs/Mermaid-模組層.md
+- 總結層：docs/Mermaid-總結層.md
+
 ## Event Flow Overview
 ```mermaid
 flowchart TD
@@ -116,16 +124,39 @@ stateDiagram-v2
 4) Event 對應 Entity 變更；因果以 `causedBy/traceId` 追蹤。
 5) 多 Workspace：Session 必選 Workspace，事件/資料綁 `workspaceId`。
 
+## Packages Directory Tree
+- packages 目錄下主要子資料夾概覽。
+- 預留 platform-adapters/@google/genai 子資料夾。
+- 為避免分歧，先標出各套件預期的 src 目錄（如未存在則為規劃中）。
 
-## Packages Folder Tree
 ```mermaid
-%% Folder-level structure for packages workspace
-mindmap
-  root((packages))
-    account-domain
-    core-engine
-    platform-adapters
-    saas-domain
-    ui-angular
+flowchart TD
+    packages["packages/"]
+    packages --> acc["account-domain/"]
+    packages --> core["core-engine/"]
+    packages --> adapters["platform-adapters/"]
+    packages --> saas["saas-domain/"]
+    packages --> ui["ui-angular/"]
+    acc --> accSrc["src/ (planned)"]
+    core --> coreSrc["src/ (planned)"]
+    adapters --> googleScope["@google/"]
+    googleScope --> googleGenAI["genai/"]
+    googleGenAI --> genaiSrc["src/ (planned)"]
+    saas --> saasSrc["src/ (planned)"]
+    ui --> uiSrc["src/ (existing)"]
 ```
+
 // END OF FILE
+
+## Readiness Assessment
+- Packages already mirror the planned layers (`core-engine`, `saas-domain`, `platform-adapters`, `ui-angular`); added `account-domain` scaffolding so identity/workspace roles can live separately from SaaS entities.
+- Event metadata in the plan (workspaceId, moduleKey, actorId, causedBy/traceId) should be enforced at the aggregate boundary; core-engine remains the right place for shared `DomainEvent` and causality helpers.
+- Workspace ACL and module gating should be asserted before domain actions; adapters must inject session-selected `workspaceId` to every event/command and reject when a module is disabled.
+- Session flow needs a workspace switcher in UI plus query adapters that filter by `workspaceId`; platform adapters should expose a single entry point that already validates membership.
+- Technical SDK work stays inside platform-adapters; a reserved `@google/genai` folder keeps future AI calls isolated from domain code.
+
+### Immediate Next Steps (pre-work)
+- Flesh out `account-domain` aggregates/events for workspace, membership, and module registry so ACL checks occur before SaaS entities mutate.
+- Define a shared `DomainEvent<T>` shape in `core-engine` that includes workspace/module/actor metadata and trace ids; ensure replay guards module enablement.
+- Provide Angular-side services (ui-angular) that cache memberships and enforce `assertWorkspaceAccess` + `assertModuleEnabled` before navigation.
+- Hook platform adapter implementations (firebase-admin/angular-fire) to stamp causality metadata automatically when emitting events.

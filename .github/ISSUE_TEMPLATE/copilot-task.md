@@ -1,17 +1,22 @@
 ---
 name: Copilot Task
-about: MCP-aware task definition
+about: 定義需 MCP 支援的任務
 ---
 
-## Task Description
-[描述任務]
+## Task
+- 目標：
+- 輸出/驗證：
 
-## MCP Tools to Use
-- [ ] Context7 (查詢文檔)
-- [ ] Sequential-Thinking (逐步分析)
-- [ ] Software-Planning-Tool (任務管理)
+## MCP
+勾選需要的工具：
+- [ ] context7
+- [ ] server-sequential-thinking
+- [ ] software-planning-mcp
+- [ ] server-everything / server-filesystem
+- [ ] server-fetch / server-time
+- [ ] playwright-mcp-server
 
 ## Steps
-- STEP 1: 
-- STEP 2: 
-- STEP 3: 
+- STEP 1:
+- STEP 2:
+- STEP 3:
