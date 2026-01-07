@@ -10,9 +10,18 @@ import { NzMenuModule } from 'ng-zorro-antd/menu';
 @Component({
   selector: 'header-user',
   template: `
-    <div class="alain-default__nav-item d-flex align-items-center px-sm" nz-dropdown nzPlacement="bottomRight" [nzDropdownMenu]="userMenu">
-      <nz-avatar [nzSrc]="user.avatar" nzSize="small" class="mr-sm" />
-      {{ user.name }}
+    <div
+      class="alain-default__aside-user"
+      nz-dropdown
+      [nzDropdownMenu]="userMenu"
+      nzTrigger="click"
+      nzPlacement="bottomLeft"
+    >
+      <nz-avatar class="alain-default__aside-user-avatar" [nzSrc]="user.avatar" />
+      <div class="alain-default__aside-user-info">
+        <strong>{{ user.name }}</strong>
+        <p class="mb0">{{ user.email }}</p>
+      </div>
     </div>
     <nz-dropdown-menu #userMenu="nzDropdownMenu">
       <div nz-menu class="width-lg">
