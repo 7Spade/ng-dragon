@@ -1,1 +1,1 @@
-User request: reorganize folder structure to avoid confusion, clarify src folder keeping/removal, handle platform-adapters/@google; adjust folder tree to zero ambiguity.
+User request: Implement changes per problem statement referencing PR #19 and tracking files (.copilot-tracking plan/details/changes/prompts/research) in ng-dragon repo.
