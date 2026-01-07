@@ -14,17 +14,12 @@
 3. Project 繼承 Organization/Team 的權限
 4. Event 必須記錄完整的層級關係 (Organization → Project → Module → Entity)
 
-### Firestore vs Supabase 差異
-
-| 面向 | Supabase (關聯式) | Firestore (文件式) |
-|------|------------------|-------------------|
-| 資料結構 | 正規化表格 + Foreign Keys | 非正規化文件 + 內嵌/引用 |
-| 查詢方式 | SQL JOIN | Collection Group Query + 反正規化 |
-| 事務處理 | ACID 保證 | 最多 500 文件寫入限制 |
-| 索引 | 手動建立 | 自動單欄位 + 複合索引配置 |
-| 權限控制 | RLS (Row Level Security) | Security Rules (文件層級) |
-| Event Sourcing | 天然支援 (Append-only) | 需要設計 subcollection |
-| 跨專案查詢 | 簡單 (WHERE organization_id) | 困難 (需要反正規化) |
+### Firestore 設計重點
+- 文件式資料模型：以子集合與反正規化欄位換取查詢效率，跨專案查詢依賴 collectionGroup。
+- 交易與寫入：批次寫入單批 <= 500 筆，使用 BulkWriter / 佇列控制吞吐並避免熱點。
+- 索引策略：預設單欄位索引，必要時設定複合索引；避免不必要的 array-contains-on-many-field 查詢。
+- 權限模型：Security Rules + custom claims，所有文件冗餘 organizationId/projectId 以便規則判斷。
+- Event Sourcing：事件以 dedicated collection + 子集合 causality 儲存，traceId/causedBy 維持因果順序。
 
 ---
 
@@ -739,7 +734,7 @@ service cloud.firestore {
 ### 1. 查詢使用者的所有專案
 
 ```typescript
-// ❌ Supabase 方式 (簡單 JOIN)
+// ❌ 關聯式 JOIN 範例（不適用 Firestore）
 // SELECT * FROM projects p
 // JOIN project_permissions pp ON p.project_id = pp.project_id
 // WHERE pp.account_id = 'user_alice'
@@ -788,7 +783,7 @@ export class ProjectService {
 ### 2. 查詢組織內所有專案的 Tasks（跨專案查詢）
 
 ```typescript
-// ❌ Supabase 方式 (簡單 JOIN)
+// ❌ 關聯式 JOIN 範例（不適用 Firestore）
 // SELECT t.* FROM tasks t
 // JOIN projects p ON t.project_id = p.project_id
 // WHERE p.organization_id = 'org_acme'
@@ -829,7 +824,7 @@ export class TaskService {
 ### 3. 查詢專案的事件歷史（Event Sourcing）
 
 ```typescript
-// ❌ Supabase 方式
+// ❌ 關聯式 SQL 範例（Firestore 不支援直接 JOIN）
 // SELECT * FROM domain_events
 // WHERE project_id = 'proj_123' AND module_key = 'task-module'
 // ORDER BY timestamp ASC
@@ -883,7 +878,7 @@ export class EventSourcingService {
 ### 4. 跨模組引用查詢
 
 ```typescript
-// ❌ Supabase 方式
+// ❌ 關聯式 SQL 範例（Firestore 不支援直接 JOIN）
 // SELECT * FROM cross_module_references
 // WHERE source_id = 'task_123' AND source_type = 'task'
 
@@ -1055,29 +1050,14 @@ export const syncProjectPermissionIndex = functions.firestore
 
 ---
 
-## Event Sourcing 實作差異
+## Event Sourcing 在 Firestore 的做法
 
-### Supabase 優勢
+- Firestore 不支援 JOIN 或遞迴查詢，事件文件需反正規化 `causedBy/affects/causalityPath`。
+- 以 Cloud Functions/Batch job 預先計算投影與因果索引，讀側避免即時計算。
+- `domain_events/{eventId}` 為 append-only；重播時依 traceId/時間排序，寫入需控制批次。
 
-```sql
--- ✅ 簡單的 Event 查詢
-SELECT * FROM domain_events
-WHERE project_id = 'proj_123'
-AND module_key = 'task-module'
-ORDER BY timestamp ASC;
+### Firestore 解決方案
 
--- ✅ 複雜的因果鏈查詢
-WITH RECURSIVE event_chain AS (
-  SELECT * FROM domain_events WHERE event_id = 'evt_start'
-  UNION ALL
-  SELECT e.* FROM domain_events e
-  JOIN event_causality c ON e.event_id = c.event_id
-  JOIN event_chain ec ON c.caused_by_event_id = ec.event_id
-)
-SELECT * FROM event_chain;
-```
-
-### Firestore 挑戰與解決方案
 
 ```typescript
 // ❌ Firestore 不支援遞迴查詢
@@ -1208,156 +1188,9 @@ setInterval(async () => {
 
 ---
 
-## 遷移策略：從 Supabase 設計轉換到 Firestore
-
-### Step 1: 識別需要反正規化的欄位
-
-```typescript
-// Supabase 的正規化設計
-projects {
-  project_id,
-  belongs_to_type,
-  belongs_to_id  // Foreign Key
-}
-
-// ↓ Firestore 反正規化
-
-projects/{projectId} {
-  belongsTo: {
-    type: 'organization',
-    id: 'org_acme',
-    displayName: 'Acme Corp'  // ✅ 反正規化
-  },
-  organizationId: 'org_acme'  // ✅ 冗餘欄位用於查詢
-}
-```
-
-### Step 2: 建立反向索引
-
-```typescript
-// Supabase: 透過 JOIN 查詢組織的專案
-// SELECT * FROM projects WHERE belongs_to_id = 'org_acme'
-
-// ↓ Firestore: 建立反向索引
-
-organizations/{orgId}/projects/{projectId} {
-  projectId: 'proj_123',  // 指向實際專案
-  name: 'Website',
-  createdAt: Timestamp
-}
-
-// 實際專案資料仍在 projects/ root collection
-```
-
-### Step 3: 使用 Cloud Functions 維護一致性
-
-```typescript
-// 當專案建立時，同步更新反向索引
-export const onProjectCreate = functions.firestore
-  .document('projects/{projectId}')
-  .onCreate(async (snap, context) => {
-    const project = snap.data() as ProjectDoc;
-    
-    if (project.belongsTo.type === 'organization') {
-      await db.doc(
-        `organizations/${project.belongsTo.id}/projects/${project.projectId}`
-      ).set({
-        projectId: project.projectId,
-        name: project.name,
-        slug: project.slug,
-        createdAt: project.createdAt
-      });
-    }
-  });
-
-// 當專案更新時，同步更新反向索引
-export const onProjectUpdate = functions.firestore
-  .document('projects/{projectId}')
-  .onUpdate(async (change, context) => {
-    const before = change.before.data() as ProjectDoc;
-    const after = change.after.data() as ProjectDoc;
-    
-    // 只更新變更的欄位
-    if (before.name !== after.name || before.slug !== after.slug) {
-      if (after.belongsTo.type === 'organization') {
-        await db.doc(
-          `organizations/${after.belongsTo.id}/projects/${after.projectId}`
-        ).update({
-          name: after.name,
-          slug: after.slug
-        });
-      }
-    }
-  });
-```
-
----
-
-## 總結：Firestore vs Supabase 選擇指南
-
-### 選擇 Firestore 的理由
-
-✅ **優勢**
-- 與 Firebase Auth 無縫整合
-- 自動擴展（無需管理伺服器）
-- 實時同步功能強大
-- 離線支援優秀
-- 行動端優先設計
-- 內建 Security Rules
-
-❌ **劣勢**
-- 需要大量反正規化
-- 複雜查詢能力弱
-- 無法執行 JOIN
-- Event Sourcing 實作複雜
-- 組織層級報表困難
-- 成本隨讀寫次數線性增長
-
-### 選擇 Supabase 的理由
-
-✅ **優勢**
-- 完整的 SQL 功能
-- 天然支援 JOIN 和複雜查詢
-- Event Sourcing 容易實作
-- 適合報表與分析
-- 成本可預測（固定方案）
-- 資料一致性保證強
-
-❌ **劣勢**
-- 需要自行管理擴展
-- 實時功能較弱
-- 離線支援需額外實作
-- 與 Firebase 整合需橋接
-
-### 建議
-
-**若專案符合以下條件，選擇 Firestore：**
-1. 以行動端/PWA 為主
-2. 需要強大的離線功能
-3. 即時協作是核心需求
-4. 團隊規模較小（< 10 人）
-5. 查詢模式相對簡單
-
-**若專案符合以下條件，選擇 Supabase：**
-1. 需要複雜的跨表查詢
-2. Event Sourcing 是核心架構
-3. 需要組織層級的報表分析
-4. 團隊熟悉 SQL
-5. 資料關聯複雜
-
-**針對你的專案（GitHub-like Issue 系統 + Event Sourcing）：**
-建議使用 **Supabase**，因為：
-- Event Sourcing 需要複雜的因果鏈查詢
-- 組織/團隊/專案的權限繼承適合關聯式
-- 跨專案的 Issue 引用需要 JOIN
-- 需要組織層級的統計報表
-
-若堅持使用 Firestore，需要：
-- 投入大量時間實作反正規化邏輯
-- 使用 Cloud Functions 維護資料一致性
-- 接受較高的讀寫成本
-- 放棄某些複雜查詢功能
-
----
-
-// END OF FILE
+## Firestore 設計總結
+- 以文件/子集合 + 反正規化欄位換取查詢效率，跨專案使用 collectionGroup。
+- Event Sourcing 採 append-only collection，因果鏈與投影以 Functions/Batch 預先計算。
+- Security Rules 結合 custom claims 判斷 organizationId/projectId；domain_events 僅後端可寫。
+- 寫入流量以 BulkWriter/批次控制，索引提前配置避免熱點查詢。
+- 前端服務使用快取的 membership/permissions，避免每次查詢多跳。
