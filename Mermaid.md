@@ -2,10 +2,14 @@
 ```mermaid
 flowchart TD
     subgraph Identity["Identity Layer"]
-        A[Account]
+        A1[User]
+        A2[Organization]
+        A3[Bot]
     end
     subgraph WorkspaceLayer["Workspace Layer"]
-        B[Workspace]
+        B[Workspace\ntype: org|project|personal]
+        M1[Members\nroles: owner/admin/member/viewer]
+        M2[Modules\nmoduleKey/type/enabled]
     end
     subgraph Domain["Domain Layer"]
         C[Module]
@@ -20,7 +24,12 @@ flowchart TD
         F[Event Sourcing]
         G[Causality Tracking]
     end
-    A --> B --> C --> D --> E1 --> E2 --> E3 --> F --> G
+    A1 --> B
+    A2 --> B
+    A3 --> B
+    B --> M1
+    B --> M2
+    B --> C --> D --> E1 --> E2 --> E3 --> F --> G
     E1 -.-> F
     E2 -.-> F
     E3 -.-> F
@@ -29,13 +38,16 @@ flowchart TD
     E3 -.-> G
     E1 ==> E2
     E2 ==> E3
+    classDef note fill:#eef5ff,stroke:#4c6fff,stroke-width:1px,color:#1a2b5f;
+    NF["Event note: DomainEvent<T> carries workspaceId, moduleKey, actorId, causedBy/traceId, timestamp, payload"]:::note
+    NF -.-> E1
 ```
 
 ## Workspace / Account / Module Core
-- Workspace = 業務空間 (`workspaceType`: organization|project|personal)。Organization=Workspace；User/Bot=Actor。
-- `accountType`: `user | bot | organization`；Actor ≠ Workspace，API/ACL 強制區分。
-- 成員角色：`owner | admin | member | viewer`；模組列表含 `moduleKey/moduleType/enabled`。
-- ACL 層級：`assertWorkspaceAccess(accountId, workspaceId, requiredRole)`、`assertModuleEnabled(workspaceId, moduleKey)`；Entity 只記錄狀態。
+- Workspace=容器；Organization=Workspace；User/Bot=Actor (`workspaceType`: organization|project|personal).
+- `accountType`: user|bot|organization；Actor ≠ Workspace，ACL 分層。
+- 成員角色：owner|admin|member|viewer；模組列表含 moduleKey/moduleType/enabled。
+- ACL：`assertWorkspaceAccess(accountId, workspaceId, requiredRole)`、`assertModuleEnabled(workspaceId, moduleKey)`；Entity 只記錄狀態。
 
 ```mermaid
 classDiagram
@@ -61,8 +73,8 @@ classDiagram
 ```
 
 ## Auth Chain & Session (Angular)
-- 登入鏈：`@angular/fire/auth → @delon/auth → DA_SERVICE_TOKEN → @delon/acl`，以 ACL 驗證 Workspace / Module。
-- 多 Workspace：登入後列 memberships → 選 Workspace → 進入 Module/Entity；所有事件必綁 `workspaceId`。
+- 登入鏈：`@angular/fire/auth → @delon/auth → DA_SERVICE_TOKEN → @delon/acl`。
+- 多 Workspace：登入後列 memberships → 選 Workspace → 進入 Module/Entity；所有事件綁 `workspaceId`。
 
 ```mermaid
 sequenceDiagram
@@ -80,7 +92,7 @@ sequenceDiagram
 
 ## Module Boundary & Permissions
 - Module = 功能邊界；先 `assertModuleEnabled()` 再操作 Entity。
-- Entity = 資料單位 (Task/File/Issue)；不處理 ACL，只記錄狀態與事件。
+- Entity = 資料單位；不處理 ACL，只記錄狀態與事件。
 
 ```mermaid
 stateDiagram-v2
@@ -94,15 +106,14 @@ stateDiagram-v2
 ```
 
 ## Event Sourcing & Causality
-- Event 型態：`DomainEvent<T>` 含 `eventType, aggregateId, workspaceId, payload, metadata{actorId, causedBy, traceId, timestamp, moduleKey}`。
-- Event Sourcing：Aggregate apply(event) 儲存於 EventStore；重播前需驗證 Workspace/Module 啟用。
-- Causality：使用 `causedBy/traceId` 串事件鏈；Event 必對應 Entity 變更，ACL 在 Workspace/Module。
+- Event 型態：`eventType, aggregateId, workspaceId, payload, metadata{actorId, causedBy, traceId, timestamp, moduleKey}`。
+- 重播前驗證 Workspace/Module 啟用；Event 對應 Entity 變更，因果鏈靠 `causedBy/traceId`。
 
 ## Divergence Watchlist
-1) Workspace=Organization，Actor 不是 Workspace。
+1) Workspace=Organization；Actor 不是 Workspace。
 2) AccountType：User/Bot=Actor；Organization=Workspace。
 3) Module 控功能，Entity 控資料，ACL 在 Workspace/Module。
-4) Event 對應 Entity 變更；因果鏈以 `causedBy/traceId` 追蹤。
+4) Event 對應 Entity 變更；因果以 `causedBy/traceId` 追蹤。
 5) 多 Workspace：Session 必選 Workspace，事件/資料綁 `workspaceId`。
 
 // END OF FILE
