@@ -40,6 +40,15 @@ import { NzMenuModule } from 'ng-zorro-antd/menu';
         <div nz-menu-item (click)="createOrganization()">
           <i nz-icon nzType="plus" class="mr-sm"></i>{{ 'menu.account.organizations.create' | i18n : 'Create organization' }}
         </div>
+        <ng-container *ngIf="selectedOrganizationName">
+          <div nz-menu-item class="text-muted">{{ selectedOrganizationName }}</div>
+          <div nz-menu-item [nzDisabled]="!isMember(selectedOrganizationId)" (click)="createTeam()">
+            <i nz-icon nzType="team" class="mr-sm"></i>{{ 'menu.account.organizations.createTeam' | i18n : 'Create team' }}
+          </div>
+          <div nz-menu-item (click)="createPartner()">
+            <i nz-icon nzType="user-add" class="mr-sm"></i>{{ 'menu.account.organizations.createPartner' | i18n : 'Create partner' }}
+          </div>
+        </ng-container>
         <li nz-menu-divider></li>
         <div nz-menu-item (click)="logout()">
           <i nz-icon nzType="logout" class="mr-sm"></i>
@@ -66,11 +75,28 @@ export class HeaderUserComponent {
     { id: 'org-004', name: 'Delta Studio' }
   ];
 
+  selectedOrganizationId: string | null = null;
+
   get user(): User {
     return this.settings.user;
   }
 
+  private findOrg(orgId: string | null) {
+    if (!orgId) return null;
+    return [...this.ownedOrganizations, ...this.joinedOrganizations].find(o => o.id === orgId) || null;
+  }
+
+  private isMember(orgId: string | null): boolean {
+    if (!orgId) return false;
+    return [...this.ownedOrganizations, ...this.joinedOrganizations].some(o => o.id === orgId);
+  }
+
+  get selectedOrganizationName(): string | null {
+    return this.findOrg(this.selectedOrganizationId)?.name ?? null;
+  }
+
   selectOrganization(orgId: string): void {
+    this.selectedOrganizationId = orgId;
     // TODO: replace with actual navigation / workspace switch facade
     this.router.navigateByUrl(`/organizations/${orgId}`).catch(() => void 0);
   }
@@ -78,6 +104,18 @@ export class HeaderUserComponent {
   createOrganization(): void {
     // TODO: replace with actual create-organization flow
     this.router.navigateByUrl('/organizations/create').catch(() => void 0);
+  }
+
+  createTeam(): void {
+    if (!this.isMember(this.selectedOrganizationId)) return;
+    // TODO: replace with actual create-team flow via facade/adapters
+    this.router.navigateByUrl(`/organizations/${this.selectedOrganizationId}/teams/create`).catch(() => void 0);
+  }
+
+  createPartner(): void {
+    // Partner creation allowed even if not a member (external/vendor)
+    const orgId = this.selectedOrganizationId ?? 'select-org-first';
+    this.router.navigateByUrl(`/organizations/${orgId}/partners/create`).catch(() => void 0);
   }
 
   logout(): void {
