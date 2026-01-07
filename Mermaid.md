@@ -119,6 +119,7 @@ stateDiagram-v2
 ## Packages Directory Tree
 - packages 目錄下主要子資料夾概覽。
 - 預留 platform-adapters/@google/genai 子資料夾。
+- 為避免分歧，先標出各套件預期的 src 目錄（如未存在則為規劃中）。
 
 ```mermaid
 flowchart TD
@@ -128,7 +129,13 @@ flowchart TD
     packages --> adapters["platform-adapters/"]
     packages --> saas["saas-domain/"]
     packages --> ui["ui-angular/"]
-    adapters --> googleGenAI["platform-adapters/@google/genai/"]
+    acc --> accSrc["src/ (planned)"]
+    core --> coreSrc["src/ (planned)"]
+    adapters --> googleScope["@google/"]
+    googleScope --> googleGenAI["genai/"]
+    googleGenAI --> genaiSrc["src/ (planned)"]
+    saas --> saasSrc["src/ (planned)"]
+    ui --> uiSrc["src/ (existing)"]
 ```
 
 // END OF FILE

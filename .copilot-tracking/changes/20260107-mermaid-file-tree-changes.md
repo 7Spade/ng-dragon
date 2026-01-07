@@ -16,7 +16,7 @@ Added a packages directory tree Mermaid flowchart section to document key packag
 
 ### Modified
 
-- Mermaid.md - updated `Packages Directory Tree` section with flowchart and platform-adapters/@google/genai child node.
+- Mermaid.md - expanded `Packages Directory Tree` flowchart with planned src nodes and @google/genai hierarchy.
 
 ### Removed
 
