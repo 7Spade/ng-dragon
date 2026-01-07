@@ -1,2 +1,4 @@
-User request: optimize listed .github workflows and copilot files focusing on concise copilot strengthening with context7, server-sequential-thinking, Software-planning-mcp, server-everything, server-filesystem, playwright-mcp-server, server-time, server-fetch.
-Date: 2026-01-07T12:26:59.083Z
+## Request Details
+- Task: Evaluate Mermaid.md as primary, review PRs #3 and #6 for divergences, create file and annotations for anchoring potential contentious areas.
+- Repository: 7Spade/ng-dragon
+- Notes: Follow minimal changes, prioritize Mermaid.md.
