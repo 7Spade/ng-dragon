@@ -1,7 +1,7 @@
-import { DomainEvent, EventContext, toEventMetadata } from '../../src/events/domain-event';
-import { AccountType } from '../../src/value-objects/account-type';
-import { WorkspaceType } from '../../src/value-objects/workspace-type';
-import { AccountId, WorkspaceId } from '../../src/types/identifiers';
+import { DomainEvent, EventContext, toEventMetadata } from '../events/domain-event';
+import { AccountType } from '../value-objects/account-type';
+import { WorkspaceType } from '../value-objects/workspace-type';
+import { AccountId, WorkspaceId } from '../types/identifiers';
 
 export interface AccountSnapshot {
   accountId: AccountId;

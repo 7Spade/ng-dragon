@@ -1,1 +1,1 @@
-User request: 查看 docs Mermaid files and build Account→Workspace→Module→Entity skeleton; auth chain uses @angular/fire/auth -> @delon/auth -> DA_SERVICE_TOKEN, permissions with @delon/acl later.
+User request: Implement changes per problem statement referencing PR #19 and tracking files (.copilot-tracking plan/details/changes/prompts/research) in ng-dragon repo.

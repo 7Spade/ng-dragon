@@ -4,6 +4,13 @@ on:
   pull_request:
     branches: [ "copilot/**" ]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: agent-run-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   enforce-lint-and-size:
     runs-on: ubuntu-latest

@@ -2,57 +2,42 @@
 
 ## 目標
 
-說明 `platform-adapters` 的責任範圍、邊界與依賴，作為專案與外部系統交互的橋樑。
-
----
-
-## 目標與責任
-
-- 對接外部平台、服務或資源：  
-  - 資料庫 (Database)  
-  - REST / GraphQL API  
-  - 第三方 SDK  
-- 實作 **Repository**、**Adapter**、**Gateway**  
-- 做資料轉換與橋接，讓 domain 與核心引擎能使用外部資源  
-
----
+唯一允許使用外部 SDK 的層，負責資料庫 / 外部 API / 身分 / 訊息 / AI 介接，並將實作封裝成介面供上層使用。
 
 ## 邊界
 
-- **依賴**：可依賴 `core-engine` 提供的聚合與事件框架  
-- **不依賴** domain 之外的其他業務邏輯（如 SaaS 或 UI）  
-- **不實作**業務規則，僅做資料流與外部接口管理  
-- 保持平台與核心邏輯分離，避免耦合 domain
+- **依賴**：`core-engine` 抽象介面、型別；可使用外部 SDK。
+- **不包含**：任何業務規則（交給 domain 層），也不直接暴露 SDK 給 UI。
+- **SDK 隔離**：所有 SDK 實作集中在 `src/`，包含 `external-apis/google/genai`，禁止另起平行根目錄。
 
----
-
-## 依賴圖示 (簡單 ASCII)
+## 結構（現況 + 預備）
 
 ```
-
-account-domain       core-engine
-│
-▼
-platform-adapters
-│
-▼
-saas-domain
-│
-▼
-ui-angular
-
+platform-adapters/
+└── src/
+    ├── auth/                  # 登入 / 權杖 / claims，分 admin / client 實作
+    ├── ai/                    # AI/LLM 抽象 or common helpers
+    ├── external-apis/
+    │   └── google/
+    │       └── genai/         # Google GenAI / Vertex AI 介接（placeholder src/）
+    ├── messaging/             # 通知、隊列、推播
+    ├── persistence/           # EventStore / Projection / DB adapter 實作
+    └── __tests__/             # 介面實作的對應測試（待補）
 ```
 
-**說明**：  
-- `platform-adapters` 位於核心引擎與外部系統之間  
-- 提供可重用的接口給 domain 或 SaaS 層使用  
-- 不直接處理業務規則，只做資料流轉與系統對接
+> Firebase、GA、外部 HTTP、第三方 SDK 均集中於上述子資料夾，避免再出現 `@google` 平行路徑。
 
----
+## SDK 規則
+
+| 位置 | 可以用 | 禁止 | 說明 |
+| --- | --- | --- | --- |
+| `src/persistence` | firebase-admin / DB SDK | @angular/fire | 伺服端實作 |
+| `src/auth` (admin) | firebase-admin | @angular/fire | 伺服端身份 / claims |
+| `src/auth` (client) | @angular/fire | firebase-admin | 前端身份橋接 |
+| `src/external-apis/google/genai` | Google GenAI / Vertex AI SDK | 其他層直連 | AI 封裝 |
 
 ## 原則
 
-1. **單一責任**：只對接外部資源，不包含業務邏輯  
-2. **清晰依賴**：僅依賴 core-engine，向上提供給 domain / SaaS 使用  
-3. **橋接專注**：保持 domain 與外部系統解耦  
-4. **可重用性**：適配器應可在多個 domain / SaaS 模組中使用
+1. **單一出口**：所有 SDK 呼叫集中於 adapters，不向上暴露 SDK 型別。
+2. **遵守抽象**：依 `core-engine` 的 port 介面實作；如需新 port，先在 core 定義抽象再於此層實作。
+3. **文件先行**：新增 adapter 時，先更新 README/AGENTS 與對應的 Mermaid 文件節點。

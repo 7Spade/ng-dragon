@@ -1,133 +1,42 @@
 # Platform Adapters
 
-🔧 **Technical implementations - The ONLY place that can touch SDKs**
+🔧 **唯一允許觸碰外部 SDK 的層** — 將 Firebase、DB、訊息、AI 等實作封裝成 `core-engine` 的 port 實作，供上層安全使用。
 
-## Principles
+## 結構（現況 + 預備）
 
-> **前端永遠不能碰 firebase-admin**
-> **Core 永遠不知道 Angular 是什麼**
-
-This package contains ALL technical integrations and SDK wrappers:
-
-- ✅ Firebase Admin (backend)
-- ✅ Firebase Angular (frontend)
-- ✅ Auth adapters
-- ✅ Notifications
-- ✅ Analytics
-- ✅ AI services
-
-## Critical SDK Separation Rules
-
-| Adapter Location | Can Use | Cannot Use | Runs In |
-|-----------------|---------|------------|---------|
-| `firebase/admin` | firebase-admin | ❌ @angular/fire | Node.js (Cloud Run/Functions) |
-| `firebase/angular-fire` | @angular/fire | ❌ firebase-admin | Browser/Angular |
-| `auth/firebase-admin` | firebase-admin | ❌ @angular/fire | Node.js |
-| `auth/angular-fire` | @angular/fire | ❌ firebase-admin | Browser |
-
-**If you violate this = architecture explodes! 💥**
-
-## Structure
-
-### 🛠️ Firebase Admin (`firebase/admin/`)
-
-Backend implementations using firebase-admin:
-
-```typescript
-import { FirebaseAdminEventStore } from '@platform-adapters/firebase/admin';
-
-// Runs in Cloud Run / Functions
-// Has Service Account privileges (god mode 👑)
-// Bypasses Security Rules
+```
+platform-adapters/
+└── src/
+    ├── auth/                  # admin/client 身分橋接
+    ├── ai/                    # AI/LLM 抽象或共用 helper
+    ├── external-apis/
+    │   └── google/genai/      # Google GenAI / Vertex AI 介接（placeholder src/）
+    ├── messaging/             # 通知、推播、佇列
+    ├── persistence/           # EventStore / Projection / DB adapter 實作
+    └── __tests__/             # Adapter 測試（待補）
 ```
 
-**Contains:**
-- `event-store.adapter.ts` - EventStore implementation
-- `projection.adapter.ts` - Projection builder
+> 未來的 Firebase / DB / Queue / AI 實作一律放在 `src/` 對應子資料夾；禁止再建立平行的 `@google` 根路徑。
 
-### 🌐 Firebase Angular-Fire (`firebase/angular-fire/`)
+## SDK 分層規則
 
-Frontend implementations using @angular/fire:
+| 位置 | 可用 | 禁止 | 適用場景 |
+| --- | --- | --- | --- |
+| `src/persistence` | firebase-admin / DB SDK | @angular/fire | 伺服端 EventStore / Projection 實作 |
+| `src/auth` (admin) | firebase-admin | @angular/fire | 伺服端 claims / 用戶管理 |
+| `src/auth` (client) | @angular/fire | firebase-admin | 前端登入 / token 取得 |
+| `src/external-apis/google/genai` | Google GenAI / Vertex AI SDK | 其他層直連 | AI / LLM 封裝 |
 
-```typescript
-import { FirebaseAuthAdapter, TaskQueryAdapter } from '@platform-adapters/firebase/angular-fire';
+## 依賴
 
-// Runs in browser/Angular
-// Subject to Security Rules
-// User perspective
-```
+- ✅ 可依賴 `@core-engine` 定義的 port / 型別
+- ✅ 可使用第三方 SDK
+- ❌ 不含業務規則（交給 domain 層）
+- ❌ 不直接暴露 SDK 至 `ui-angular`，改以 Facade / Adapter 輸出
 
-**Contains:**
-- `auth.adapter.ts` - Auth state bridge to @delon/auth
-- `task.query.adapter.ts` - Task read model queries
+## 一句話規則
 
-### 🔐 Auth Adapters (`auth/`)
-
-Separate auth adapters for admin vs client:
-
-```typescript
-// Backend (admin)
-import { FirebaseAdminAuthAdapter } from '@platform-adapters/auth';
-// User management, custom claims, roles
-
-// Frontend (client)
-import { AngularFireAuthStateAdapter } from '@platform-adapters/auth';
-// Auth state, token access
-```
-
-### 📬 Notification Adapters (`notification/`)
-
-```typescript
-import { FCMAdapter, EmailAdapter } from '@platform-adapters/notification';
-
-// Push notifications (FCM)
-// Email notifications
-```
-
-### 📊 Analytics Adapters (`analytics/`)
-
-```typescript
-import { GoogleAnalyticsAdapter } from '@platform-adapters/analytics';
-
-// Event tracking
-// Page view tracking
-```
-
-### 🤖 AI Adapters (`ai/`)
-
-```typescript
-import { GenAIAdapter, VertexAIAdapter } from '@platform-adapters/ai';
-
-// Generative AI
-// Vertex AI predictions
-```
-
-## Usage
-
-This package is imported by:
-
-- ✅ `ui-angular` - For frontend adapters
-- ✅ Cloud Functions - For backend adapters
-- ❌ `core-engine` - NEVER (core is pure)
-- ❌ `saas-domain` - NEVER (domain is pure)
-
-## SDK Usage Table
-
-| What You Need | Which Adapter | SDK Used |
-|--------------|---------------|----------|
-| Write events to Event Store | firebase/admin | firebase-admin |
-| Build projections | firebase/admin | firebase-admin |
-| Query tasks in UI | firebase/angular-fire | @angular/fire |
-| User login state | firebase/angular-fire | @angular/fire |
-| Manage user roles | auth/firebase-admin | firebase-admin |
-| Get user token | auth/angular-fire | @angular/fire |
-| Send push notification | notification/fcm | firebase-admin |
-| Track analytics | analytics/ga | @angular/fire or gtag |
-
-## One-Sentence Rule
-
-> **@angular/fire is for what USERS see**
-> **firebase-admin is for what the SYSTEM does**
+> **SDK 只在這裡，其他層只拿抽象或 Facade，不直連外部服務。**
 
 ## License
 

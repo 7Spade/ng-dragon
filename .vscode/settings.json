@@ -35,5 +35,11 @@
     "*.json": "jsonc",
     ".prettierrc": "jsonc"
   },
-  "typescript.referencesCodeLens.enabled": true
+  "typescript.referencesCodeLens.enabled": true,
+  "chat.instructionsFilesLocations": {
+    ".copilot-tracking/plans": true
+  },
+  "chat.promptFilesLocations": {
+    ".copilot-tracking/prompts": true
+  }
 }

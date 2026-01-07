@@ -1,199 +1,56 @@
 # Packages Architecture
 
-🏗️ **DDD (Domain-Driven Design) Architecture with Event Sourcing**
+DDD + Event Sourcing 分層，所有業務與技術元件都從 `packages/` 內部的 `src/` 作為單一入口，避免平行或重複的資料夾結構。
 
-## Core Principle
-
-> **核心永遠不知道 Angular 是什麼**
-> **前端永遠不能碰 firebase-admin**
-
-## Architecture Overview
+## Overview（現況 + 後續規劃）
 
 ```
 packages/
-├── core-engine/          💎 Pure TypeScript core (ZERO framework deps)
-├── saas-domain/          🏢 SaaS business models (Pure TS)
-├── platform-adapters/    🔧 SDK implementations (ONLY place for SDKs)
-└── ui-angular/          💅 Angular UI (via src/app, uses adapters)
+├── account-domain/          # 帳號 / 工作區 / 模組啟用（純 TS）
+│   └── src/{aggregates,value-objects,events,policies,domain-services,repositories,entities,types}
+├── core-engine/             # CQRS + Event Sourcing 基礎設施（純 TS）
+│   └── src/{commands,queries,use-cases,ports,mappers,dtos,jobs,schedulers}
+├── platform-adapters/       # 外部 SDK 介接（唯一可碰 SDK）
+│   └── src/{auth,ai,external-apis/google/genai,messaging,persistence}
+├── saas-domain/             # SaaS 模組（任務/議題/財務/品質/驗收）（純 TS）
+│   └── src/{aggregates,value-objects,events,domain-services,repositories,entities,policies}
+├── ui-angular/              # Angular 前端（位於根目錄 src/app）
+└── README.md
 ```
+
+> 未來的子模組請直接放在各自 package 的 `src/` 下，保持單一路徑，避免再出現平行根目錄。
 
 ## Dependency Flow
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                   ui-angular (src/app)              │
-│                                                     │
-│  Uses: @platform-adapters (angular-fire only)      │
-└──────────────────┬──────────────────────────────────┘
-                   │
-                   ↓
-┌─────────────────────────────────────────────────────┐
-│              platform-adapters/                     │
-│                                                     │
-│  ├── firebase/admin (firebase-admin only) 🛠️       │
-│  └── firebase/angular-fire (@angular/fire) 🌐      │
-└──────────────────┬──────────────────────────────────┘
-                   │
-                   ↓
-┌─────────────────────────────────────────────────────┐
-│              saas-domain/                           │
-│                                                     │
-│  Depends on: @core-engine                          │
-└──────────────────┬──────────────────────────────────┘
-                   │
-                   ↓
-┌─────────────────────────────────────────────────────┐
-│              core-engine/                           │
-│                                                     │
-│  Depends on: NOTHING (pure TypeScript)             │
-└─────────────────────────────────────────────────────┘
+account-domain --> saas-domain --> ui-angular
+        \           ^
+         \          |
+          \-> core-engine <- platform-adapters
 ```
 
-## Package Details
+- `account-domain`：身份 / 工作區 / 模組啟用前置邏輯，純 TS。
+- `core-engine`：事件、命令、聚合、投影基礎設施，純 TS、零 SDK。
+- `platform-adapters`：外部 SDK 介接（Firebase、訊息、持久化、Google GenAI 等）。
+- `saas-domain`：SaaS 業務模組，依賴 account-domain 與 core-engine。
+- `ui-angular`：僅透過 adapters 使用能力，不可直接觸碰 core 或 SDK。
 
-### 1. 💎 core-engine
+## SDK Separation (硬規則)
 
-**Purpose:** Pure domain core with event sourcing infrastructure
+| 層級 | 可用 | 禁用 | 說明 |
+| --- | --- | --- | --- |
+| core-engine | TypeScript | Angular / Firebase / 任何 SDK | 純基礎設施 |
+| account-domain / saas-domain | TypeScript, @core-engine | 所有 SDK | 純業務邏輯 |
+| platform-adapters/src/persistence,auth,ai,external-apis | 第三方 SDK (firebase-admin, @angular/fire, Google AI SDK 等依場景) | 在未定義的層使用 SDK | 唯一 SDK 入口 |
+| ui-angular (src/app) | @angular/fire, @platform-adapters (client 介面) | firebase-admin | 前端 UI 層 |
 
-**Contains:**
-- Event Store abstractions (interface only)
-- Causality tracking (correlation/causation IDs)
-- Aggregate Root base class
-- Projection (Read Model) definitions
-
-**Rules:**
-- ❌ NO Angular imports
-- ❌ NO Firebase imports
-- ❌ NO framework dependencies
-- ✅ Pure TypeScript only
-
-**Example:**
-```typescript
-import { EventStore, DomainEvent, AggregateRoot } from '@core-engine';
-```
-
-### 2. 🏢 saas-domain
-
-**Purpose:** SaaS business domain models
-
-**Contains:**
-- Task domain (task management)
-- Payment domain (payment processing)
-- Issue domain (issue tracking)
-
-**Rules:**
-- ✅ Can depend on `@core-engine`
-- ❌ NO Angular imports
-- ❌ NO Firebase imports
-- ✅ Pure TypeScript only
-
-**Example:**
-```typescript
-import { Task, Payment, Issue } from '@saas-domain';
-```
-
-### 3. 🔧 platform-adapters
-
-**Purpose:** Technical implementations - ONLY place that can touch SDKs
-
-**Contains:**
-- `firebase/admin/` - Backend adapters (firebase-admin)
-- `firebase/angular-fire/` - Frontend adapters (@angular/fire)
-- `auth/` - Authentication adapters (both admin and client)
-- `notification/` - Notification services
-- `analytics/` - Analytics integration
-- `ai/` - AI services
-
-**Rules - Firebase Admin:**
-- ✅ Can use `firebase-admin`
-- ❌ CANNOT use `@angular/fire`
-- 🛠️ Runs in Node.js (Cloud Run/Functions)
-
-**Rules - Firebase Angular-Fire:**
-- ✅ Can use `@angular/fire`
-- ❌ CANNOT use `firebase-admin`
-- 🌐 Runs in browser/Angular
-
-**Example:**
-```typescript
-// Backend
-import { FirebaseAdminEventStore } from '@platform-adapters/firebase/admin';
-
-// Frontend
-import { FirebaseAuthAdapter, TaskQueryAdapter } from '@platform-adapters/firebase/angular-fire';
-```
-
-### 4. 💅 ui-angular (src/app)
-
-**Purpose:** Angular user interface
-
-**Location:** `src/app` (not in packages/)
-
-**Contains:**
-- `adapters/` - Facades for accessing core functionality
-- `features/` - Feature modules (task, payment, issue)
-- `core/` - Angular infrastructure (i18n, startup, etc.)
-- `routes/` - Page routes
-- `shared/` - Shared UI components
-
-**Rules:**
-- ✅ Can use `@platform-adapters` (angular-fire adapters only)
-- ✅ Can use `@angular/fire`
-- ❌ CANNOT use `firebase-admin`
-- ❌ Should NOT import `@core-engine` or `@saas-domain` directly
-
-**Access Pattern:**
-```typescript
-// ✅ GOOD: Use facade
-import { CoreEngineFacade } from '@app/adapters';
-
-class MyComponent {
-  facade = inject(CoreEngineFacade);
-  
-  async loadTasks() {
-    return this.facade.getTasksByBlueprint('workspace-123');
-  }
-}
-
-// ❌ BAD: Direct import from core
-import { EventStore } from '@core-engine';
-```
-
-## SDK Separation Table
-
-| Location | Can Use | Cannot Use | Runs In |
-|----------|---------|------------|---------|
-| core-engine | TypeScript | ❌ Any SDK | Anywhere |
-| saas-domain | TypeScript, @core-engine | ❌ Any SDK | Anywhere |
-| platform-adapters/firebase/admin | firebase-admin | ❌ @angular/fire | Node.js |
-| platform-adapters/firebase/angular-fire | @angular/fire | ❌ firebase-admin | Browser |
-| ui-angular (src/app) | @angular/fire, @platform-adapters | ❌ firebase-admin | Browser |
-
-## Quick Reference
-
-### Who Uses Who?
-
-```
-core-engine → Used by everyone, depends on nobody
-    ↑
-saas-domain → Depends on core-engine
-    ↑
-platform-adapters → Depends on core-engine, saas-domain
-    ↑
-ui-angular → Depends on platform-adapters (angular-fire only)
-```
-
-### One-Sentence Rules
-
-> **@angular/fire is for what USERS see (browser, client)**
-> **firebase-admin is for what the SYSTEM does (server, backend)**
-> **Core never knows about frameworks**
-
-## TypeScript Path Mappings
+## TypeScript Path Mappings (root tsconfig)
 
 ```json
 {
   "paths": {
+    "@account-domain": ["packages/account-domain/index"],
+    "@account-domain/*": ["packages/account-domain/*"],
     "@core-engine": ["packages/core-engine/index"],
     "@core-engine/*": ["packages/core-engine/*"],
     "@saas-domain": ["packages/saas-domain/index"],
@@ -206,20 +63,14 @@ ui-angular → Depends on platform-adapters (angular-fire only)
 
 ## ESLint Protection
 
-The project includes ESLint rules to prevent SDK mixing:
+- ❌ `core-engine/` 禁止 Angular / Firebase
+- ❌ `account-domain/`、`saas-domain/` 禁止任何 SDK
+- ❌ `platform-adapters` 中 `firebase/admin/` 禁止 `@angular/fire`
+- ❌ `platform-adapters` 中 `firebase/angular-fire/` 禁止 `firebase-admin`
+- ❌ `src/app/` 禁止 `firebase-admin`
 
-- ❌ `core-engine/` cannot import Angular or Firebase
-- ❌ `saas-domain/` cannot import Angular or Firebase
-- ❌ `platform-adapters/firebase/admin/` cannot import `@angular/fire`
-- ❌ `platform-adapters/firebase/angular-fire/` cannot import `firebase-admin`
-- ❌ `src/app/` cannot import `firebase-admin`
+## Readiness Alignment（Mermaid 文件對齊）
 
-## License
-
-MIT
-
-## Readiness alignment
-
-- `@account-domain` path aliases are now available in the root `tsconfig.json` so Angular and tooling can import identity/workspace aggregates without local path hacks.
-- Scaffolded `account-domain` module folders (`account/`, `workspace/`, `membership/`, `module-registry/`) to match the Mermaid plan; each exports placeholders ready for aggregates/events once implemented.
-- Reserved `platform-adapters/@google/genai` for future Google GenAI adapters, keeping SDK usage isolated per the separation rules.
+- `account-domain` 已收斂至單一 `src/` 入口；新增聚合請直接放入對應子資料夾。
+- `platform-adapters` 的 Google AI 集中於 `src/external-apis/google/genai`，避免平行的 `@google` 根。
+- `core-engine` / `saas-domain` / `ui-angular` 皆以 `src/` 為唯一入口，未來子模組請先更新 README/AGENTS 後再實作。

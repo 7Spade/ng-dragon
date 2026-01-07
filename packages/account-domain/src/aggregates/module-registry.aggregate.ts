@@ -1,6 +1,6 @@
-import { DomainEvent, EventContext, toEventMetadata } from '../../src/events/domain-event';
-import { ModuleStatus, ModuleType } from '../../src/value-objects/module-types';
-import { ModuleKey, WorkspaceId } from '../../src/types/identifiers';
+import { DomainEvent, EventContext, toEventMetadata } from '../events/domain-event';
+import { ModuleStatus, ModuleType } from '../value-objects/module-types';
+import { ModuleKey, WorkspaceId } from '../types/identifiers';
 
 export interface ModuleRegistrySnapshot {
   workspaceId: WorkspaceId;
