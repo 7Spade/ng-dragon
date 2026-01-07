@@ -6,7 +6,7 @@
     "node": "lts"
   },
   "remoteUser": "vscode",
-  "workspaceFolder": "/workspaces",
+  "workspaceFolder": "/workspaces/ng-dragon",
   "postCreateCommand": [
     "npx -y @modelcontextprotocol/server-git --repository ./",
     "npx -y @modelcontextprotocol/server-filesystem ./",
@@ -20,6 +20,7 @@
     "npx -y @executeautomation/playwright-mcp-server",
     "export CODACY_ACCOUNT_TOKEN=yHFBU9bPJjpAOK60iHS0",
     "export CODACY_CLI_VERSION=latest",
-    "npx -y @codacy/codacy-mcp"
+    "npx -y @codacy/codacy-mcp",
+    "cd /workspaces/ng-dragon && yarn install --immutable"
   ]
 }
