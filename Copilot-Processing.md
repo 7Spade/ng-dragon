@@ -1,1 +1,1 @@
-User request: 查看 docs Mermaid files and build Account→Workspace→Module→Entity skeleton; auth chain uses @angular/fire/auth -> @delon/auth -> DA_SERVICE_TOKEN, permissions with @delon/acl later.
+User request: reorganize folder structure to avoid confusion, clarify src folder keeping/removal, handle platform-adapters/@google; adjust folder tree to zero ambiguity.
