@@ -23,11 +23,8 @@ platform-adapters/
 
 | 位置 | 可用 | 禁止 | 適用場景 |
 | --- | --- | --- | --- |
-| `src/firebase-platform` | firebase-admin（app/auth/app-check/firestore/storage/remote-config/messaging）、@google-cloud/pubsub | @angular/fire | 伺服端 SDK 基礎層 |
+| `src/firebase-platform` | firebase-admin（app/auth/app-check/firestore/storage/remote-config/messaging/pubsub） | @angular/fire | 伺服端 SDK 基礎層（唯一 admin 入口） |
 | `src/persistence` | firebase-admin / DB SDK | @angular/fire | 伺服端 EventStore / Projection 實作 |
-| `src/auth` (admin) | firebase-admin | @angular/fire | 伺服端 claims / 用戶管理 |
-| `src/auth` (client) | @angular/fire | firebase-admin | 前端登入 / token 取得 |
-| `src/messaging` | firebase-admin messaging、@google-cloud/pubsub | @angular/fire | 推播、事件 publish |
 | `src/external-apis/google/genai` | Google GenAI / Vertex AI SDK | 其他層直連 | AI / LLM 封裝 |
 
 ## Workspace persistence（Firestore）

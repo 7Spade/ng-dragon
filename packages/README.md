@@ -41,7 +41,7 @@ account-domain --> saas-domain --> ui-angular
 | --- | --- | --- | --- |
 | core-engine | TypeScript | Angular / Firebase / 任何 SDK | 純基礎設施 |
 | account-domain / saas-domain | TypeScript, @core-engine | 所有 SDK | 純業務邏輯 |
-| platform-adapters/src/persistence,auth,ai,external-apis | 第三方 SDK (firebase-admin, @angular/fire, Google AI SDK 等依場景) | 在未定義的層使用 SDK | 唯一 SDK 入口 |
+| platform-adapters/src/firebase-platform,persistence,ai,external-apis | 第三方 SDK (firebase-admin, @google-cloud/pubsub, Google AI SDK 等依場景) | 在未定義的層使用 SDK | 唯一 SDK 入口 |
 | ui-angular (src/app) | @angular/fire, @platform-adapters (client 介面) | firebase-admin | 前端 UI 層 |
 
 ## TypeScript Path Mappings (root tsconfig)
