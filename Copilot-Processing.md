@@ -1,3 +1,1 @@
-Issue: Implement organization functionality per planning doc from PR #24, ensuring single responsibility and structural boundaries.
-Date: 2026-01-07T23:04:18.386Z
-Notes: Follow Beast Mode instructions, use plan via manage_todo_list and report_progress, prefer custom agents, minimal changes.
+User request: Update PR templates. Problem statement: .github=淘汰的\PULL_REQUEST_TEMPLATE and its subfiles copilot-task.md, feature.md, hotfix.md, standard.md. Need to adapt for project and move to .github/PULL_REQUEST_TEMPLATE/.
