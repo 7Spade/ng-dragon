@@ -9,12 +9,19 @@ export interface WorkspaceMember {
   role: string;
 }
 
+export interface Team {
+  teamId: string;
+  teamName: string;
+  createdAt: string;
+}
+
 export interface Workspace {
   id: string;
   name: string;
   ownerUserId: string;
   type: 'organization' | 'team' | 'project';
   members: WorkspaceMember[];
+  teams?: Team[];
   accountId?: string;
   createdAt?: string;
   modules?: any[];
@@ -59,6 +66,7 @@ export class WorkspaceService {
           ownerUserId: ws.ownerUserId,
           type: ws.type,
           members: ws.members || [],
+          teams: ws.teams || [],
           accountId: ws.accountId,
           createdAt: ws.createdAt,
           modules: ws.modules || []
@@ -98,6 +106,7 @@ export class WorkspaceService {
           ownerUserId: ws.ownerUserId,
           type: ws.type,
           members: ws.members || [],
+          teams: ws.teams || [],
           accountId: ws.accountId,
           createdAt: ws.createdAt,
           modules: ws.modules || []
@@ -124,10 +133,61 @@ export class WorkspaceService {
           ownerUserId: ws.ownerUserId,
           type: ws.type,
           members: ws.members || [],
+          teams: ws.teams || [],
           accountId: ws.accountId,
           createdAt: ws.createdAt,
           modules: ws.modules || []
         } as Workspace;
+      })
+    );
+  }
+
+  /**
+   * Fetches teams for a specific workspace (organization)
+   * Only organizations can have teams
+   */
+  getTeamsByWorkspace(workspaceId: string): Observable<Team[]> {
+    return this.getWorkspaceById(workspaceId).pipe(
+      map(workspace => {
+        if (!workspace || workspace.type !== 'organization') {
+          return [];
+        }
+        return workspace.teams || [];
+      })
+    );
+  }
+
+  /**
+   * Fetches teams where user is a member
+   * Filters teams from all workspaces based on user membership
+   */
+  getUserTeams(): Observable<{ workspace: Workspace; team: Team }[]> {
+    const user = this.authBridge.getCurrentUser();
+    
+    if (!user) {
+      return new Observable(observer => {
+        observer.next([]);
+        observer.complete();
+      });
+    }
+
+    return this.getUserWorkspaces().pipe(
+      map(workspaces => {
+        const userTeams: { workspace: Workspace; team: Team }[] = [];
+        
+        workspaces.forEach(workspace => {
+          if (workspace.type === 'organization' && workspace.teams) {
+            workspace.teams.forEach(team => {
+              // Check if user is a member of this workspace (which grants team access)
+              const isMember = workspace.members?.some(m => m.userId === user.uid);
+              if (isMember) {
+                userTeams.push({ workspace, team });
+              }
+            });
+          }
+        });
+        
+        return userTeams;
       })
     );
   }

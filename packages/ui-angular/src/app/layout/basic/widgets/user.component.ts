@@ -7,10 +7,16 @@ import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { AsyncPipe, NgFor, NgIf } from '@angular/common';
-import { Observable } from 'rxjs';
+import { Observable, combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { WorkspaceService, Workspace } from '../../../workspaces/workspace.service';
+import { WorkspaceService, Workspace, Team } from '../../../workspaces/workspace.service';
 import { FirebaseAuthBridgeService } from '@core';
+
+interface OrganizationWithTeams {
+  organization: Workspace;
+  teams: Team[];
+  isOwner: boolean;
+}
 
 @Component({
   selector: 'header-user',
@@ -39,12 +45,25 @@ import { FirebaseAuthBridgeService } from '@core';
       <div nz-menu class="width-lg">
         <div class="px-sm py-sm text-muted">{{ 'menu.account.organizations' | i18n : 'Organizations' }}</div>
         
-        <!-- Owned Organizations -->
+        <!-- Owned Organizations with Teams -->
         <div class="px-sm text-muted">{{ 'menu.account.organizations.owned' | i18n : 'Owned' }}</div>
-        @if ((ownedOrganizations$ | async)?.length) {
-          @for (org of ownedOrganizations$ | async; track org.id) {
-            <div nz-menu-item (click)="selectOrganization(org.id)">
-              <i nz-icon nzType="crown" class="mr-sm"></i>{{ org.name }}
+        @if ((ownedOrganizationsWithTeams$ | async)?.length) {
+          @for (item of ownedOrganizationsWithTeams$ | async; track item.organization.id) {
+            <!-- Organization -->
+            <div nz-menu-item (click)="selectOrganization(item.organization.id)">
+              <i nz-icon nzType="crown" class="mr-sm"></i>{{ item.organization.name }}
+            </div>
+            <!-- Teams under owned organization -->
+            @if (item.teams?.length) {
+              @for (team of item.teams; track team.teamId) {
+                <div nz-menu-item (click)="selectTeam(item.organization.id, team.teamId)" class="pl-lg">
+                  <i nz-icon nzType="team" class="mr-sm"></i>{{ team.teamName }}
+                </div>
+              }
+            }
+            <!-- Create Team option (only for owners) -->
+            <div nz-menu-item (click)="createTeam(item.organization.id)" class="pl-lg text-primary">
+              <i nz-icon nzType="plus" class="mr-sm"></i>{{ 'menu.account.organizations.createTeam' | i18n : 'Create team' }}
             </div>
           }
         } @else {
@@ -53,13 +72,22 @@ import { FirebaseAuthBridgeService } from '@core';
         
         <li nz-menu-divider></li>
         
-        <!-- Joined Organizations -->
+        <!-- Joined Organizations with Teams -->
         <div class="px-sm text-muted">{{ 'menu.account.organizations.joined' | i18n : 'Joined' }}</div>
-        @if ((joinedOrganizations$ | async)?.length) {
-          @for (org of joinedOrganizations$ | async; track org.id) {
-            <div nz-menu-item (click)="selectOrganization(org.id)">
-              <i nz-icon nzType="team" class="mr-sm"></i>{{ org.name }}
+        @if ((joinedOrganizationsWithTeams$ | async)?.length) {
+          @for (item of joinedOrganizationsWithTeams$ | async; track item.organization.id) {
+            <!-- Organization -->
+            <div nz-menu-item (click)="selectOrganization(item.organization.id)">
+              <i nz-icon nzType="team" class="mr-sm"></i>{{ item.organization.name }}
             </div>
+            <!-- Teams under joined organization (only teams user is member of) -->
+            @if (item.teams?.length) {
+              @for (team of item.teams; track team.teamId) {
+                <div nz-menu-item (click)="selectTeam(item.organization.id, team.teamId)" class="pl-lg">
+                  <i nz-icon nzType="team" class="mr-sm"></i>{{ team.teamName }}
+                </div>
+              }
+            }
           }
         } @else {
           <div nz-menu-item class="text-muted">{{ 'menu.account.organizations.noneJoined' | i18n : 'No joined organizations' }}</div>
@@ -71,16 +99,6 @@ import { FirebaseAuthBridgeService } from '@core';
         <div nz-menu-item (click)="createOrganization()">
           <i nz-icon nzType="plus" class="mr-sm"></i>{{ 'menu.account.organizations.create' | i18n : 'Create organization' }}
         </div>
-        
-        @if (selectedOrganizationName) {
-          <div nz-menu-item class="text-muted">{{ selectedOrganizationName }}</div>
-          <div nz-menu-item [nzDisabled]="!isMember(selectedOrganizationId)" (click)="createTeam()">
-            <i nz-icon nzType="team" class="mr-sm"></i>{{ 'menu.account.organizations.createTeam' | i18n : 'Create team' }}
-          </div>
-          <div nz-menu-item (click)="createPartner()">
-            <i nz-icon nzType="user-add" class="mr-sm"></i>{{ 'menu.account.organizations.createPartner' | i18n : 'Create partner' }}
-          </div>
-        }
         
         <li nz-menu-divider></li>
         
@@ -104,37 +122,47 @@ export class HeaderUserComponent {
   private readonly workspaceService = inject(WorkspaceService);
   private readonly authBridge = inject(FirebaseAuthBridgeService);
 
-  // Observable streams for owned and joined organizations
-  readonly ownedOrganizations$: Observable<Workspace[]>;
-  readonly joinedOrganizations$: Observable<Workspace[]>;
-
-  selectedOrganizationId: string | null = null;
+  // Observable streams for owned and joined organizations with teams
+  readonly ownedOrganizationsWithTeams$: Observable<OrganizationWithTeams[]>;
+  readonly joinedOrganizationsWithTeams$: Observable<OrganizationWithTeams[]>;
 
   constructor() {
     const user = this.authBridge.getCurrentUser();
     const userId = user?.uid;
 
-    // Get all user workspaces and split into owned and joined
+    // Get all user workspaces
     const allWorkspaces$ = this.workspaceService.getUserWorkspaces();
 
-    // Owned organizations (where user is the owner)
-    this.ownedOrganizations$ = allWorkspaces$.pipe(
-      map(workspaces => 
-        workspaces.filter(ws => 
+    // Owned organizations with their teams
+    this.ownedOrganizationsWithTeams$ = allWorkspaces$.pipe(
+      map(workspaces => {
+        const ownedOrgs = workspaces.filter(ws => 
           ws.type === 'organization' && ws.ownerUserId === userId
-        )
-      )
+        );
+        
+        return ownedOrgs.map(org => ({
+          organization: org,
+          teams: org.teams || [],
+          isOwner: true
+        }));
+      })
     );
 
-    // Joined organizations (where user is a member but not owner)
-    this.joinedOrganizations$ = allWorkspaces$.pipe(
-      map(workspaces => 
-        workspaces.filter(ws => 
+    // Joined organizations with teams user is member of
+    this.joinedOrganizationsWithTeams$ = allWorkspaces$.pipe(
+      map(workspaces => {
+        const joinedOrgs = workspaces.filter(ws => 
           ws.type === 'organization' && 
           ws.ownerUserId !== userId &&
           ws.members?.some(m => m.userId === userId)
-        )
-      )
+        );
+        
+        return joinedOrgs.map(org => ({
+          organization: org,
+          teams: org.teams || [],
+          isOwner: false
+        }));
+      })
     );
   }
 
@@ -142,34 +170,20 @@ export class HeaderUserComponent {
     return this.settings.user;
   }
 
-  private isMember(orgId: string | null): boolean {
-    if (!orgId) return false;
-    // TODO: Implement proper membership check
-    return true;
-  }
-
-  get selectedOrganizationName(): string | null {
-    // TODO: Fetch selected org name from service
-    return null;
-  }
-
   selectOrganization(orgId: string): void {
-    this.selectedOrganizationId = orgId;
     this.router.navigateByUrl(`/organizations/${orgId}`).catch(() => void 0);
+  }
+
+  selectTeam(orgId: string, teamId: string): void {
+    this.router.navigateByUrl(`/organizations/${orgId}/teams/${teamId}`).catch(() => void 0);
   }
 
   createOrganization(): void {
     this.router.navigateByUrl('/workspaces/create').catch(() => void 0);
   }
 
-  createTeam(): void {
-    if (!this.isMember(this.selectedOrganizationId)) return;
-    this.router.navigateByUrl(`/organizations/${this.selectedOrganizationId}/teams/create`).catch(() => void 0);
-  }
-
-  createPartner(): void {
-    const orgId = this.selectedOrganizationId ?? 'select-org-first';
-    this.router.navigateByUrl(`/organizations/${orgId}/partners/create`).catch(() => void 0);
+  createTeam(orgId: string): void {
+    this.router.navigateByUrl(`/organizations/${orgId}/teams/create`).catch(() => void 0);
   }
 
   logout(): void {
