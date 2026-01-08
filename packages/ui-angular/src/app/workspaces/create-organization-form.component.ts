@@ -1,9 +1,10 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Functions, httpsCallable } from '@angular/fire/functions';
 import { SHARED_IMPORTS } from '@shared';
 import { FirebaseAuthBridgeService } from '@core';
+import { firstValueFrom } from 'rxjs';
 
 interface CreateOrganizationResponse {
   success: boolean;
@@ -57,9 +58,10 @@ export class CreateOrganizationFormComponent {
     { title: 'Create' }
   ];
 
-  private readonly functions = inject(Functions);
+  private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private readonly authBridge = inject(FirebaseAuthBridgeService);
+  private readonly cdr = inject(ChangeDetectorRef);
   
   submitting = false;
   errorMessage = '';
@@ -80,20 +82,20 @@ export class CreateOrganizationFormComponent {
       const user = this.authBridge.getCurrentUser();
       if (!user) {
         this.errorMessage = 'You must be logged in to create an organization';
+        this.cdr.markForCheck();
         return;
       }
 
-      // Call the Cloud Function that uses firebase-admin
-      const createOrgFunction = httpsCallable<{ organizationName: string }, CreateOrganizationResponse>(
-        this.functions,
-        'createOrganization'
+      // Call server API that uses platform-adapters/WorkspaceRepositoryFirebase (firebase-admin)
+      const response = await firstValueFrom(
+        this.http.post<CreateOrganizationResponse>('/api/organizations', {
+          organizationName: this.form.value.organizationName,
+          accountId: user.uid
+        })
       );
 
-      const result = await createOrgFunction({
-        organizationName: this.form.value.organizationName ?? ''
-      });
-
-      this.successMessage = result.data.message;
+      this.successMessage = response.message;
+      this.cdr.markForCheck();
       
       // Navigate after a short delay to show success message
       setTimeout(() => {
@@ -102,8 +104,10 @@ export class CreateOrganizationFormComponent {
     } catch (error) {
       this.errorMessage = error instanceof Error ? error.message : 'Failed to create organization';
       console.error('Error creating organization:', error);
+      this.cdr.markForCheck();
     } finally {
       this.submitting = false;
+      this.cdr.markForCheck();
     }
   }
 }
