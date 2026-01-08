@@ -1,1 +1,0 @@
-User request: research organization功能完整實現 currently UI only, use .github/collections/edge-ai-tasks.md iterate to zero-knowledge implementable, maintain structure and SRP. Role: Task Researcher, only research files under .copilot-tracking/research.
