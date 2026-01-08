@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Functions, httpsCallable } from '@angular/fire/functions';
 import { from, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { CreateProjectWorkspaceCommand, WorkspaceCommandResult } from '@account-domain/src/domain-services/workspace.service';
+import { CreateProjectWorkspaceCommand, WorkspaceCommandResult } from '@account-domain';
 
 /**
  * Frontend adapter that calls backend workspace orchestration through
