@@ -7,9 +7,9 @@
 ```
 platform-adapters/
 └── src/
-    ├── firebase-platform/     # firebase-admin 基礎層（app/auth/firestore/storage/observability）
-    ├── auth/                  # admin/client 身分橋接（可遷移重用 firebase-platform）
-    ├── messaging/             # 通知、推播、佇列
+    ├── firebase-platform/     # firebase-admin 基礎層（app/auth/app-check/firestore/storage/observability/remote-config/messaging/pubsub）
+    ├── auth/                  # admin/client 身分橋接（現已重用 firebase-platform auth）
+    ├── messaging/             # 推播/事件 publish（重用 firebase-platform messaging & pubsub）
     ├── ai/                    # AI/LLM 抽象或共用 helper
     ├── external-apis/
     │   └── google/genai/      # Google GenAI / Vertex AI 介接（placeholder src/）
@@ -23,16 +23,17 @@ platform-adapters/
 
 | 位置 | 可用 | 禁止 | 適用場景 |
 | --- | --- | --- | --- |
-| `src/firebase-platform` | firebase-admin（app/auth/firestore/storage/app-check/observability） | @angular/fire | 伺服端 SDK 基礎層 |
+| `src/firebase-platform` | firebase-admin（app/auth/app-check/firestore/storage/remote-config/messaging）、@google-cloud/pubsub | @angular/fire | 伺服端 SDK 基礎層 |
 | `src/persistence` | firebase-admin / DB SDK | @angular/fire | 伺服端 EventStore / Projection 實作 |
 | `src/auth` (admin) | firebase-admin | @angular/fire | 伺服端 claims / 用戶管理 |
 | `src/auth` (client) | @angular/fire | firebase-admin | 前端登入 / token 取得 |
+| `src/messaging` | firebase-admin messaging、@google-cloud/pubsub | @angular/fire | 推播、事件 publish |
 | `src/external-apis/google/genai` | Google GenAI / Vertex AI SDK | 其他層直連 | AI / LLM 封裝 |
 
 ## 依賴
 
 - ✅ 可依賴 `@core-engine` 定義的 port / 型別
-- ✅ 可使用第三方 SDK
+- ✅ 可使用第三方 SDK（firebase-admin、@google-cloud/pubsub 等）
 - ❌ 不含業務規則（交給 domain 層）
 - ❌ 不直接暴露 SDK 至 `ui-angular`，改以 Facade / Adapter 輸出
 
