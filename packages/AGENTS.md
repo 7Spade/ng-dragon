@@ -42,6 +42,46 @@ account-domain --> saas-domain --> ui-angular
 3) **SDK 隔離**：所有第三方 SDK 只允許存在於 `platform-adapters/src`（含 `external-apis/google/genai`）。
 4) **文件先行**：新增子模組時，先更新對應的 README/AGENTS，保持與 Mermaid 架構文件一致。
 
+## Workspace / Module 規則與依賴方向
+
+- 依賴方向：Account → Workspace → Module → Entity
+- 每一層只能「往右用」，不能「往左知道」
+- 保持 UI / Domain / Adapter 的邊界清楚
+
+> **Workspace 是殼，
+> Module 是外掛，
+> Account 是手，
+> Event 是因果。**
+
+模組**永遠不創建 Workspace**
+Workspace **只決定能不能裝模組**
+
+1. Workspace 擁有「模組註冊表」
+
+> Workspace 不知道模組怎麼運作
+> 但知道「裝了哪些模組」
+> 模組必須宣告「可掛載條件」
+
+每個模組自己說：
+
+> 「我什麼情況下能被裝進 Workspace」
+> **Workspace 只負責檢查，不負責理解**
+> 模組啟用是 Event，不是設定
+> 模組永遠吃 Workspace Context
+> **模組永遠不知道自己「在哪個 Workspace 之外」**
+
+Workspace 啟用模組的流程
+### 1️⃣ 指令進來
+### 2️⃣ Workspace Aggregate 驗證
+### 3️⃣ 發 Event
+### 4️⃣ 模組「聽事件」初始化自己
+**模組被動啟動，不反客為主**
+
+
+## ❌ 絕對不要做的事
+### ❌ 模組自己建 Workspace
+### ❌ 模組偷看其他模組狀態
+**只能透過 manifest 宣告依賴**
 ## Event Flow + Event Sourcing + Causality Tracking with Causality Links
 
 ```mermaid
