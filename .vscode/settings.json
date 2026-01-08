@@ -1,18 +1,23 @@
 {
+  // TypeScript 指定版本
   "typescript.tsdk": "./node_modules/typescript/lib",
+
+  // 全域儲存自動格式化
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit",
     "source.fixAll.stylelint": "explicit"
   },
+
+  // 各語言設定
   "[typescript]": {
     "editor.formatOnSave": true,
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-  },
-  "[markdown]": {
-    "editor.formatOnSave": false
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[javascript]": {
+    "editor.formatOnSave": false
+  },
+  "[markdown]": {
     "editor.formatOnSave": false
   },
   "[json]": {
@@ -25,21 +30,39 @@
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "stylelint.vscode-stylelint"
   },
+
+  // 偵測檔案時忽略
   "files.watcherExclude": {
-    "**/.git/*/**": true,
-    "**/node_modules/*/**": true,
-    "**/dist/*/**": true,
-    "**/coverage/*/**": true
+    "**/.git/**": true,
+    "**/node_modules/**": true,
+    "**/dist/**": true,
+    "**/coverage/**": true
   },
+
+  // 檔案關聯
   "files.associations": {
     "*.json": "jsonc",
     ".prettierrc": "jsonc"
   },
+
+  // TypeScript 小工具
   "typescript.referencesCodeLens.enabled": true,
+
+  // Copilot Agent 設定
   "chat.instructionsFilesLocations": {
     ".copilot-tracking/plans": true
   },
   "chat.promptFilesLocations": {
     ".copilot-tracking/prompts": true
-  }
+  },
+  "chat.agent.enabled": true,               // 開啟 Agent 模式
+  "chat.agent.maxRequests": 15,            // 同時處理多任務
+  "github.copilot.chat.agent.runTasks": true, 
+  "github.copilot.chat.agent.autoFix": true, 
+  "chat.extensionTools.enabled": true,     // 允許使用 Agent 工具 (terminal/git等)
+  
+  // 額外優化
+  "editor.tabSize": 2,
+  "editor.detectIndentation": false,
+  "editor.formatOnPaste": true
 }
