@@ -34,9 +34,15 @@
     "compilerOptions": {
       "baseUrl": ".",
       "paths": {
-        "firebase-admin": ["__forbidden__"],
-        "@platform-adapters/server/*": ["src/server-adapter/*"],
-        "@platform-adapters/client/*": ["src/client-adapter/*"]
+        "firebase-admin": [
+          "__forbidden__"
+        ],
+        "@platform-adapters/server/*": [
+          "src/server-adapter/*"
+        ],
+        "@platform-adapters/client/*": [
+          "src/client-adapter/*"
+        ]
       }
     }
   },

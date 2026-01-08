@@ -54,12 +54,16 @@
     "@types/node": "^20.19.27",
     "typescript": "~5.9.2"
   },
-    "tsconfig": {
+  "tsconfig": {
     "compilerOptions": {
       "baseUrl": ".",
       "paths": {
-        "firebase-admin": ["__forbidden__"],
-        "@ng-events/platform-adapters/*": ["packages/platform-adapters/src/client-adapter/*"]
+        "firebase-admin": [
+          "__forbidden__"
+        ],
+        "@ng-events/platform-adapters/*": [
+          "packages/platform-adapters/src/client-adapter/*"
+        ]
       }
     }
   },

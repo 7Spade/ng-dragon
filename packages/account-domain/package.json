@@ -28,7 +28,9 @@
     "compilerOptions": {
       "baseUrl": ".",
       "paths": {
-        "firebase-admin": ["__forbidden__"]
+        "firebase-admin": [
+          "__forbidden__"
+        ]
       }
     }
   },
