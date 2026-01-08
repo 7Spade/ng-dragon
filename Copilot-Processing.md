@@ -1,3 +1,1 @@
-Issue: Implement organization functionality per planning doc from PR #24, ensuring single responsibility and structural boundaries.
-Date: 2026-01-07T23:04:18.386Z
-Notes: Follow Beast Mode instructions, use plan via manage_todo_list and report_progress, prefer custom agents, minimal changes.
+User request: Update deprecated issue templates from .github=淘汰的/ISSUE_TEMPLATE to .github/ISSUE_TEMPLATE with project-appropriate content.
