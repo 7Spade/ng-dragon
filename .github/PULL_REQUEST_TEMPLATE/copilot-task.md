@@ -3,13 +3,19 @@ name: Copilot Task PR
 about: PRs produced by Copilot + MCP
 ---
 
-### Task
-- Name / objective:
-- MCP used: [ ] context7 [ ] server-sequential-thinking [ ] software-planning-mcp [ ] filesystem/everything [ ] server-fetch/time [ ] playwright-mcp-server
+### Task Summary
+- 任務名稱 / Issue 連結：
+- 目標與完成範圍（domain / application / UI / infra）：
 
-### Files
-- 列出主要變更檔案（保持 <4000 UTF-8 字元/檔，非 .md）
+### Copilot / MCP 使用
+- MCP: [ ] context7 [ ] server-sequential-thinking [ ] software-planning-mcp [ ] filesystem/everything [ ] server-fetch/time [ ] playwright-mcp-server
+- 其他：
 
-### Verification
-- [ ] Lint/Tests 執行結果
-- [ ] 文件/截圖（若為 UI 或 E2E）
+### 主要變更
+- 關鍵檔案與模組（FireStore schema / event-sourcing / Angular UI 等）：
+- 是否有破壞性/相容性變更：
+
+### 驗證
+- 執行指令與結果：`yarn lint` / `yarn test` / 其他：
+- UI 變更：截圖或錄影（若適用）
+- 文件更新：Mermaid 圖、README、規格（若適用）
