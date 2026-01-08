@@ -1,0 +1,8 @@
+Potential GitHub Copilot agent blockers found under .github:
+
+- .github/all‑code.instructions.md: applies to *.ts and *.md but bans non‑Markdown files over 4000 characters, which can block edits to any larger source file.
+- .github/instructions/markdown.instructions.md: demands heavy YAML front matter for every Markdown file plus strict heading rules, making simple note-taking difficult and risky for quick responses.
+- .github/copilot-instructions.md: repeats a 4000‑character cap for non‑Markdown files and hardcodes a Playwright login flow with shared credentials, which is unrelated to most tasks and could force unnecessary or unsafe steps.
+- .github/instructions/spec-driven-workflow-v1.instructions.md (applyTo: **): requires maintaining requirements.md/design.md/tasks.md and exhaustive templates for every action/decision, adding large process overhead even for small fixes.
+- .github/instructions/memory-bank.instructions.md (applyTo: **): forces reading and updating a full “memory bank” hierarchy every session, which may be missing and can stall simple tasks.
+- .github/instructions/codacy.instructions.md (applyTo: **): mandates running codacy_cli_analyze after every edit and on dependency changes, which will fail when the Codacy MCP server or CLI isn’t available and adds time to trivial changes.
