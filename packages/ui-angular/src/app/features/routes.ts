@@ -2,7 +2,8 @@ import { Routes } from '@angular/router';
 import { startPageGuard } from '@core';
 import { authSimpleCanActivate, authSimpleCanActivateChild } from '@delon/auth';
 
-import { LayoutBasicComponent, LayoutBlankComponent } from '../layout';
+import { LayoutBasicComponent } from '../layout';
+import { CreateOrganizationFormComponent } from '../workspaces/create-organization-form.component';
 
 export const routes: Routes = [
   {
@@ -16,6 +17,10 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         loadChildren: () => import('./dashboard/routes').then(m => m.routes)
+      },
+      {
+        path: 'workspaces/create',
+        component: CreateOrganizationFormComponent
       }
     ]
   },

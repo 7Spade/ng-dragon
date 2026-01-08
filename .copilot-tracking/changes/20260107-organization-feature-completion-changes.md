@@ -2,22 +2,32 @@
 # Release Changes: organization feature completion
 
 **Related Plan**: .copilot-tracking/plans/20260107-organization-feature-completion-plan.instructions.md
-**Implementation Date**: 2026-01-07
+**Implementation Date**: 2026-01-08
 
 ## Summary
 
-Initial plan and task details drafted for full organization feature implementation (domain events, projectors, application facade, UI refactor) based on architecture and Firestore schema research.
+Implemented the initial create-organization flow with command/application service/factory/event wiring, added a Firebase workspace repository, and exposed a UI form plus route that triggers workspace creation and navigation. Workspace aggregate now captures organization names in snapshots/events.
 
 ## Changes
 
 ### Added
 
-- .copilot-tracking/plans/20260107-organization-feature-completion-plan.instructions.md - Checklist for organization feature implementation across domain, projections, services, and UI.
-- .copilot-tracking/details/20260107-organization-feature-completion-details.md - Task-by-task guidance with research references and success criteria.
+- packages/saas-domain/src/commands/CreateOrganizationCommand.ts - Command contract for creating an organization workspace.
+- packages/saas-domain/src/domain/WorkspaceFactory.ts - Factory to build organization workspaces and emit creation events.
+- packages/saas-domain/src/application/WorkspaceApplicationService.ts - Application service orchestrating workspace creation persistence.
+- packages/saas-domain/src/events/WorkspaceCreatedEvent.ts - Typed workspace created domain event.
+- packages/saas-domain/src/repositories/WorkspaceRepository.ts - Repository port for workspace snapshots and events.
+- packages/platform-adapters/src/firebase-platform/workspace.repository.firebase.ts - Firebase-admin implementation of the workspace repository.
+- packages/ui-angular/src/app/workspaces/create-organization-form.component.ts - UI form that issues the create-organization command and navigates to the new workspace.
 
 ### Modified
 
-- N/A
+- packages/account-domain/src/aggregates/workspace.aggregate.ts - Allow workspace snapshots to carry names alongside modules and metadata.
+- packages/account-domain/src/value-objects/workspace-type.ts - Allow WorkspaceType to include `Organization`.
+- packages/saas-domain/index.ts - Export workspace creation flow artifacts.
+- packages/platform-adapters/src/firebase-platform/index.ts - Re-export Firebase workspace repository.
+- packages/ui-angular/src/app/features/routes.ts - Register route to the create-organization form.
+- .copilot-tracking/changes/20260107-organization-feature-completion-changes.md - Logged the new organization creation flow.
 
 ### Removed
 
@@ -25,16 +35,26 @@ Initial plan and task details drafted for full organization feature implementati
 
 ## Release Summary
 
-**Total Files Affected**: 2
+**Total Files Affected**: 13
 
-### Files Created (2)
+### Files Created (7)
 
-- .copilot-tracking/plans/20260107-organization-feature-completion-plan.instructions.md - Implementation checklist.
-- .copilot-tracking/details/20260107-organization-feature-completion-details.md - Task details and success criteria.
+- packages/saas-domain/src/commands/CreateOrganizationCommand.ts - Command contract for organization creation.
+- packages/saas-domain/src/domain/WorkspaceFactory.ts - Factory for organization workspace creation.
+- packages/saas-domain/src/application/WorkspaceApplicationService.ts - Application service saving events and snapshots.
+- packages/saas-domain/src/events/WorkspaceCreatedEvent.ts - Workspace created event type.
+- packages/saas-domain/src/repositories/WorkspaceRepository.ts - Workspace repository abstraction.
+- packages/platform-adapters/src/firebase-platform/workspace.repository.firebase.ts - Firebase-admin repository implementation.
+- packages/ui-angular/src/app/workspaces/create-organization-form.component.ts - UI form to trigger creation and redirect.
 
-### Files Modified (0)
+### Files Modified (6)
 
-- N/A
+- packages/account-domain/src/aggregates/workspace.aggregate.ts - Included workspace names in snapshots and events.
+- packages/account-domain/src/value-objects/workspace-type.ts - Added `Organization` workspace type.
+- packages/saas-domain/index.ts - Expose workspace creation exports.
+- packages/platform-adapters/src/firebase-platform/index.ts - Export Firebase workspace repository.
+- packages/ui-angular/src/app/features/routes.ts - Added create workspace route.
+- .copilot-tracking/changes/20260107-organization-feature-completion-changes.md - Updated change log for current work.
 
 ### Files Removed (0)
 
@@ -44,9 +64,9 @@ Initial plan and task details drafted for full organization feature implementati
 
 - **New Dependencies**: None
 - **Updated Dependencies**: None
-- **Infrastructure Changes**: None
+- **Infrastructure Changes**: Firebase workspace repository added for event persistence.
 - **Configuration Updates**: None
 
 ### Deployment Notes
 
-Planning artifacts only; no runtime changes.
+Route `/workspaces/create` renders the creation form, posting commands via HTTP adapters and navigating to `/workspaces/:workspaceId` on success.
