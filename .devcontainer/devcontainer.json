@@ -8,14 +8,17 @@
   "remoteUser": "vscode",
   "workspaceFolder": "/workspaces/ng-dragon",
   "postCreateCommand": [
-    // 先安裝 MCP 核心服務
+    // 先啟動 MCP Docker 容器 (後台跑，不阻塞)
+    "docker run -d --name awesome-copilot --restart unless-stopped ghcr.io/microsoft/mcp-dotnet-samples/awesome-copilot:latest",
+    
+    // 安裝 MCP 核心服務
     "npx -y @modelcontextprotocol/server-filesystem ./",
     "npx -y @modelcontextprotocol/server-memory",
     "npx -y @modelcontextprotocol/server-everything",
     "npx -y @modelcontextprotocol/server-sequential-thinking",
     "npx -y github:NightTrek/Software-planning-mcp",
     
-    // 時間 / Fetch / Playwright MCP
+    // 安裝 Playwright MCP Server
     "npx -y @executeautomation/playwright-mcp-server",
     
     // Codacy MCP
@@ -23,7 +26,7 @@
     "export CODACY_CLI_VERSION=latest",
     "npx -y @codacy/codacy-mcp",
     
-    // 最後安裝依賴
+    // 最後安裝專案依賴
     "cd /workspaces/ng-dragon && yarn install --immutable"
   ],
   "customizations": {
