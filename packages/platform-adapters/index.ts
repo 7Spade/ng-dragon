@@ -1,5 +1,10 @@
-// Platform Adapters entrypoint - exports firebase-admin based helpers
-export * from './src/firebase-platform';
+// Platform Adapters entrypoint
+// DO NOT export firebase-admin based helpers here - they are server-only
+// Frontend should use @angular/fire client SDK instead
+
+// Only export client-safe adapters
 export * from './src/ai';
 export * from './src/external-apis';
-export * from './src/persistence';
+
+// firebase-platform and persistence use firebase-admin (server-only)
+// Import them explicitly from './server' if needed in backend code

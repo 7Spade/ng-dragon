@@ -11,16 +11,30 @@ CreateOrganizationUseCase (core-engine)
   ↓ (uses)
 WorkspaceRepositoryPort (interface)
   ↓ (implemented by)
-WorkspaceRepositoryFirebase (platform-adapters)
-  ↓ (calls)
-Workspace.createOrganization() (saas-domain)
-  ↓ (emits)
-WorkspaceCreatedEvent (saas-domain)
+WorkspaceRepositoryClient (ui-angular) - Uses @angular/fire
   ↓ (writes via)
-firebase-admin SDK (firestore)
+@angular/fire/firestore (client SDK)
   ↓
 Firestore Collections (workspaces, workspace-events)
 ```
+
+## Critical: Frontend vs Backend SDK Separation
+
+### ⚠️ The Problem
+- `packages/platform-adapters` contains `firebase-admin` (Node.js only)
+- If `ui-angular` imports `platform-adapters`, Vite will try to bundle `firebase-admin` → 💥 Build fails
+
+### ✅ The Solution
+
+**Frontend (ui-angular)**:
+- Uses `@angular/fire` (browser-compatible client SDK)
+- `WorkspaceRepositoryClient` implements `WorkspaceRepositoryPort` using client SDK
+- NO imports from `platform-adapters/firebase-platform`
+
+**Backend (platform-adapters)**:
+- Uses `firebase-admin` (server-only SDK)
+- `WorkspaceRepositoryFirebase` implements `WorkspaceRepositoryPort` using admin SDK
+- Exported from `platform-adapters/server.ts` (NOT from main index)
 
 ## Package Responsibilities
 
@@ -51,16 +65,17 @@ Firestore Collections (workspaces, workspace-events)
 - `aggregates/workspace.aggregate.ts` - Workspace aggregate with business logic
 - `events/workspace-created.event.ts` - Domain event
 
-### platform-adapters (Infrastructure Layer)
+### platform-adapters (Infrastructure Layer - Server Only)
 **Location:** `packages/platform-adapters/src/firebase-platform`
 
 **Responsibilities:**
-- Implement repository ports
-- Use firebase-admin SDK (ONLY layer allowed to use SDKs)
-- Write to Firestore
+- Implement repository ports for server-side
+- Use firebase-admin SDK (ONLY layer allowed to use server SDKs)
+- Write to Firestore from backend
 
 **Files:**
 - `workspace.repository.firebase.ts` - Implements WorkspaceRepositoryPort using firebase-admin
+- **Exported from:** `packages/platform-adapters/server.ts` (NOT main index)
 
 ### ui-angular (Presentation Layer)
 **Location:** `packages/ui-angular/src/app/workspaces`
@@ -68,12 +83,13 @@ Firestore Collections (workspaces, workspace-events)
 **Responsibilities:**
 - User interface components
 - Send commands to use cases
-- NO direct SDK usage
-- NO direct repository access
+- Use @angular/fire client SDK
+- NO direct firebase-admin usage
 
 **Files:**
 - `create-organization-form.component.ts` - UI component
 - `create-organization.service.ts` - Angular service that wires UseCase and Repository
+- `workspace.repository.client.ts` - Client-side repository using @angular/fire
 
 ## Key Design Decisions
 
@@ -99,19 +115,40 @@ members: [
 ]
 ```
 
-### 3. No Express/HTTP Server
+### 3. Frontend Uses @angular/fire, Backend Uses firebase-admin
+
+**Frontend (Browser)**:
+```typescript
+// ui-angular/src/app/workspaces/workspace.repository.client.ts
+import { Firestore } from '@angular/fire/firestore';  // ✅ Client SDK
+```
+
+**Backend (Server - if needed)**:
+```typescript
+// platform-adapters/src/firebase-platform/workspace.repository.firebase.ts
+import { getFirestore } from 'firebase-admin/firestore';  // ✅ Admin SDK
+```
+
+### 4. No Express/HTTP Server
 ❌ NO Express
 ❌ NO HTTP endpoints
 ✅ Direct function calls via Angular dependency injection
 
-### 4. Firebase Admin SDK Isolation
-firebase-admin ONLY exists in `platform-adapters`:
+### 5. SDK Isolation via Separate Exports
 
+**platform-adapters/index.ts**:
+```typescript
+// Only client-safe exports
+export * from './src/ai';
+export * from './src/external-apis';
+// NO firebase-platform export here
 ```
-✅ platform-adapters/src/firebase-platform/workspace.repository.firebase.ts
-❌ NOT in core-engine
-❌ NOT in saas-domain
-❌ NOT in ui-angular
+
+**platform-adapters/server.ts** (server-only):
+```typescript
+// Server-only exports
+export * from './src/firebase-platform';  // firebase-admin
+export * from './src/persistence';
 ```
 
 ## Data Flow Example
@@ -135,12 +172,9 @@ const workspace = {
   modules: []
 };
 
-// 3. Repository calls Domain
-const { workspace, event } = Workspace.createOrganization(...);
-
-// 4. Repository saves via firebase-admin
-await workspacesCollection.doc(workspaceId).set(workspace.toSnapshot());
-await eventsCollection.doc().set(event);
+// 3. Repository (client) writes via @angular/fire
+await setDoc(doc(workspacesCol, workspaceId), workspace);
+await setDoc(doc(eventsCol), event);
 ```
 
 ## Firestore Collections
@@ -175,8 +209,8 @@ await eventsCollection.doc().set(event);
 
 ✅ **core-engine** - No SDK imports, only interfaces and use cases
 ✅ **saas-domain** - No SDK imports, pure domain logic
-✅ **platform-adapters** - Only layer with firebase-admin
-✅ **ui-angular** - Only sends commands, no direct DB access
+✅ **platform-adapters** - firebase-admin only in server.ts export
+✅ **ui-angular** - Uses @angular/fire client SDK, NO firebase-admin
 
 ## Dependency Direction
 
@@ -184,7 +218,25 @@ await eventsCollection.doc().set(event);
 account-domain → saas-domain → ui-angular
        \          ^
         \         |
-         → core-engine ← platform-adapters
+         → core-engine
+                ^
+                |
+         platform-adapters (server-only via server.ts)
 ```
 
-All dependencies point inward. Domain has no knowledge of infrastructure.
+## Frontend Build Safety
+
+### What Was Fixed
+- ❌ Before: `ui-angular` imported `platform-adapters` → bundled `firebase-admin` → build fails
+- ✅ After: `ui-angular` uses `@angular/fire` → NO `firebase-admin` in bundle → build succeeds
+
+### Verification
+```bash
+# Frontend should NOT import from platform-adapters main export
+grep -r "from '@platform-adapters'" packages/ui-angular/
+# Should return ZERO results
+
+# Frontend should use @angular/fire
+grep -r "from '@angular/fire" packages/ui-angular/
+# Should show WorkspaceRepositoryClient using @angular/fire
+```
