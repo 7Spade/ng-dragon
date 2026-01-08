@@ -69,3 +69,8 @@ Readme(讀我).md.old
 
 #Ignore vscode AI rules
 .github\instructions\codacy.instructions.md
+
+# Firebase Functions
+functions/lib/
+functions/node_modules/
+functions/*.log
