@@ -74,10 +74,11 @@ export class OrganizationSessionFacade {
   }
 
   async selectOrganization(organizationId: string): Promise<void> {
+    const projections = this.projectionState();
+    const exists = projections.organizations.has(organizationId);
     const all = [...this.ownedOrganizations(), ...this.joinedOrganizations()];
-    if (!all.some((org) => org.id === organizationId)) {
-      return;
-    }
+    const inMembership = all.some((org) => org.id === organizationId);
+    if (!exists && !inMembership) return;
 
     this.selectedOrganizationId.set(organizationId);
     this.applyPermissionCache(organizationId);

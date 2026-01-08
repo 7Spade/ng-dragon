@@ -1,5 +1,5 @@
 import { NgIf } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
@@ -10,9 +10,9 @@ import { OrganizationSessionFacade } from '../../core/session/organization-sessi
 @Component({
   selector: 'page-organization-detail',
   template: `
-    <ng-container *ngIf="selectedName as name; else empty">
-      <nz-card nzTitle="{{ name }}" class="mb-lg">
-        <p class="text-secondary mb-md">Organization ID: {{ organizationId }}</p>
+    <ng-container *ngIf="name(); else empty">
+      <nz-card nzTitle="{{ name() || 'New Organization' }}" class="mb-lg">
+        <p class="text-secondary mb-md">Organization ID: {{ organizationId() }}</p>
         <div class="d-flex gap-sm">
           <button nz-button nzType="primary" (click)="createTeam()">Create team</button>
           <button nz-button nzType="default" (click)="createPartner()">Create partner</button>
@@ -40,17 +40,15 @@ export class OrganizationDetailComponent implements OnInit, OnDestroy {
   private readonly organizationFacade = inject(OrganizationSessionFacade);
   private readonly destroy$ = new Subject<void>();
 
-  organizationId: string | null = null;
-  selectedName: string | null = null;
+  organizationId = signal<string | null>(null);
+  name = computed(() => this.organizationFacade.selectedOrganizationName());
 
   ngOnInit(): void {
     this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
       const orgId = params.get('id');
-      this.organizationId = orgId;
+      this.organizationId.set(orgId);
       if (orgId) {
-        void this.organizationFacade.selectOrganization(orgId).then(() => {
-          this.selectedName = this.organizationFacade.selectedOrganizationName();
-        });
+        void this.organizationFacade.selectOrganization(orgId);
       }
     });
   }
