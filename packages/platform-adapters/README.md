@@ -13,7 +13,7 @@ platform-adapters/
     ├── ai/                    # AI/LLM 抽象或共用 helper
     ├── external-apis/
     │   └── google/genai/      # Google GenAI / Vertex AI 介接（placeholder src/）
-    ├── persistence/           # EventStore / Projection / DB adapter 實作
+    ├── persistence/           # EventStore / Projection / DB adapter 實作（含 Workspace Firestore repository）
     └── __tests__/             # Adapter 測試（待補）
 ```
 
@@ -30,12 +30,10 @@ platform-adapters/
 | `src/messaging` | firebase-admin messaging、@google-cloud/pubsub | @angular/fire | 推播、事件 publish |
 | `src/external-apis/google/genai` | Google GenAI / Vertex AI SDK | 其他層直連 | AI / LLM 封裝 |
 
-## 依賴
+## Workspace persistence（Firestore）
 
-- ✅ 可依賴 `@core-engine` 定義的 port / 型別
-- ✅ 可使用第三方 SDK（firebase-admin、@google-cloud/pubsub 等）
-- ❌ 不含業務規則（交給 domain 層）
-- ❌ 不直接暴露 SDK 至 `ui-angular`，改以 Facade / Adapter 輸出
+- `FirestoreWorkspaceRepository`：依 `WorkspaceRepository` port 實作，事件寫入 `workspace-events`，快照寫入 `workspaces`，`list()` 直接讀取快照集合。
+- `createWorkspaceApplicationService()`：返回注入 Firestore repository 的 `WorkspaceApplicationService`，可直接在 Cloud Functions / Worker 中接受 `CreateOrganizationCommand`。
 
 ## 一句話規則
 

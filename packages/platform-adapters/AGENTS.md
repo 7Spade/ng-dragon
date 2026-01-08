@@ -22,7 +22,7 @@ platform-adapters/
     ├── external-apis/
     │   └── google/
     │       └── genai/         # Google GenAI / Vertex AI 介接（placeholder src/）
-    ├── persistence/           # EventStore / Projection / DB adapter 實作
+    ├── persistence/           # EventStore / Projection / DB adapter 實作（Workspace Firestore repository 已落地）
     └── __tests__/             # 介面實作的對應測試（待補）
 ```
 
@@ -33,7 +33,7 @@ platform-adapters/
 | 位置 | 可以用 | 禁止 | 說明 |
 | --- | --- | --- | --- |
 | `src/firebase-platform` | firebase-admin（app/auth/app-check/firestore/storage/remote-config/messaging）、@google-cloud/pubsub | @angular/fire | firebase-admin 基礎層 |
-| `src/persistence` | firebase-admin / DB SDK | @angular/fire | 伺服端實作 |
+| `src/persistence` | firebase-admin / DB SDK | @angular/fire | 伺服端實作（含 Workspace Firestore repository） |
 | `src/auth` (admin) | firebase-admin | @angular/fire | 伺服端身份 / claims |
 | `src/auth` (client) | @angular/fire | firebase-admin | 前端身份橋接 |
 | `src/messaging` | firebase-admin messaging、@google-cloud/pubsub | @angular/fire | 推播 / 事件 publish |

@@ -4,3 +4,4 @@ export * from './src/auth';
 export * from './src/messaging';
 export * from './src/ai';
 export * from './src/external-apis';
+export * from './src/persistence';
