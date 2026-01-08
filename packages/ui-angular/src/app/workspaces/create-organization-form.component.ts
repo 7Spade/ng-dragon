@@ -28,26 +28,32 @@ export class WorkspaceApplicationClient {
   standalone: true,
   imports: [...SHARED_IMPORTS],
   template: `
-    <form nz-form [formGroup]="form" (ngSubmit)="submit()" class="block">
-      <nz-form-item>
-        <nz-form-label [nzSpan]="6" nzFor="organizationName" nzRequired>Organization Name</nz-form-label>
-        <nz-form-control [nzSpan]="18">
-          <input nz-input id="organizationName" formControlName="organizationName" placeholder="Acme Inc" />
-        </nz-form-control>
-      </nz-form-item>
+    <page-header [title]="'Create Organization'" [breadcrumb]="breadcrumb"></page-header>
+    <nz-card>
+      <form nz-form [formGroup]="form" (ngSubmit)="submit()" class="block">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="6" nzFor="organizationName" nzRequired>Organization Name</nz-form-label>
+          <nz-form-control [nzSpan]="18">
+            <input nz-input id="organizationName" formControlName="organizationName" placeholder="Acme Inc" />
+          </nz-form-control>
+        </nz-form-item>
 
-      <div class="text-right">
-        <button nz-button nzType="primary" [disabled]="form.invalid || submitting">Create Organization</button>
-      </div>
+        <div class="text-right">
+          <button nz-button nzType="default" (click)="cancel()" class="mr-sm">Cancel</button>
+          <button nz-button nzType="primary" [nzLoading]="submitting" [disabled]="form.invalid || submitting">
+            Create Organization
+          </button>
+        </div>
 
-      @if (errorMessage) {
-        <nz-alert nzType="error" [nzMessage]="errorMessage" nzShowIcon class="mt-md"></nz-alert>
-      }
+        @if (errorMessage) {
+          <nz-alert nzType="error" [nzMessage]="errorMessage" nzShowIcon class="mt-md"></nz-alert>
+        }
 
-      @if (successMessage) {
-        <nz-alert nzType="success" [nzMessage]="successMessage" nzShowIcon class="mt-md"></nz-alert>
-      }
-    </form>
+        @if (successMessage) {
+          <nz-alert nzType="success" [nzMessage]="successMessage" nzShowIcon class="mt-md"></nz-alert>
+        }
+      </form>
+    </nz-card>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -56,6 +62,12 @@ export class CreateOrganizationFormComponent {
     organizationName: ['', Validators.required]
   });
 
+  readonly breadcrumb = [
+    { title: 'Home', link: '/dashboard' },
+    { title: 'Organizations' },
+    { title: 'Create' }
+  ];
+
   private readonly client = inject(WorkspaceApplicationClient);
   private readonly router = inject(Router);
   private readonly authBridge = inject(FirebaseAuthBridgeService);
@@ -63,6 +75,10 @@ export class CreateOrganizationFormComponent {
   submitting = false;
   errorMessage = '';
   successMessage = '';
+
+  cancel(): void {
+    this.router.navigate(['/dashboard']);
+  }
 
   async submit(): Promise<void> {
     if (this.form.invalid || this.submitting) return;
