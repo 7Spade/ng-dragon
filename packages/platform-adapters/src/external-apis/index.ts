@@ -1,1 +1,2 @@
-// Placeholder for external API adapters (e.g., Google GenAI).
+// Placeholder for external API adapters.
+export {};
