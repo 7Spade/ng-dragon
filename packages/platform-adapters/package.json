@@ -26,7 +26,6 @@
   },
   "peerDependencies": {
     "@angular/core": "^20.0.0",
-    "@angular/fire": "^20.0.0",
     "firebase-admin": "^12.0.0"
   },
   "devDependencies": {
