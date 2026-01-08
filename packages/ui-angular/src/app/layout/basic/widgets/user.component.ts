@@ -10,6 +10,7 @@ import { AsyncPipe, NgFor, NgIf } from '@angular/common';
 import { Observable, combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { WorkspaceService, Workspace, Team } from '../../../workspaces/workspace.service';
+import { WorkspaceContextService } from '../../../workspaces/workspace-context.service';
 import { FirebaseAuthBridgeService } from '@core';
 
 interface OrganizationWithTeams {
@@ -120,6 +121,7 @@ export class HeaderUserComponent {
   private readonly router = inject(Router);
   private readonly tokenService = inject(DA_SERVICE_TOKEN);
   private readonly workspaceService = inject(WorkspaceService);
+  private readonly contextService = inject(WorkspaceContextService);
   private readonly authBridge = inject(FirebaseAuthBridgeService);
 
   // Observable streams for owned and joined organizations with teams
@@ -170,11 +172,25 @@ export class HeaderUserComponent {
     return this.settings.user;
   }
 
+  /**
+   * Select organization and update context to refresh sidebar menu
+   */
   selectOrganization(orgId: string): void {
+    // Update context - this triggers menu refresh via StartupService
+    this.contextService.selectOrganization(orgId);
+    
+    // Navigate to organization page
     this.router.navigateByUrl(`/organizations/${orgId}`).catch(() => void 0);
   }
 
+  /**
+   * Select team and update context to refresh sidebar menu
+   */
   selectTeam(orgId: string, teamId: string): void {
+    // Update context - this triggers menu refresh via StartupService
+    this.contextService.selectTeam(orgId, teamId);
+    
+    // Navigate to team page
     this.router.navigateByUrl(`/organizations/${orgId}/teams/${teamId}`).catch(() => void 0);
   }
 
@@ -187,6 +203,9 @@ export class HeaderUserComponent {
   }
 
   logout(): void {
+    // Clear workspace context on logout
+    this.contextService.clearContext();
+    
     this.tokenService.clear();
     this.router.navigateByUrl(this.tokenService.login_url!);
   }

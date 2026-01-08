@@ -9,6 +9,8 @@ import { catchError } from 'rxjs/operators';
 
 import { I18NService } from '../i18n/i18n.service';
 import { FirebaseAuthBridgeService } from '../auth/firebase-auth-bridge.service';
+import { WorkspaceService, Workspace } from '../../workspaces/workspace.service';
+import { WorkspaceContextService } from '../../workspaces/workspace-context.service';
 
 interface UserProfile {
   name?: string;
@@ -43,6 +45,8 @@ export class StartupService {
   private router = inject(Router);
   private i18n = inject<I18NService>(ALAIN_I18N_TOKEN);
   private authBridge = inject(FirebaseAuthBridgeService);
+  private workspaceService = inject(WorkspaceService);
+  private contextService = inject(WorkspaceContextService);
 
   load(): Observable<void> {
     return from(this.loadAsync()).pipe(
@@ -83,6 +87,9 @@ export class StartupService {
     // 6. 設定頁面標題
     this.titleService.default = '';
     this.titleService.suffix = 'NG-EVENTS';
+
+    // 7. 監聽 workspace context 變化，動態刷新選單
+    this.subscribeToContextChanges();
   }
 
   /**
@@ -165,6 +172,184 @@ export class StartupService {
         ]
       }
     ];
+  }
+
+  /**
+   * 監聽 workspace context 變化，動態刷新選單
+   */
+  private subscribeToContextChanges(): void {
+    this.contextService.context$.subscribe(context => {
+      this.refreshMenuForCurrentContext(context.organizationId, context.teamId);
+    });
+  }
+
+  /**
+   * 根據當前 organization/team context 刷新選單
+   * @param organizationId 當前組織 ID (null 表示未選擇)
+   * @param teamId 當前團隊 ID (null 表示未選擇)
+   */
+  async refreshMenuForCurrentContext(organizationId: string | null, teamId: string | null): Promise<void> {
+    const user = this.authBridge.getCurrentUser();
+    if (!user) {
+      this.loadDefaultMenu();
+      return;
+    }
+
+    let menu: any[] = [];
+
+    if (organizationId && teamId) {
+      // Team context: show team-specific menu
+      menu = await this.getTeamMenu(organizationId, teamId, user.uid);
+    } else if (organizationId) {
+      // Organization context: show organization menu with teams
+      menu = await this.getOrganizationMenu(organizationId, user.uid);
+    } else {
+      // No context: show default user menu
+      menu = this.getDefaultMenu();
+    }
+
+    // Replace menu
+    this.menuService.clear();
+    this.menuService.add(menu);
+  }
+
+  /**
+   * 獲取組織選單（包含團隊列表）
+   */
+  private async getOrganizationMenu(organizationId: string, userId: string): Promise<any[]> {
+    // Get organization and its teams
+    const workspace = await this.getWorkspaceById(organizationId);
+    if (!workspace) {
+      return this.getDefaultMenu();
+    }
+
+    const isOwner = workspace.ownerUserId === userId;
+    const teams = workspace.teams || [];
+
+    const menu: any[] = [
+      {
+        text: '主選單',
+        group: true,
+        children: [
+          {
+            text: '儀表板',
+            link: '/dashboard',
+            icon: { type: 'icon', value: 'appstore' }
+          },
+          {
+            text: workspace.name,
+            icon: { type: 'icon', value: 'apartment' },
+            children: [
+              {
+                text: '組織概覽',
+                link: `/organizations/${organizationId}`,
+                icon: { type: 'icon', value: 'home' }
+              }
+            ]
+          }
+        ]
+      }
+    ];
+
+    // Add teams section
+    if (teams.length > 0) {
+      const teamChildren: any[] = teams.map(team => ({
+        text: team.teamName,
+        link: `/organizations/${organizationId}/teams/${team.teamId}`,
+        icon: { type: 'icon', value: 'team' }
+      }));
+
+      // Add create team option for owners/admins
+      if (isOwner) {
+        teamChildren.push({
+          text: '建立團隊',
+          link: `/organizations/${organizationId}/teams/create`,
+          icon: { type: 'icon', value: 'plus' }
+        });
+      }
+
+      menu[0].children.push({
+        text: '團隊',
+        icon: { type: 'icon', value: 'team' },
+        children: teamChildren
+      });
+    } else if (isOwner) {
+      // No teams but is owner - show create option
+      menu[0].children.push({
+        text: '建立團隊',
+        link: `/organizations/${organizationId}/teams/create`,
+        icon: { type: 'icon', value: 'plus' }
+      });
+    }
+
+    return menu;
+  }
+
+  /**
+   * 獲取團隊選單
+   */
+  private async getTeamMenu(organizationId: string, teamId: string, userId: string): Promise<any[]> {
+    const workspace = await this.getWorkspaceById(organizationId);
+    if (!workspace) {
+      return this.getDefaultMenu();
+    }
+
+    const team = workspace.teams?.find(t => t.teamId === teamId);
+    if (!team) {
+      return this.getOrganizationMenu(organizationId, userId);
+    }
+
+    return [
+      {
+        text: '主選單',
+        group: true,
+        children: [
+          {
+            text: '儀表板',
+            link: '/dashboard',
+            icon: { type: 'icon', value: 'appstore' }
+          },
+          {
+            text: workspace.name,
+            link: `/organizations/${organizationId}`,
+            icon: { type: 'icon', value: 'apartment' }
+          },
+          {
+            text: team.teamName,
+            icon: { type: 'icon', value: 'team' },
+            children: [
+              {
+                text: '團隊概覽',
+                link: `/organizations/${organizationId}/teams/${teamId}`,
+                icon: { type: 'icon', value: 'home' }
+              },
+              {
+                text: '團隊成員',
+                link: `/organizations/${organizationId}/teams/${teamId}/members`,
+                icon: { type: 'icon', value: 'user' }
+              },
+              {
+                text: '團隊設定',
+                link: `/organizations/${organizationId}/teams/${teamId}/settings`,
+                icon: { type: 'icon', value: 'setting' }
+              }
+            ]
+          }
+        ]
+      }
+    ];
+  }
+
+  /**
+   * Get workspace by ID
+   */
+  private async getWorkspaceById(id: string): Promise<Workspace | null> {
+    try {
+      const workspace = await this.workspaceService.getWorkspaceById(id).toPromise();
+      return workspace || null;
+    } catch {
+      return null;
+    }
   }
 }
 
