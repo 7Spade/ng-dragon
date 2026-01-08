@@ -1,8 +1,8 @@
-import { WorkspaceAggregate, WorkspaceSnapshot } from '@account-domain/src/aggregates/workspace.aggregate';
-import { EventContext } from '@account-domain/src/events/domain-event';
-import { WorkspaceType } from '@account-domain/src/value-objects/workspace-type';
+import { WorkspaceAggregate, WorkspaceSnapshot } from '@account-domain';
+import { EventContext } from '@account-domain';
+import { WorkspaceType } from '@account-domain';
 import { createorganizationcommand } from '../commands/create-organization-command';
-import { WorkspaceCreatedEvent } from '../events/WorkspaceCreatedEvent';
+import { WorkspaceCreatedEvent } from '../events/workspace-created.event';
 
 export class workspacefactory {
   createOrganization(command: createorganizationcommand): {

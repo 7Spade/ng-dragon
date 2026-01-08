@@ -1,6 +1,6 @@
 import { WorkspaceService as DomainWorkspaceService, CreateProjectWorkspaceCommand, WorkspaceCommandResult } from '@account-domain';
-import { WorkspaceSnapshot } from '@account-domain/src/aggregates/workspace.aggregate';
-import { DomainEvent } from '@account-domain/src/events/domain-event';
+import { WorkspaceSnapshot } from '@account-domain';
+import { DomainEvent } from '@account-domain';
 import { getCollection } from '../../firebase-platform/firestore';
 
 const WORKSPACES_COLLECTION = 'workspaces';

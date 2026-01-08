@@ -1,5 +1,5 @@
-import { AccountId, ModuleKey, WorkspaceId } from '@account-domain/src/types/identifiers';
-import { ModuleStatus } from '@account-domain/src/value-objects/module-types';
+import { AccountId, ModuleKey, WorkspaceId } from '@account-domain';
+import { ModuleStatus } from '@account-domain';
 
 export interface createorganizationcommand {
   workspaceId: WorkspaceId;

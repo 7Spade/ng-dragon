@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { CreateOrganizationUseCase } from '../../../../core-engine/src/use-cases/create-organization.usecase';
+import { CreateOrganizationUseCase } from '@core-engine';
 import { WorkspaceRepositoryClient } from './workspace.repository.client';
-import { CreateOrganizationCommand } from '../../../../core-engine/src/commands/create-organization.command';
+import { CreateOrganizationCommand } from '@core-engine';
 
 @Injectable({ providedIn: 'root' })
 export class CreateOrganizationService {

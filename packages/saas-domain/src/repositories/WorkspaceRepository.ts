@@ -1,5 +1,5 @@
-import { WorkspaceSnapshot } from '@account-domain/src/aggregates/workspace.aggregate';
-import { WorkspaceCreatedEvent } from '../events/WorkspaceCreatedEvent';
+import { WorkspaceSnapshot } from '@account-domain';
+import { WorkspaceCreatedEvent } from '../events/workspace-created.event';
 
 export interface WorkspaceRepository {
   appendWorkspaceEvent(event: WorkspaceCreatedEvent): Promise<void>;

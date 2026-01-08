@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { CreateTeamUseCase } from '../../../../core-engine/src/use-cases/create-team.usecase';
+import { CreateTeamUseCase } from '@core-engine';
 import { WorkspaceRepositoryClient } from './workspace.repository.client';
-import { CreateTeamCommand } from '../../../../core-engine/src/commands/create-team.command';
+import { CreateTeamCommand } from '@core-engine';
 
 @Injectable({ providedIn: 'root' })
 export class CreateTeamService {

@@ -1,6 +1,6 @@
 import { createorganizationcommand } from '../commands/create-organization-command';
 import { workspacefactory } from '../domain/workspace-factory';
-import { WorkspaceCreatedEvent } from '../events/WorkspaceCreatedEvent';
+import { WorkspaceCreatedEvent } from '../events/workspace-created.event';
 import { WorkspaceRepository } from '../repositories/WorkspaceRepository';
 
 export class workspaceapplicationservice {

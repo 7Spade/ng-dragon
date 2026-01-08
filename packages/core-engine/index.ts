@@ -20,3 +20,7 @@ export * from './causality';
 export * from './event-store';
 export * from './aggregates';
 export * from './projection';
+
+export * from './src/commands';
+export * from './src/use-cases';
+export * from './src/ports';

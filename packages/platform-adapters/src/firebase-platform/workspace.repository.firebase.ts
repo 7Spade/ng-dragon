@@ -1,7 +1,7 @@
-import { Workspace as WorkspacePort, WorkspaceRepositoryPort } from '../../../core-engine/src/ports/workspace.repository.port';
-import { Workspace } from '../../../saas-domain/src/aggregates/workspace.aggregate';
-import { WorkspaceCreatedEvent } from '../../../saas-domain/src/events/workspace-created.event';
-import { TeamCreatedEvent } from '../../../saas-domain/src/events/team-created.event';
+import { Workspace as WorkspacePort, WorkspaceRepositoryPort } from '@core-engine';
+import { Workspace } from '@saas-domain';
+import { WorkspaceCreatedEvent } from '@saas-domain';
+import { TeamCreatedEvent } from '@saas-domain';
 import { getCollection } from './firestore';
 
 const WORKSPACES_COLLECTION = 'workspaces';

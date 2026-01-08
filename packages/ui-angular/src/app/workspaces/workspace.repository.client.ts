@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Firestore, collection, doc, setDoc, getDoc } from '@angular/fire/firestore';
-import { WorkspaceRepositoryPort, Workspace } from '../../../../core-engine/src/ports/workspace.repository.port';
+import { WorkspaceRepositoryPort, Workspace } from '@core-engine';
 
 @Injectable({ providedIn: 'root' })
 export class WorkspaceRepositoryClient implements WorkspaceRepositoryPort {
