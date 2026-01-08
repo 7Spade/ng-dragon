@@ -19,7 +19,8 @@
   "license": "MIT",
   "dependencies": {
     "@ng-events/core-engine": "*",
-    "@ng-events/saas-domain": "*"
+    "@ng-events/saas-domain": "*",
+    "firebase-admin": "^12.0.0"
   },
   "peerDependencies": {
     "@angular/core": "^20.0.0",

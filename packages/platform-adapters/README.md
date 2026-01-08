@@ -7,11 +7,12 @@
 ```
 platform-adapters/
 └── src/
-    ├── auth/                  # admin/client 身分橋接
+    ├── firebase-platform/     # firebase-admin 基礎層（app/auth/firestore/storage/observability）
+    ├── auth/                  # admin/client 身分橋接（可遷移重用 firebase-platform）
+    ├── messaging/             # 通知、推播、佇列
     ├── ai/                    # AI/LLM 抽象或共用 helper
     ├── external-apis/
     │   └── google/genai/      # Google GenAI / Vertex AI 介接（placeholder src/）
-    ├── messaging/             # 通知、推播、佇列
     ├── persistence/           # EventStore / Projection / DB adapter 實作
     └── __tests__/             # Adapter 測試（待補）
 ```
@@ -22,6 +23,7 @@ platform-adapters/
 
 | 位置 | 可用 | 禁止 | 適用場景 |
 | --- | --- | --- | --- |
+| `src/firebase-platform` | firebase-admin（app/auth/firestore/storage/app-check/observability） | @angular/fire | 伺服端 SDK 基礎層 |
 | `src/persistence` | firebase-admin / DB SDK | @angular/fire | 伺服端 EventStore / Projection 實作 |
 | `src/auth` (admin) | firebase-admin | @angular/fire | 伺服端 claims / 用戶管理 |
 | `src/auth` (client) | @angular/fire | firebase-admin | 前端登入 / token 取得 |

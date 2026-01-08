@@ -15,6 +15,7 @@
 ```
 platform-adapters/
 └── src/
+    ├── firebase-platform/     # firebase-admin 基礎層 (app/auth/firestore/storage/app-check/observability)
     ├── auth/                  # 登入 / 權杖 / claims，分 admin / client 實作
     ├── ai/                    # AI/LLM 抽象 or common helpers
     ├── external-apis/
@@ -31,6 +32,7 @@ platform-adapters/
 
 | 位置 | 可以用 | 禁止 | 說明 |
 | --- | --- | --- | --- |
+| `src/firebase-platform` | firebase-admin（app/auth/firestore/storage/app-check/observability） | @angular/fire | firebase-admin 基礎層 |
 | `src/persistence` | firebase-admin / DB SDK | @angular/fire | 伺服端實作 |
 | `src/auth` (admin) | firebase-admin | @angular/fire | 伺服端身份 / claims |
 | `src/auth` (client) | @angular/fire | firebase-admin | 前端身份橋接 |
