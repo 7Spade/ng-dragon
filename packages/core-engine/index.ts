@@ -22,3 +22,9 @@ export * from './aggregates';
 export * from './projection';
 
 export * from './src/use-cases/organization.use-case';
+
+export * from './src/commands/create-organization.command';
+
+export * from './src/use-cases/workspace.application-service';
+
+export * from './src/ports/workspace.repository';

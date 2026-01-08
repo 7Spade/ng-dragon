@@ -72,6 +72,7 @@
     "ng-alain": "^20.1.1",
     "ng-alain-plugin-theme": "^18.0.0",
     "ngx-tinymce": "^20.0.0",
+    "playwright-core": "^1.57.0",
     "prettier": "^3.6.2",
     "protractor": "~7.0.0",
     "source-map-explorer": "^2.5.3",

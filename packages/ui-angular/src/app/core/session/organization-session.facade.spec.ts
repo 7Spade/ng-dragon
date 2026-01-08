@@ -27,11 +27,22 @@ describe('OrganizationSessionFacade', () => {
     facade = TestBed.inject(OrganizationSessionFacade);
   });
 
-  it('exposes owned organizations seeded for the current account', () => {
+  it('seeds owned organizations for the current account', async () => {
+    await facade.whenReady();
     expect(facade.ownedOrganizations().length).toBeGreaterThan(0);
   });
 
-  it('computes permissions for selected organization', () => {
+  it('creates a new organization via workspace application service', async () => {
+    await facade.whenReady();
+    const before = facade.ownedOrganizations().length;
+    await facade.createOrganization('My Org');
+    expect(facade.ownedOrganizations().length).toBeGreaterThan(before);
+  });
+
+  it('computes permissions for selected organization', async () => {
+    await facade.whenReady();
+    const first = facade.ownedOrganizations()[0];
+    await facade.selectOrganization(first.id);
     expect(facade.canCreateTeam()).toBeTrue();
   });
 });

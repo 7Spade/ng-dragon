@@ -1,8 +1,7 @@
 import { Routes } from '@angular/router';
-import { OrganizationDetailComponent } from './organization-detail.component';
-import { OrganizationPartnerCreateComponent } from './organization-partner-create.component';
+import { OrganizationCreateComponent } from './organization-create.component';
 
 export const routes: Routes = [
-    { path: ':id', component: OrganizationDetailComponent },
-    { path: ':id/partners/create', component: OrganizationPartnerCreateComponent }
+  { path: 'create', component: OrganizationCreateComponent },
+  { path: '', pathMatch: 'full', redirectTo: 'create' }
 ];

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { I18nPipe, SettingsService, User } from '@delon/theme';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
@@ -75,6 +75,7 @@ export class HeaderUserComponent {
 
   private readonly settings = inject(SettingsService);
   private readonly organizationFacade = inject(OrganizationSessionFacade);
+  private readonly router = inject(Router);
 
   get user(): User {
     return this.settings.user;
@@ -101,7 +102,7 @@ export class HeaderUserComponent {
   }
 
   createOrganization(): void {
-    void this.organizationFacade.createOrganization();
+    void this.router.navigate(['/organizations/create']);
   }
 
   createTeam(): void {

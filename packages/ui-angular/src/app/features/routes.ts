@@ -21,6 +21,10 @@ export const routes: Routes = [
         path: 'organizations',
         loadChildren: () => import('./organizations/routes').then(m => m.routes)
       },
+      {
+        path: 'workspaces',
+        loadChildren: () => import('./workspaces/routes').then(m => m.routes)
+      },
     ]
   },
   // passport

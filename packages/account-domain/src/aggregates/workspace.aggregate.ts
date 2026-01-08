@@ -7,6 +7,7 @@ export interface WorkspaceSnapshot {
   workspaceId: WorkspaceId;
   accountId: AccountId;
   workspaceType: WorkspaceType;
+  displayName: string;
   modules: ModuleStatus[];
   createdAt: string;
 }
@@ -22,6 +23,7 @@ export interface WorkspaceCreationInput {
   workspaceId: WorkspaceId;
   accountId: AccountId;
   workspaceType: WorkspaceType;
+  displayName: string;
   createdAt?: string;
   modules?: ModuleStatus[];
 }
@@ -38,6 +40,7 @@ export class WorkspaceAggregate {
       workspaceId: input.workspaceId,
       accountId: input.accountId,
       workspaceType: input.workspaceType,
+      displayName: input.displayName,
       modules: input.modules ?? [],
       createdAt,
     };
