@@ -1,26 +1,15 @@
-import { ChangeDetectionStrategy, Component, Injectable, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Functions, httpsCallable } from '@angular/fire/functions';
 import { SHARED_IMPORTS } from '@shared';
-import { CreateOrganizationCommand } from '@saas-domain/src/commands/CreateOrganizationCommand';
-import { WorkspaceApplicationService } from '@saas-domain/src/application/WorkspaceApplicationService';
-import { WorkspaceFactory } from '@saas-domain/src/domain/WorkspaceFactory';
-import { WorkspaceCreatedEvent } from '@saas-domain/src/events/WorkspaceCreatedEvent';
-import { AngularFireWorkspaceRepository } from '@platform-adapters/src/persistence/workspaces/angular-fire-workspace.repository';
 import { FirebaseAuthBridgeService } from '@core';
 
-@Injectable({ providedIn: 'root' })
-export class WorkspaceApplicationClient {
-  private readonly service: WorkspaceApplicationService;
-  private readonly repository = inject(AngularFireWorkspaceRepository);
-
-  constructor() {
-    this.service = new WorkspaceApplicationService(this.repository, new WorkspaceFactory());
-  }
-
-  createOrganization(command: CreateOrganizationCommand): Promise<WorkspaceCreatedEvent> {
-    return this.service.createOrganization(command);
-  }
+interface CreateOrganizationResponse {
+  success: boolean;
+  workspaceId: string;
+  organizationName: string;
+  message: string;
 }
 
 @Component({
@@ -68,7 +57,7 @@ export class CreateOrganizationFormComponent {
     { title: 'Create' }
   ];
 
-  private readonly client = inject(WorkspaceApplicationClient);
+  private readonly functions = inject(Functions);
   private readonly router = inject(Router);
   private readonly authBridge = inject(FirebaseAuthBridgeService);
   
@@ -94,20 +83,17 @@ export class CreateOrganizationFormComponent {
         return;
       }
 
-      const workspaceId = this.createWorkspaceId();
-      const accountId = user.uid;
-      const command: CreateOrganizationCommand = {
-        workspaceId,
-        accountId,
-        organizationName: this.form.value.organizationName ?? '',
-        actorId: accountId,
-        traceId: workspaceId
-      };
+      // Call the Cloud Function that uses firebase-admin
+      const createOrgFunction = httpsCallable<{ organizationName: string }, CreateOrganizationResponse>(
+        this.functions,
+        'createOrganization'
+      );
 
-      const event = await this.client.createOrganization(command);
-      this.successMessage = `Organization "${this.form.value.organizationName}" created successfully!`;
-      
-      const targetWorkspaceId = event.workspaceId ?? workspaceId;
+      const result = await createOrgFunction({
+        organizationName: this.form.value.organizationName ?? ''
+      });
+
+      this.successMessage = result.data.message;
       
       // Navigate after a short delay to show success message
       setTimeout(() => {
@@ -119,12 +105,5 @@ export class CreateOrganizationFormComponent {
     } finally {
       this.submitting = false;
     }
-  }
-
-  private createWorkspaceId(): string {
-    if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
-      return crypto.randomUUID();
-    }
-    return `ws-${Date.now()}`;
   }
 }
