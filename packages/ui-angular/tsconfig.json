@@ -14,6 +14,8 @@
       "@shared/*": ["src/app/shared/*"],
       "@features/*": ["src/app/features/*"],
       "@env/*": ["src/environments/*"],
+      "@account-domain": ["../account-domain/index.ts"],
+      "@account-domain/*": ["../account-domain/*"],
       "@core-engine": ["../core-engine/index.ts"],
       "@core-engine/*": ["../core-engine/*"],
       "@saas-domain": ["../saas-domain/index.ts"],

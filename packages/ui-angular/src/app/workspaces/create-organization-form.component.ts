@@ -1,55 +1,21 @@
-import { HttpClient } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, Injectable, inject } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { firstValueFrom, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
 import { SHARED_IMPORTS } from '@shared';
 import { CreateOrganizationCommand } from '@saas-domain/src/commands/CreateOrganizationCommand';
 import { WorkspaceApplicationService } from '@saas-domain/src/application/WorkspaceApplicationService';
 import { WorkspaceFactory } from '@saas-domain/src/domain/WorkspaceFactory';
-import { WorkspaceRepository } from '@saas-domain/src/repositories/WorkspaceRepository';
 import { WorkspaceCreatedEvent } from '@saas-domain/src/events/WorkspaceCreatedEvent';
-import { WorkspaceSnapshot } from '@account-domain/src/aggregates/workspace.aggregate';
-
-class WorkspaceHttpRepository implements WorkspaceRepository {
-  constructor(private readonly http: HttpClient) {}
-
-  async appendWorkspaceEvent(event: WorkspaceCreatedEvent): Promise<void> {
-    await firstValueFrom(
-      this.http
-        .post('/api/workspace-events', event, { responseType: 'text' })
-        .pipe(catchError(() => of('')))
-    );
-  }
-
-  async saveWorkspaceSnapshot(snapshot: WorkspaceSnapshot): Promise<void> {
-    await firstValueFrom(
-      this.http.post('/api/workspaces', snapshot).pipe(catchError(() => of(snapshot)))
-    );
-  }
-
-  async getWorkspaceSnapshot(workspaceId: string): Promise<WorkspaceSnapshot | null> {
-    const result = await firstValueFrom(
-      this.http.get<WorkspaceSnapshot>(`/api/workspaces/${workspaceId}`).pipe(catchError(() => of(null)))
-    );
-    return result;
-  }
-
-  async listWorkspaces(): Promise<WorkspaceSnapshot[]> {
-    const result = await firstValueFrom(
-      this.http.get<WorkspaceSnapshot[]>(`/api/workspaces`).pipe(catchError(() => of([])))
-    );
-    return result ?? [];
-  }
-}
+import { AngularFireWorkspaceRepository } from '@platform-adapters/src/persistence/workspaces/angular-fire-workspace.repository';
+import { FirebaseAuthBridgeService } from '@core';
 
 @Injectable({ providedIn: 'root' })
 export class WorkspaceApplicationClient {
   private readonly service: WorkspaceApplicationService;
+  private readonly repository = inject(AngularFireWorkspaceRepository);
 
-  constructor(private readonly http: HttpClient) {
-    this.service = new WorkspaceApplicationService(new WorkspaceHttpRepository(http), new WorkspaceFactory());
+  constructor() {
+    this.service = new WorkspaceApplicationService(this.repository, new WorkspaceFactory());
   }
 
   createOrganization(command: CreateOrganizationCommand): Promise<WorkspaceCreatedEvent> {
@@ -70,48 +36,70 @@ export class WorkspaceApplicationClient {
         </nz-form-control>
       </nz-form-item>
 
-      <nz-form-item>
-        <nz-form-label [nzSpan]="6" nzFor="accountId" nzRequired>Account Id</nz-form-label>
-        <nz-form-control [nzSpan]="18">
-          <input nz-input id="accountId" formControlName="accountId" placeholder="actor-account-id" />
-        </nz-form-control>
-      </nz-form-item>
-
       <div class="text-right">
         <button nz-button nzType="primary" [disabled]="form.invalid || submitting">Create Organization</button>
       </div>
+
+      @if (errorMessage) {
+        <nz-alert nzType="error" [nzMessage]="errorMessage" nzShowIcon class="mt-md"></nz-alert>
+      }
+
+      @if (successMessage) {
+        <nz-alert nzType="success" [nzMessage]="successMessage" nzShowIcon class="mt-md"></nz-alert>
+      }
     </form>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CreateOrganizationFormComponent {
   readonly form = inject(FormBuilder).nonNullable.group({
-    organizationName: ['', Validators.required],
-    accountId: ['', Validators.required]
+    organizationName: ['', Validators.required]
   });
 
   private readonly client = inject(WorkspaceApplicationClient);
   private readonly router = inject(Router);
+  private readonly authBridge = inject(FirebaseAuthBridgeService);
+  
   submitting = false;
+  errorMessage = '';
+  successMessage = '';
 
   async submit(): Promise<void> {
     if (this.form.invalid || this.submitting) return;
+    
     this.submitting = true;
-
-    const workspaceId = this.createWorkspaceId();
-    const accountId = this.form.value.accountId ?? '';
-    const command: CreateOrganizationCommand = {
-      workspaceId,
-      accountId,
-      organizationName: this.form.value.organizationName ?? '',
-      actorId: accountId,
-      traceId: workspaceId
-    };
+    this.errorMessage = '';
+    this.successMessage = '';
 
     try {
+      const user = this.authBridge.getCurrentUser();
+      if (!user) {
+        this.errorMessage = 'You must be logged in to create an organization';
+        return;
+      }
+
+      const workspaceId = this.createWorkspaceId();
+      const accountId = user.uid;
+      const command: CreateOrganizationCommand = {
+        workspaceId,
+        accountId,
+        organizationName: this.form.value.organizationName ?? '',
+        actorId: accountId,
+        traceId: workspaceId
+      };
+
       const event = await this.client.createOrganization(command);
+      this.successMessage = `Organization "${this.form.value.organizationName}" created successfully!`;
+      
       const targetWorkspaceId = event.workspaceId ?? workspaceId;
-      await this.router.navigate(['/workspaces', targetWorkspaceId]);
+      
+      // Navigate after a short delay to show success message
+      setTimeout(() => {
+        this.router.navigate(['/dashboard']);
+      }, 1500);
+    } catch (error) {
+      this.errorMessage = error instanceof Error ? error.message : 'Failed to create organization';
+      console.error('Error creating organization:', error);
     } finally {
       this.submitting = false;
     }

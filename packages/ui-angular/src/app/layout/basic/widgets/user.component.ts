@@ -120,8 +120,7 @@ export class HeaderUserComponent {
   }
 
   createOrganization(): void {
-    // TODO: replace with actual create-organization flow
-    this.router.navigateByUrl('/organizations/create').catch(() => void 0);
+    this.router.navigateByUrl('/workspaces/create').catch(() => void 0);
   }
 
   createTeam(): void {
