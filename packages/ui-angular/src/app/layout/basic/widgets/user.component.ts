@@ -5,7 +5,7 @@ import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
-import { OrganizationSessionFacade } from '../../core/session/organization-session.facade';
+import { OrganizationSessionFacade } from '../../../core/session/organization-session.facade';
 
 @Component({
   selector: 'header-user',
@@ -68,7 +68,7 @@ import { OrganizationSessionFacade } from '../../core/session/organization-sessi
     </nz-dropdown-menu>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, NzDropDownModule, NzMenuModule, NzIconModule, I18nPipe, NzAvatarModule]
+  imports: [NzDropDownModule, NzMenuModule, NzIconModule, I18nPipe, NzAvatarModule]
 })
 export class HeaderUserComponent {
   @Input() layout: 'header' | 'aside' = 'aside';

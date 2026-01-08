@@ -89,7 +89,6 @@ import { HeaderUserComponent } from './widgets/user.component';
   imports: [
     RouterOutlet,
     RouterLink,
-    I18nPipe,
     LayoutDefaultModule,
     NzIconModule,
     NzMenuModule,
