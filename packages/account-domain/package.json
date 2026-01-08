@@ -1,7 +1,7 @@
 {
   "name": "@ng-events/account-domain",
   "version": "1.0.0",
-  "description": "Account / Workspace / Membership / Module registry domain models (pure TypeScript)",
+  "description": "Account / Workspace / Membership / Module registry domain models (pure TypeScript, frontend & backend safe, no firebase-admin)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -13,7 +13,8 @@
     "account",
     "workspace",
     "membership",
-    "module-registry"
+    "module-registry",
+    "domain"
   ],
   "author": "ng-events team",
   "license": "MIT",
@@ -22,5 +23,21 @@
   },
   "devDependencies": {
     "typescript": "^5.0.0"
+  },
+  "tsconfig": {
+    "compilerOptions": {
+      "baseUrl": ".",
+      "paths": {
+        "firebase-admin": ["__forbidden__"]
+      }
+    }
+  },
+  "copilot": {
+    "notes": [
+      "account-domain is pure TypeScript domain layer",
+      "Safe for frontend & backend",
+      "Do NOT import firebase-admin here",
+      "Use only core-engine or other domain-safe packages"
+    ]
   }
 }
