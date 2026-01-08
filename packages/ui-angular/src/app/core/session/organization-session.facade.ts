@@ -5,7 +5,7 @@ import { DA_SERVICE_TOKEN } from '@delon/auth';
 import { WorkspaceSnapshot } from '@account-domain/src/aggregates/workspace.aggregate';
 import { WorkspaceApplicationService } from '@core-engine/src/use-cases/workspace.application-service';
 import { CreateOrganizationCommand } from '@core-engine/src/commands/create-organization.command';
-import { InMemoryWorkspaceRepository } from './in-memory-workspace.repository';
+import { FirestoreWorkspaceRepository } from './firestore-workspace.repository';
 
 interface OrganizationSummary {
   id: string;
@@ -25,7 +25,7 @@ export class OrganizationSessionFacade {
   private readonly router = inject(Router);
   private readonly acl = inject(ACLService);
   private readonly tokenService = inject(DA_SERVICE_TOKEN);
-  private readonly workspaceRepo = inject(InMemoryWorkspaceRepository);
+  private readonly workspaceRepo = inject(FirestoreWorkspaceRepository);
   private readonly workspaceApp = new WorkspaceApplicationService(this.workspaceRepo);
   private readonly readyPromise: Promise<void>;
 
@@ -56,7 +56,6 @@ export class OrganizationSessionFacade {
 
   private async init(): Promise<void> {
     await this.refreshFromRepo();
-    await this.seedDefaults();
   }
 
   private currentAccountId(): string {
@@ -142,6 +141,12 @@ export class OrganizationSessionFacade {
 
   private async refreshFromRepo(): Promise<void> {
     const list = await this.workspaceRepo.list();
+    const accountId = this.currentAccountId();
+    list.forEach((ws) => {
+      if (ws.accountId === accountId) {
+        this.membershipIndex.set(`${accountId}:${ws.workspaceId}`, 'owner');
+      }
+    });
     this.workspaces.set(list);
     this.applyPermissionCache(this.selectedOrganizationId());
   }
@@ -159,19 +164,5 @@ export class OrganizationSessionFacade {
     const aclPayload: ACLType = { role: role === 'guest' ? [] : [role], ability: [] };
     aclPayload.ability = Object.keys(abilities).filter((key) => abilities[key]);
     this.acl.set(aclPayload);
-  }
-
-  private async seedDefaults(): Promise<void> {
-    if (this.workspaces().length) return;
-    const actorId = this.currentAccountId();
-    const owned = await this.workspaceApp.createOrganization({ accountId: actorId, displayName: 'Owned Org' });
-    this.membershipIndex.set(`${actorId}:${owned.workspaceId}`, 'owner');
-
-    const joined = await this.workspaceApp.createOrganization({ accountId: 'another-owner', displayName: 'Joined Org' });
-    this.membershipIndex.set(`${actorId}:${joined.workspaceId}`, 'member');
-
-    await this.refreshFromRepo();
-    this.selectedOrganizationId.set(owned.workspaceId);
-    this.applyPermissionCache(owned.workspaceId);
   }
 }

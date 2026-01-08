@@ -5,3 +5,6 @@ export * from './firestore';
 export * from './storage';
 export * from './observability/firebase.logging';
 export * from './observability/firebase.metrics';
+export * from './remote-config';
+export * from './messaging';
+export * from './pubsub';
