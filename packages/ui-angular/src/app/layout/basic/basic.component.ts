@@ -5,7 +5,6 @@ import { LayoutDefaultModule, LayoutDefaultOptions } from '@delon/theme/layout-d
 import { SettingDrawerModule } from '@delon/theme/setting-drawer';
 import { ThemeBtnComponent } from '@delon/theme/theme-btn';
 import { environment } from '@env/environment';
-import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
@@ -73,16 +72,10 @@ import { HeaderUserComponent } from './widgets/user.component';
         </nz-dropdown-menu>
       </layout-default-header-item>
       <layout-default-header-item direction="right">
-        <header-user />
+        <header-user layout="header" />
       </layout-default-header-item>
       <ng-template #asideUserTpl>
-        <div class="alain-default__aside-user">
-          <nz-avatar class="alain-default__aside-user-avatar" [nzSrc]="user.avatar" />
-          <div class="alain-default__aside-user-info">
-            <strong>{{ user.name }}</strong>
-            <p class="mb0">{{ user.email }}</p>
-          </div>
-        </div>
+        <header-user layout="aside" />
       </ng-template>
       <ng-template #contentTpl>
         <router-outlet />
@@ -101,7 +94,6 @@ import { HeaderUserComponent } from './widgets/user.component';
     NzIconModule,
     NzMenuModule,
     NzDropDownModule,
-    NzAvatarModule,
     SettingDrawerModule,
     ThemeBtnComponent,
     HeaderSearchComponent,
