@@ -5,8 +5,9 @@
 ## 必備清單
 - **MCP Servers**: 定義於 `.github/copilot/mcp-servers.json`。
 - **工具說明**: `.github/copilot/mcp-tools.yaml`，每個工具對應使用時機。
+- **指令集**: `.github/instructions/mcp-integration.instructions.md`（MCP 快速指南）、`.github/instructions/angular.instructions.md`（Angular 編碼標準）。
 - **任務腳本**: `.github/copilot/tasks.yaml`，示範如何在任務中呼叫 MCP。
-- **運行指引**: `.github/copilot/workspace-context.yaml` 與 `.github/copilot-instructions.md`。
+- **運行指引**: `.github/copilot/workspace-context.yaml` 與 `.github/copilot.yml`。
 
 ## 快速用法
 - 查文檔：`@context7 get-library-docs /angular/angular signals`
