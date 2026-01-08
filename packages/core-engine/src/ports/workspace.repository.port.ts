@@ -7,8 +7,10 @@ export interface Workspace {
   members: Array<{ userId: string; role: string }>;
   createdAt: string;
   modules?: any[];
+  teams?: Array<{ teamId: string; teamName: string; createdAt: string }>;
 }
 
 export interface WorkspaceRepositoryPort {
   save(workspace: Workspace): Promise<string>;
+  load(workspaceId: string): Promise<Workspace | null>;
 }
