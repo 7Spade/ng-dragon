@@ -16,7 +16,11 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         loadChildren: () => import('./dashboard/routes').then(m => m.routes)
-      }
+      },
+      {
+        path: 'organizations',
+        loadChildren: () => import('./organizations/routes').then(m => m.routes)
+      },
     ]
   },
   // passport
