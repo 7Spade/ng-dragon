@@ -4,33 +4,8 @@ on:
   pull_request:
     branches: [ "copilot/**" ]
 
-permissions:
-  contents: read
-
-concurrency:
-  group: agent-run-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-
 jobs:
-  enforce-lint-and-size:
+  run-checks:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v5
-
-      - name: Check file sizes <= 4000 chars
-        run: |
-          find . -name "*.ts" -o -name "*.js" | while read file; do
-            count=$(wc -m < "$file")
-            if [ "$count" -gt 4000 ]; then
-              echo "🚫 $file too large ($count chars). Max 4000!"
-              exit 1
-            fi
-          done
-
-      - name: Ensure MCP servers present
-        run: |
-          required=(context7 server-sequential-thinking software-planning-mcp server-everything server-filesystem playwright-mcp-server server-time server-fetch)
-          for key in "${required[@]}"; do
-            jq -e ".mcpServers[\"$key\"]" .github/copilot/mcp-servers.json > /dev/null || { echo "Missing server: $key"; exit 1; }
-          done

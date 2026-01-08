@@ -14,7 +14,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  copilot-setup-steps:
+  # 依賴安裝
+  setup-dependencies:
     runs-on: ubuntu-latest
     env:
       YARN_CACHE_FOLDER: .yarn/cache
@@ -36,3 +37,19 @@ jobs:
 
       - name: Install Dependencies
         run: yarn install
+
+  # lint job，可以和 test job 平行
+  lint:
+    runs-on: ubuntu-latest
+    needs: setup-dependencies   # 可選依賴 setup 完成再跑
+    steps:
+      - uses: actions/checkout@v5
+      - run: yarn lint
+
+  # test job，也可平行
+  test:
+    runs-on: ubuntu-latest
+    needs: setup-dependencies
+    steps:
+      - uses: actions/checkout@v5
+      - run: yarn test
