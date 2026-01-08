@@ -6,11 +6,13 @@ import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
+import { NzModalService } from 'ng-zorro-antd/modal';
 import { AsyncPipe, NgFor, NgIf } from '@angular/common';
 import { Observable, combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { WorkspaceService, Workspace, Team } from '../../../workspaces/workspace.service';
 import { WorkspaceContextService } from '../../../workspaces/workspace-context.service';
+import { CreateTeamModalComponent } from '../../../workspaces/create-team-modal.component';
 import { FirebaseAuthBridgeService } from '@core';
 
 interface OrganizationWithTeams {
@@ -199,7 +201,14 @@ export class HeaderUserComponent {
   }
 
   createTeam(orgId: string): void {
-    this.router.navigateByUrl(`/organizations/${orgId}/teams/create`).catch(() => void 0);
+    const modal = inject(NzModalService);
+    modal.create({
+      nzTitle: 'Create Team',
+      nzContent: CreateTeamModalComponent,
+      nzData: { organizationId: orgId },
+      nzFooter: null,
+      nzWidth: 520
+    });
   }
 
   logout(): void {
