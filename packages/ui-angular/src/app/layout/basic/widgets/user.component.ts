@@ -1,17 +1,19 @@
 import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { DA_SERVICE_TOKEN } from '@delon/auth';
 import { I18nPipe, SettingsService, User } from '@delon/theme';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
-import { AsyncPipe, NgFor, NgIf } from '@angular/common';
-import { Observable, combineLatest } from 'rxjs';
+import { NzModalService } from 'ng-zorro-antd/modal';
+import { AsyncPipe } from '@angular/common';
+import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { WorkspaceService, Workspace, Team } from '../../../workspaces/workspace.service';
 import { WorkspaceContextService } from '../../../workspaces/workspace-context.service';
 import { FirebaseAuthBridgeService } from '@core';
+import { CreateTeamModalComponent } from '../../../workspaces/create-team-modal.component';
 
 interface OrganizationWithTeams {
   organization: Workspace;
@@ -112,7 +114,7 @@ interface OrganizationWithTeams {
     </nz-dropdown-menu>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, NzDropDownModule, NzMenuModule, NzIconModule, I18nPipe, NzAvatarModule, AsyncPipe, NgFor, NgIf]
+  imports: [NzDropDownModule, NzMenuModule, NzIconModule, I18nPipe, NzAvatarModule, AsyncPipe]
 })
 export class HeaderUserComponent {
   @Input() layout: 'header' | 'aside' = 'aside';
@@ -123,6 +125,7 @@ export class HeaderUserComponent {
   private readonly workspaceService = inject(WorkspaceService);
   private readonly contextService = inject(WorkspaceContextService);
   private readonly authBridge = inject(FirebaseAuthBridgeService);
+  private readonly modal = inject(NzModalService);
 
   // Observable streams for owned and joined organizations with teams
   readonly ownedOrganizationsWithTeams$: Observable<OrganizationWithTeams[]>;
@@ -198,8 +201,18 @@ export class HeaderUserComponent {
     this.router.navigateByUrl('/workspaces/create').catch(() => void 0);
   }
 
+  /**
+   * Open create team modal
+   * Following same pattern as create organization form
+   */
   createTeam(orgId: string): void {
-    this.router.navigateByUrl(`/organizations/${orgId}/teams/create`).catch(() => void 0);
+    this.modal.create({
+      nzTitle: 'Create Team',
+      nzContent: CreateTeamModalComponent,
+      nzData: { workspaceId: orgId },
+      nzFooter: null,
+      nzWidth: 520
+    });
   }
 
   logout(): void {
