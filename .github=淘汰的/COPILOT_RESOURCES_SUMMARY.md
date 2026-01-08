@@ -7,8 +7,7 @@
 - `.github/copilot/mcp-tools.yaml`：何時呼叫上述工具。
 - `.github/copilot/tasks.yaml`：任務模板與 MCP 提示。
 - `.github/copilot/workspace-context.yaml`：專案與技術背景。
-- `.github/instructions/mcp-integration.instructions.md`：全域約束與 MCP 觸發原則。
-- `.github/instructions/angular.instructions.md`：Angular 20 寫作與最佳實務指引。
+- `.github/copilot-instructions.md`：全域約束與 MCP 優先序。
 
 ## 使用提示
 - 先查文檔再動手：`@context7 ...`

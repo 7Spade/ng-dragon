@@ -9,6 +9,7 @@ export interface WorkspaceSnapshot {
   workspaceType: WorkspaceType;
   modules: ModuleStatus[];
   createdAt: string;
+  name?: string;
 }
 
 export interface ModuleToggledPayload {
@@ -24,6 +25,7 @@ export interface WorkspaceCreationInput {
   workspaceType: WorkspaceType;
   createdAt?: string;
   modules?: ModuleStatus[];
+  name?: string;
 }
 
 export class WorkspaceAggregate {
@@ -40,6 +42,7 @@ export class WorkspaceAggregate {
       workspaceType: input.workspaceType,
       modules: input.modules ?? [],
       createdAt,
+      name: input.name
     };
 
     const event: DomainEvent<WorkspaceSnapshot> = {

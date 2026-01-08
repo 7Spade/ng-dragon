@@ -8,3 +8,4 @@ export * from './observability/firebase.metrics';
 export * from './remote-config';
 export * from './messaging';
 export * from './pubsub';
+export * from './workspace.repository.firebase';
