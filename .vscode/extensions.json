@@ -1,4 +1,17 @@
 {
-  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=827846
-  "recommendations": ["cipchk.ng-alain-extension-pack"]
+  // VS Code 擴充推薦清單
+  // Copilot Agent + TypeScript + 前端開發最佳組合
+  "recommendations": [
+    "cipchk.ng-alain-extension-pack",  // 你原本的 ng-alain 套件
+    "github.copilot-chat",             // GitHub Copilot Agent
+    "esbenp.prettier-vscode",          // Prettier 格式化
+    "dbaeumer.vscode-eslint",          // ESLint
+    "stylelint.vscode-stylelint",      // Stylelint
+    "ms-vscode.vscode-typescript-next",// TypeScript 最新特性
+    "eamodio.gitlens",                 // Git 功能加強
+    "streetsidesoftware.code-spell-checker" // 拼字檢查
+  ],
+  "unwantedRecommendations": [
+    "some-old-extension"               // 可列不需要的擴充
+  ]
 }

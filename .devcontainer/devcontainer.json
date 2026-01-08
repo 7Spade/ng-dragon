@@ -8,19 +8,34 @@
   "remoteUser": "vscode",
   "workspaceFolder": "/workspaces/ng-dragon",
   "postCreateCommand": [
-    "npx -y @modelcontextprotocol/server-git --repository ./",
+    // 先安裝 MCP 核心服務
     "npx -y @modelcontextprotocol/server-filesystem ./",
     "npx -y @modelcontextprotocol/server-memory",
     "npx -y @modelcontextprotocol/server-everything",
     "npx -y @modelcontextprotocol/server-sequential-thinking",
     "npx -y github:NightTrek/Software-planning-mcp",
-    "npx -y @modelcontextprotocol/server-redis redis://default:XD1qR84jwUJ9xOKDjTNGmYJvF7FCDlyL@redis-13923.c299.asia-northeast1-1.gce.cloud.redislabs.com:13923",
-    "npx -y @modelcontextprotocol/server-time",
-    "npx -y @modelcontextprotocol/server-fetch",
+    
+    // 時間 / Fetch / Playwright MCP
     "npx -y @executeautomation/playwright-mcp-server",
+    
+    // Codacy MCP
     "export CODACY_ACCOUNT_TOKEN=yHFBU9bPJjpAOK60iHS0",
     "export CODACY_CLI_VERSION=latest",
     "npx -y @codacy/codacy-mcp",
+    
+    // 最後安裝依賴
     "cd /workspaces/ng-dragon && yarn install --immutable"
-  ]
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "github.copilot-chat",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "stylelint.vscode-stylelint",
+        "cipchk.ng-alain-extension-pack",
+        "ms-vscode.vscode-typescript-next"
+      ]
+    }
+  }
 }
