@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input, inject, effect } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, inject, computed, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { DA_SERVICE_TOKEN } from '@delon/auth';
 import { I18nPipe, SettingsService, User } from '@delon/theme';
@@ -8,7 +8,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { AsyncPipe } from '@angular/common';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 import { WorkspaceService, Workspace } from '../../../workspaces/workspace.service';
 import { FirebaseAuthBridgeService, ContextService } from '@core';
 
@@ -96,7 +96,7 @@ import { FirebaseAuthBridgeService, ContextService } from '@core';
         </div>
         
         <!-- Context Actions (shown when in organization context AND user can manage) -->
-        @if (contextService.isOrganizationContext() && contextService.contextId() && canManageOrganization()) {
+        @if (contextService.isOrganizationContext() && contextService.contextId() && (canManageCurrentOrg$ | async)) {
           <li nz-menu-divider></li>
           <div class="px-sm py-sm text-muted small">{{ 'menu.context.organizationActions' | i18n : 'Organization Actions' }}</div>
           <div nz-menu-item (click)="createTeam()">
@@ -134,8 +134,8 @@ export class HeaderUserComponent {
   readonly ownedOrganizations$: Observable<Workspace[]>;
   readonly joinedOrganizations$: Observable<Workspace[]>;
   
-  // Current organization for permission checking
-  private currentOrganization: Workspace | null = null;
+  // Computed observable for permission check
+  readonly canManageCurrentOrg$: Observable<boolean>;
 
   constructor() {
     const user = this.authBridge.getCurrentUser();
@@ -164,35 +164,25 @@ export class HeaderUserComponent {
       )
     );
 
-    // React to context changes and update current organization
-    effect(() => {
-      const context = this.contextService.currentContext();
-      if (context.type === 'organization' && context.id) {
-        // Find the organization to check permissions
-        allWorkspaces$.subscribe(workspaces => {
-          this.currentOrganization = workspaces.find(ws => ws.id === context.id) || null;
-        });
-      } else {
-        this.currentOrganization = null;
-      }
-    });
-  }
-  
-  /**
-   * Check if current user can manage the organization (owner or admin)
-   */
-  canManageOrganization(): boolean {
-    if (!this.currentOrganization) return false;
-    
-    const user = this.authBridge.getCurrentUser();
-    if (!user) return false;
-    
-    // User is owner
-    if (this.currentOrganization.ownerUserId === user.uid) return true;
-    
-    // User is admin member
-    const userMember = this.currentOrganization.members?.find(m => m.userId === user.uid);
-    return userMember?.role === 'admin';
+    // Permission check observable - recomputes when context changes
+    this.canManageCurrentOrg$ = allWorkspaces$.pipe(
+      map(workspaces => {
+        const contextId = this.contextService.contextId();
+        if (!contextId || !this.contextService.isOrganizationContext()) {
+          return false;
+        }
+
+        const org = workspaces.find(ws => ws.id === contextId);
+        if (!org) return false;
+
+        // User is owner
+        if (org.ownerUserId === userId) return true;
+
+        // User is admin member
+        const userMember = org.members?.find(m => m.userId === userId);
+        return userMember?.role === 'admin';
+      })
+    );
   }
 
   get user(): User {
@@ -224,7 +214,11 @@ export class HeaderUserComponent {
   }
 
   createPartner(): void {
-    const orgId = this.contextService.contextId() ?? 'select-org-first';
+    const orgId = this.contextService.contextId();
+    if (!orgId) {
+      console.error('No organization context for creating partner');
+      return;
+    }
     this.router.navigateByUrl(`/organizations/${orgId}/partners/create`).catch(() => void 0);
   }
 

@@ -5,6 +5,7 @@ import { authSimpleCanActivate, authSimpleCanActivateChild } from '@delon/auth';
 import { LayoutBasicComponent } from '../layout';
 import { CreateOrganizationFormComponent } from '../workspaces/create-organization-form.component';
 import { CreateTeamFormComponent } from '../workspaces/create-team-form.component';
+import { CreatePartnerFormComponent } from '../workspaces/create-partner-form.component';
 
 export const routes: Routes = [
   {
@@ -26,6 +27,10 @@ export const routes: Routes = [
       {
         path: 'organizations/:orgId/teams/create',
         component: CreateTeamFormComponent
+      },
+      {
+        path: 'organizations/:orgId/partners/create',
+        component: CreatePartnerFormComponent
       }
     ]
   },
