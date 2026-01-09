@@ -1,8 +1,11 @@
-# Organization Creation - CQRS/DDD Implementation
+# Organization Creation Implementation
 
-## Architecture Flow
+## Architecture
+
+This implementation follows the proper package boundaries:
 
 ```
+<<<<<<< HEAD
 UI Component
   ↓ (sends Command)
 CreateOrganizationService (Angular Service)
@@ -37,34 +40,46 @@ Firestore Collections (workspaces, workspace-events)
 - Exported from `platform-adapters/server.ts` (NOT from main index)
 
 ## Package Responsibilities
+=======
+UI (Angular Component)
+  ↓ HTTP POST /api/organizations
+Express Server (server.ts in ui-angular)
+  ↓ uses
+platform-adapters/WorkspaceRepositoryFirebase
+  ↓ uses
+firebase-admin SDK
+  ↓ writes to
+Firestore (workspace-events & workspaces collections)
+```
 
-### core-engine (Infrastructure/Application Layer)
-**Location:** `packages/core-engine/src`
+## Package Boundaries Respected
+>>>>>>> parent of bb1161d (Implement proper CQRS/DDD architecture without Express - UI -> UseCase -> Domain -> firebase-admin)
 
-**Responsibilities:**
-- Define Commands (DTOs for user intent)
-- Define Ports (interfaces for repositories)
-- Implement Use Cases (application logic orchestration)
-- Pure TypeScript - NO SDKs allowed
+✅ **UI Layer** (`packages/ui-angular/src/app`)
+- Angular component calls HTTP API
+- No direct SDK usage
+- No domain logic
 
-**Files:**
-- `commands/create-organization.command.ts` - Command interface
-- `ports/workspace.repository.port.ts` - Repository interface
-- `use-cases/create-organization.usecase.ts` - Use case implementation
+✅ **Server API** (`packages/ui-angular/server.ts`)
+- Express server provides `/api/organizations` endpoint
+- Uses `platform-adapters` layer
+- No direct SDK usage
 
-### saas-domain (Domain Layer)
-**Location:** `packages/saas-domain/src`
+✅ **Platform Adapters** (`packages/platform-adapters/src/firebase-platform`)
+- `WorkspaceRepositoryFirebase` uses `firebase-admin`
+- **ONLY** layer allowed to use SDKs
+- Implements repository interface from domain
 
-**Responsibilities:**
-- Domain Aggregates (Workspace)
-- Domain Events (WorkspaceCreatedEvent)
-- Business logic and validation
-- Pure TypeScript - NO SDKs or framework dependencies
+✅ **Domain Layers** (`packages/account-domain`, `packages/saas-domain`)
+- Pure TypeScript
+- No framework dependencies
+- No SDK dependencies
 
-**Files:**
-- `aggregates/workspace.aggregate.ts` - Workspace aggregate with business logic
-- `events/workspace-created.event.ts` - Domain event
+## firebase-admin Usage
 
+The entire implementation uses `firebase-admin`:
+
+<<<<<<< HEAD
 ### platform-adapters (Infrastructure Layer - Server Only)
 **Location:** `packages/platform-adapters/src/firebase-platform`
 
@@ -76,10 +91,32 @@ Firestore Collections (workspaces, workspace-events)
 **Files:**
 - `workspace.repository.firebase.ts` - Implements WorkspaceRepositoryPort using firebase-admin
 - **Exported from:** `packages/platform-adapters/server.ts` (NOT main index)
+=======
+1. **Platform Adapters Layer**
+   - `packages/platform-adapters/src/firebase-platform/firestore/index.ts`
+     - Imports `firebase-admin/firestore`
+     - Initializes Firestore with `getFirestore(getFirebaseAdminApp())`
+   
+   - `packages/platform-adapters/src/firebase-platform/workspace.repository.firebase.ts`
+     - Uses `getCollection()` which uses firebase-admin
+     - Writes events to `workspace-events` collection
+     - Writes snapshots to `workspaces` collection
 
-### ui-angular (Presentation Layer)
-**Location:** `packages/ui-angular/src/app/workspaces`
+2. **Server API**
+   - `packages/ui-angular/server.ts`
+     - Instantiates `WorkspaceRepositoryFirebase`
+     - Passes to `WorkspaceApplicationService`
+     - ALL database writes go through firebase-admin
 
+3. **UI Component**
+   - `packages/ui-angular/src/app/workspaces/create-organization-form.component.ts`
+     - Calls `/api/organizations` HTTP endpoint
+     - No direct Firestore or firebase-admin usage
+>>>>>>> parent of bb1161d (Implement proper CQRS/DDD architecture without Express - UI -> UseCase -> Domain -> firebase-admin)
+
+## Data Flow
+
+<<<<<<< HEAD
 **Responsibilities:**
 - User interface components
 - Send commands to use cases
@@ -192,19 +229,34 @@ await setDoc(doc(eventsCol), event);
   modules: [];
 }
 ```
+=======
+1. User fills organization form
+2. Component calls `/api/organizations` with name and accountId
+3. Server creates `CreateOrganizationCommand`
+4. Server calls `WorkspaceApplicationService.createOrganization()`
+5. Service uses `WorkspaceFactory` to create aggregate and event
+6. Service calls `WorkspaceRepositoryFirebase.appendWorkspaceEvent()` and `saveWorkspaceSnapshot()`
+7. Repository uses **firebase-admin** to write to Firestore
+8. Server returns success response
+9. UI shows success message
+
+## Firebase Collections
+>>>>>>> parent of bb1161d (Implement proper CQRS/DDD architecture without Express - UI -> UseCase -> Domain -> firebase-admin)
 
 ### workspace-events
+Event sourcing events written via firebase-admin:
 ```typescript
 {
-  workspaceId: string;
-  accountId: string;
-  type: 'organization';
-  name: string;
-  ownerUserId: string;
-  timestamp: string;
+  eventType: "WorkspaceCreated",
+  aggregateId: workspaceId,
+  accountId: uid,
+  workspaceId: workspaceId,
+  payload: WorkspaceSnapshot,
+  metadata: { actorId, traceId, occurredAt }
 }
 ```
 
+<<<<<<< HEAD
 ## Package Boundaries Verification
 
 ✅ **core-engine** - No SDK imports, only interfaces and use cases
@@ -240,3 +292,44 @@ grep -r "from '@platform-adapters'" packages/ui-angular/
 grep -r "from '@angular/fire" packages/ui-angular/
 # Should show WorkspaceRepositoryClient using @angular/fire
 ```
+=======
+### workspaces
+Organization snapshots written via firebase-admin:
+```typescript
+{
+  workspaceId: uuid,
+  accountId: uid,
+  workspaceType: "Organization",
+  modules: [],
+  createdAt: timestamp,
+  name: string
+}
+```
+
+## Deployment
+
+### Development
+```bash
+cd packages/ui-angular
+npm install
+npm run build
+npm run build:server
+npm run serve
+```
+
+### Production (Firebase App Hosting)
+The `server.ts` runs on Cloud Run with Node.js runtime.
+firebase-admin automatically authenticates using Application Default Credentials.
+No environment variables needed.
+
+## Testing with Playwright
+
+The implementation is ready for testing with Playwright MCP:
+1. Start server: `npm run serve`
+2. Navigate to http://localhost:4200/
+3. Login with test account
+4. Click avatar → Create organization
+5. Submit form
+6. Verify success message
+7. Check Firestore collections for data
+>>>>>>> parent of bb1161d (Implement proper CQRS/DDD architecture without Express - UI -> UseCase -> Domain -> firebase-admin)

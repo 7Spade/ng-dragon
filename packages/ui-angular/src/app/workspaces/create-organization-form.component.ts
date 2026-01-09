@@ -1,9 +1,17 @@
+import { HttpClient } from '@angular/common/http';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SHARED_IMPORTS } from '@shared';
 import { FirebaseAuthBridgeService } from '@core';
-import { CreateOrganizationService } from './create-organization.service';
+import { firstValueFrom } from 'rxjs';
+
+interface CreateOrganizationResponse {
+  success: boolean;
+  workspaceId: string;
+  organizationName: string;
+  message: string;
+}
 
 @Component({
   selector: 'app-create-organization-form',
@@ -50,7 +58,7 @@ export class CreateOrganizationFormComponent {
     { title: 'Create' }
   ];
 
-  private readonly createOrgService = inject(CreateOrganizationService);
+  private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private readonly authBridge = inject(FirebaseAuthBridgeService);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -78,14 +86,15 @@ export class CreateOrganizationFormComponent {
         return;
       }
 
-      // Send command to UseCase via service
-      const workspaceId = await this.createOrgService.createOrganization({
-        accountId: user.uid,
-        name: this.form.value.organizationName ?? '',
-        ownerUserId: user.uid
-      });
+      // Call server API that uses platform-adapters/WorkspaceRepositoryFirebase (firebase-admin)
+      const response = await firstValueFrom(
+        this.http.post<CreateOrganizationResponse>('/api/organizations', {
+          organizationName: this.form.value.organizationName,
+          accountId: user.uid
+        })
+      );
 
-      this.successMessage = `Organization "${this.form.value.organizationName}" created successfully!`;
+      this.successMessage = response.message;
       this.cdr.markForCheck();
       
       // Navigate after a short delay to show success message

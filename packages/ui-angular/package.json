@@ -7,9 +7,16 @@
     "lint": "eslint src/app --ext .ts",
     "ng": "ng",
     "start": "ng s -o",
+    "start:server": "ts-node server.ts",
     "build": "ng build",
+<<<<<<< HEAD
     "test": "ng test",
     "ng-high-memory": "node --max_old_space_size=8000 ../../node_modules/@angular/cli/bin/ng"
+=======
+    "build:server": "tsc server.ts --outDir dist --module commonjs --esModuleInterop --resolveJsonModule --skipLibCheck --moduleResolution node",
+    "serve": "npm run build && npm run build:server && node dist/server.js",
+    "test": "ng test"
+>>>>>>> parent of bb1161d (Implement proper CQRS/DDD architecture without Express - UI -> UseCase -> Domain -> firebase-admin)
   },
   "keywords": [
     "angular",
@@ -41,10 +48,17 @@
     "@ng-events/platform-adapters": "*",
     "@tanstack-query-firebase/angular": "^1.0.0",
     "@tanstack/angular-query-experimental": "5.66.4",
+<<<<<<< HEAD
+=======
+    "@types/express": "^4.17.25",
+    "express": "^4.22.1",
+    "firebase-admin": "^12.7.0",
+>>>>>>> parent of bb1161d (Implement proper CQRS/DDD architecture without Express - UI -> UseCase -> Domain -> firebase-admin)
     "ng-zorro-antd": "^20.3.1",
     "ngx-tinymce": "^20.0.0",
     "rxjs": "~7.8.0",
     "screenfull": "^6.0.2",
+    "ts-node": "^10.9.2",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"
   },
