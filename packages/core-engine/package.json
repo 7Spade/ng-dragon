@@ -26,9 +26,15 @@
     "compilerOptions": {
       "baseUrl": ".",
       "paths": {
-        "firebase-admin": ["__forbidden__"],
-        "@angular/fire": ["__forbidden__"],
-        "@ng-events/platform-adapters/*": ["__forbidden__"]
+        "firebase-admin": [
+          "__forbidden__"
+        ],
+        "@angular/fire": [
+          "__forbidden__"
+        ],
+        "@ng-events/platform-adapters/*": [
+          "__forbidden__"
+        ]
       }
     }
   },
@@ -39,5 +45,8 @@
       "Do NOT import firebase-admin or @angular/fire",
       "Can be used in both frontend or backend via safe adapters"
     ]
+  },
+  "dependencies": {
+    "@ng-events/account-domain": "*"
   }
 }
