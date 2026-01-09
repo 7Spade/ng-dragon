@@ -1,1 +1,1 @@
-//
+export * from './workspace.repository';

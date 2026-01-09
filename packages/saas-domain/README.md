@@ -2,7 +2,7 @@
 
 🏢 **SaaS 業務模型（純 TypeScript，零 SDK）**
 
-> 依賴 `account-domain`（身份 / 工作區 / 模組啟用）與 `core-engine` 抽象，所有程式碼集中於 `src/`。
+> 依賴 `account-domain`（身份 / 工作區 / 模組啟用），所有程式碼集中於 `src/`。
 
 ## 結構（現況 + 預備）
 
@@ -24,13 +24,13 @@ saas-domain/
 ## 原則
 
 - ❌ 禁止引入 Angular / Firebase / 任何 SDK
-- ✅ 僅依賴 `@core-engine` 抽象與 `account-domain` 前置邏輯
+- ✅ 僅依賴 `account-domain` 前置邏輯
 - ✅ 單一入口 `src/`，新增前先更新文件，保持對齊架構圖
 
 ## 依賴
 
 ```
-account-domain + core-engine -> saas-domain -> ui-angular (透過 adapters)
+account-domain -> saas-domain -> ui-angular (透過 adapters)
 ```
 
 ## License

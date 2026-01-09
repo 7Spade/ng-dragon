@@ -1,1 +1,1 @@
-export { WorkspaceRepository } from '@core-engine';
+export { WorkspaceRepository } from '@account-domain';

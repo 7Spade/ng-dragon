@@ -2,11 +2,11 @@
 
 ## 目標
 
-建模 SaaS 業務領域（任務、議題、財務、品質、驗收等），基於 `account-domain` 與 `core-engine`，保持純 TypeScript，零 SDK。
+建模 SaaS 業務領域（任務、議題、財務、品質、驗收等），僅依賴 `account-domain`，保持純 TypeScript，零 SDK。
 
 ## 邊界
 
-- **依賴**：`account-domain`（身份 / 工作區 / 模組啟用）、`core-engine` 抽象。
+- **依賴**：`account-domain`（身份 / 工作區 / 模組啟用）。
 - **禁止**：任何 SDK、UI 框架。
 - **輸出**：聚合 / 事件 / VO / Policy，供 adapters 或 UI 間接使用。
 
