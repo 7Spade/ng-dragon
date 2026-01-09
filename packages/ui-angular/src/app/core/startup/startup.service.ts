@@ -189,28 +189,34 @@ export class StartupService {
    * @param teamId 當前團隊 ID (null 表示未選擇)
    */
   async refreshMenuForCurrentContext(organizationId: string | null, teamId: string | null): Promise<void> {
-    const user = this.authBridge.getCurrentUser();
-    if (!user) {
+    try {
+      const user = this.authBridge.getCurrentUser();
+      if (!user) {
+        this.loadDefaultMenu();
+        return;
+      }
+
+      let menu: any[] = [];
+
+      if (organizationId && teamId) {
+        // Team context: show team-specific menu
+        menu = await this.getTeamMenu(organizationId, teamId, user.uid);
+      } else if (organizationId) {
+        // Organization context: show organization menu with teams
+        menu = await this.getOrganizationMenu(organizationId, user.uid);
+      } else {
+        // No context: show default user menu
+        menu = this.getDefaultMenu();
+      }
+
+      // Replace menu
+      this.menuService.clear();
+      this.menuService.add(menu);
+    } catch (error) {
+      console.error('Failed to refresh menu for context', error);
+      this.menuService.clear();
       this.loadDefaultMenu();
-      return;
     }
-
-    let menu: any[] = [];
-
-    if (organizationId && teamId) {
-      // Team context: show team-specific menu
-      menu = await this.getTeamMenu(organizationId, teamId, user.uid);
-    } else if (organizationId) {
-      // Organization context: show organization menu with teams
-      menu = await this.getOrganizationMenu(organizationId, user.uid);
-    } else {
-      // No context: show default user menu
-      menu = this.getDefaultMenu();
-    }
-
-    // Replace menu
-    this.menuService.clear();
-    this.menuService.add(menu);
   }
 
   /**
@@ -347,7 +353,8 @@ export class StartupService {
     try {
       const workspace = await this.workspaceService.getWorkspaceById(id).toPromise();
       return workspace || null;
-    } catch {
+    } catch (error) {
+      console.warn('Failed to load workspace by id', id, error);
       return null;
     }
   }

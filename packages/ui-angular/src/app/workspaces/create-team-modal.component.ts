@@ -75,7 +75,11 @@ export class CreateTeamModalComponent {
       });
 
       // Refresh menu to show new team (pass null for teamId as we're staying in org context)
-      await this.startupService.refreshMenuForCurrentContext(this.workspaceId, null);
+      try {
+        await this.startupService.refreshMenuForCurrentContext(this.workspaceId, null);
+      } catch (refreshError) {
+        console.warn('Menu refresh failed after team creation', refreshError);
+      }
       
       // Close modal with success
       this.modal.close({ success: true, teamId });
