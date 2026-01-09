@@ -8,7 +8,8 @@
     "ng": "ng",
     "start": "ng s -o",
     "build": "ng build",
-    "test": "ng test"
+    "test": "ng test",
+    "ng-high-memory": "ng"
   },
   "keywords": [
     "angular",
