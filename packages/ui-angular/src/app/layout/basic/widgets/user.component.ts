@@ -4,7 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { FirebaseAuthBridgeService } from '@core';
 import { DA_SERVICE_TOKEN } from '@delon/auth';
 import { I18nPipe, SettingsService, User } from '@delon/theme';
-import { WorkspaceService, WorkspaceView } from '@platform-adapters/workspaces';
+import { WorkspaceService, WorkspaceView } from '@platform-adapters';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -141,12 +141,11 @@ export class HeaderUserComponent {
 
   createTeam(): void {
     if (!this.isMember(this.selectedOrganizationId)) return;
-    this.router.navigateByUrl(`/organizations/${this.selectedOrganizationId}/teams/create`).catch(() => void 0);
+    this.router.navigateByUrl('/workspaces/create/team').catch(() => void 0);
   }
 
   createPartner(): void {
-    const orgId = this.selectedOrganizationId ?? 'select-org-first';
-    this.router.navigateByUrl(`/organizations/${orgId}/partners/create`).catch(() => void 0);
+    this.router.navigateByUrl('/workspaces/create/partner').catch(() => void 0);
   }
 
   logout(): void {

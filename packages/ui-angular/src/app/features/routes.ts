@@ -20,7 +20,18 @@ export const routes: Routes = [
       },
       {
         path: 'workspaces/create',
-        component: CreateOrganizationFormComponent
+        component: CreateOrganizationFormComponent,
+        data: { workspaceType: 'organization' }
+      },
+      {
+        path: 'workspaces/create/team',
+        component: CreateOrganizationFormComponent,
+        data: { workspaceType: 'team' }
+      },
+      {
+        path: 'workspaces/create/partner',
+        component: CreateOrganizationFormComponent,
+        data: { workspaceType: 'partner' }
       }
     ]
   },

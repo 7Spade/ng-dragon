@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { WorkspaceType } from '@account-domain';
 import { FirebaseAuthBridgeService } from '@core';
-import { CreateOrganizationService } from '@platform-adapters/workspaces';
+import { CreateOrganizationService } from '@platform-adapters';
 import { SHARED_IMPORTS } from '@shared';
 
 @Component({
@@ -10,11 +11,11 @@ import { SHARED_IMPORTS } from '@shared';
   standalone: true,
   imports: [...SHARED_IMPORTS],
   template: `
-    <page-header [title]="'Create Organization'" [breadcrumb]="breadcrumb"></page-header>
+    <page-header [title]="pageTitle" [breadcrumb]="breadcrumb"></page-header>
     <nz-card>
       <form nz-form [formGroup]="form" (ngSubmit)="submit()" class="block">
         <nz-form-item>
-          <nz-form-label [nzSpan]="6" nzFor="organizationName" nzRequired>Organization Name</nz-form-label>
+          <nz-form-label [nzSpan]="6" nzFor="organizationName" nzRequired>{{ nameLabel }}</nz-form-label>
           <nz-form-control [nzSpan]="18">
             <input nz-input id="organizationName" formControlName="organizationName" placeholder="Acme Inc" />
           </nz-form-control>
@@ -22,7 +23,9 @@ import { SHARED_IMPORTS } from '@shared';
 
         <div class="text-right">
           <button nz-button nzType="default" (click)="cancel()" class="mr-sm">Cancel</button>
-          <button nz-button nzType="primary" [nzLoading]="submitting" [disabled]="form.invalid || submitting"> Create Organization </button>
+          <button nz-button nzType="primary" [nzLoading]="submitting" [disabled]="form.invalid || submitting">
+            {{ submitLabel }}
+          </button>
         </div>
 
         @if (errorMessage) {
@@ -42,7 +45,15 @@ export class CreateOrganizationFormComponent {
     organizationName: ['', Validators.required]
   });
 
-  readonly breadcrumb = [{ title: 'Home', link: '/dashboard' }, { title: 'Organizations' }, { title: 'Create' }];
+  private readonly route = inject(ActivatedRoute);
+  readonly workspaceType: WorkspaceType =
+    (this.route.snapshot.data['workspaceType'] as WorkspaceType | undefined) ?? 'organization';
+  private readonly workspaceLabel = this.toWorkspaceLabel(this.workspaceType);
+
+  readonly pageTitle = `Create ${this.workspaceLabel}`;
+  readonly nameLabel = `${this.workspaceLabel} Name`;
+  readonly submitLabel = `Create ${this.workspaceLabel}`;
+  readonly breadcrumb = [{ title: 'Home', link: '/dashboard' }, { title: `${this.workspaceLabel}s` }, { title: 'Create' }];
 
   private readonly createOrgService = inject(CreateOrganizationService);
   private readonly router = inject(Router);
@@ -67,7 +78,7 @@ export class CreateOrganizationFormComponent {
     try {
       const user = this.authBridge.getCurrentUser();
       if (!user) {
-        this.errorMessage = 'You must be logged in to create an organization';
+        this.errorMessage = `You must be logged in to create a ${this.workspaceLabel.toLowerCase()}`;
         this.cdr.markForCheck();
         return;
       }
@@ -77,10 +88,11 @@ export class CreateOrganizationFormComponent {
         accountId: user.uid,
         organizationName: this.form.value.organizationName ?? '',
         ownerUserId: user.uid,
-        actorId: user.uid
+        actorId: user.uid,
+        workspaceType: this.workspaceType
       });
 
-      this.successMessage = `Organization "${this.form.value.organizationName}" created successfully!`;
+      this.successMessage = `${this.workspaceLabel} "${this.form.value.organizationName}" created successfully!`;
       this.cdr.markForCheck();
 
       // Navigate after a short delay to show success message
@@ -94,6 +106,21 @@ export class CreateOrganizationFormComponent {
     } finally {
       this.submitting = false;
       this.cdr.markForCheck();
+    }
+  }
+
+  private toWorkspaceLabel(type: WorkspaceType): string {
+    switch (type) {
+      case 'team':
+        return 'Team';
+      case 'partner':
+        return 'Partner';
+      case 'project':
+        return 'Project';
+      case 'personal':
+        return 'Workspace';
+      default:
+        return 'Organization';
     }
   }
 }
