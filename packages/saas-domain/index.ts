@@ -8,7 +8,7 @@
  *
  * Rules:
  * - Pure TypeScript only
- * - Can depend on @core-engine or @account-domain
+ * - Can depend on @account-domain only
  * - NO framework dependencies (Angular, Firebase, etc.)
  * - NO SDK dependencies
  */

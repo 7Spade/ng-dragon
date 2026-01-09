@@ -32,7 +32,7 @@ account-domain --> saas-domain --> ui-angular
 - `account-domain`：身份 / 工作區 / 模組啟用前置邏輯，純 TS。
 - `core-engine`：事件、命令、聚合、投影基礎設施，純 TS、零 SDK。
 - `platform-adapters`：外部 SDK 介接（Firebase、訊息、持久化、Google GenAI 等）。
-- `saas-domain`：SaaS 業務模組，依賴 account-domain 與 core-engine。
+- `saas-domain`：SaaS 業務模組，僅依賴 account-domain。
 - `ui-angular`：僅透過 adapters 使用能力，不可直接觸碰 core 或 SDK。
 
 ## SDK Separation (硬規則)
@@ -40,7 +40,7 @@ account-domain --> saas-domain --> ui-angular
 | 層級 | 可用 | 禁用 | 說明 |
 | --- | --- | --- | --- |
 | core-engine | TypeScript | Angular / Firebase / 任何 SDK | 純基礎設施 |
-| account-domain / saas-domain | TypeScript, @core-engine | 所有 SDK | 純業務邏輯 |
+| account-domain / saas-domain | TypeScript | 所有 SDK | 純業務邏輯 |
 | platform-adapters/src/persistence,auth,ai,external-apis | 第三方 SDK (firebase-admin, @angular/fire, Google AI SDK 等依場景) | 在未定義的層使用 SDK | 唯一 SDK 入口 |
 | ui-angular (src/app) | @angular/fire, @platform-adapters (client 介面) | firebase-admin | 前端 UI 層 |
 

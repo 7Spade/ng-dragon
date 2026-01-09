@@ -1,6 +1,6 @@
 ## Mission
 
-守護身份 / 工作區 / 模組啟用的前置條件。此 package 必須保持純 TypeScript，僅可依賴 `@ng-events/core-engine`。
+守護身份 / 工作區 / 模組啟用的前置條件。此 package 必須保持純 TypeScript，禁止依賴 `@ng-events/core-engine` 或任何 SDK。
 
 ## Guardrails
 
@@ -51,5 +51,5 @@ graph TD
 
 1. **不可變 + 驗證先行**：VO/Entity 確保型別安全與不變條件。
 2. **單一入口**：所有程式碼集中於 `src/`；新增聚合與事件一律走此路徑。
-3. **清晰依賴**：只依賴 `core-engine`，不上 UI / 平台 SDK。
+3. **清晰依賴**：零跨層依賴；不上 UI / 平台 SDK / core-engine。
 4. **文件先行**：新增聚合前，更新 README/AGENTS 以對齊 Mermaid 架構文件。

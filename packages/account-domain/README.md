@@ -1,6 +1,6 @@
 ## Overview
 
-`account-domain` models the existence conditions for the SaaS world: accounts, workspaces, memberships, and enabled modules. It is pure TypeScript that can depend on `@ng-events/core-engine` but must stay free of framework SDKs.
+`account-domain` models the existence conditions for the SaaS world: accounts, workspaces, memberships, and enabled modules. It is pure TypeScript with **no cross-package dependencies** and must stay free of framework SDKs.
 
 ## Folder Structure
 
@@ -48,4 +48,4 @@ Compensation events (`AccountSuspended`, `WorkspaceArchived`, module disablement
 
 - Membership / Invitation policies aligned with Workspace onboarding (Mermaid 架構層).
 - Module enablement dependency rules (task/issue/finance/quality/acceptance) kept in `policies/`.
-- Read model / projection contracts stay in core-engine; account-domain 僅定義事件與聚合。
+- Read model / projection contracts stay outside the domain; account-domain 僅定義事件與聚合。
