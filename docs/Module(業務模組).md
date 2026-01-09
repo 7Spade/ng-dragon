@@ -124,3 +124,121 @@ Account ──▶ Workspace ──▶ Module ──▶ Entity
 
 ---
 
+## 🧑‍🤝‍🧑 1. Identity / Members（成員模組）
+
+### 🎯 解決什麼？
+
+> 這個 Workspace 有誰？
+
+最小一定要能：
+
+* ✅ 加入 / 移除成員
+* ✅ 成員狀態（active / invited / disabled）
+* ✅ 成員角色（不是權限，是身份）
+
+### DDD Concept
+
+```ts
+Member (Entity)
+MemberId (VO)
+Membership (Entity / VO)
+```
+
+### 為什麼一定要有？
+
+沒有成員：
+
+> Workspace 就是一個空殼容器 ☠️
+> 什麼都不能協作、授權、計費、審計。
+
+---
+
+## 🔐 2. Access Control（權限模組）
+
+### 🎯 解決什麼？
+
+> 誰可以做什麼？
+
+最小一定要：
+
+* ✅ Role（Owner / Admin / Member）
+* ✅ Permission（read / write / manage）
+* ✅ Role ↔ Permission Mapping
+
+### DDD Concept
+
+```ts
+Role (Entity)
+Permission (VO)
+Policy (Domain Service)
+```
+
+### 為什麼獨立出來？
+
+因為：
+
+* 權限會變複雜
+* 很容易被污染到業務邏輯
+* 未來會接 RBAC / ABAC
+
+👉 拆成 Module 才乾淨 💅
+
+---
+
+## ⚙️ 3. Settings / Profile（設定模組）
+
+### 🎯 解決什麼？
+
+> Workspace 自己的屬性是什麼？
+
+例如：
+
+* ✅ 名稱
+* ✅ Logo
+* ✅ Plan / Tier
+* ✅ 功能開關（Feature Flags）
+* ✅ 時區 / 語系
+
+### DDD Concept
+
+```ts
+WorkspaceProfile (Entity)
+WorkspaceSettings (VO)
+```
+
+### 為什麼必要？
+
+因為：
+
+> 業務邏輯一定會依賴設定值 😈
+> 不拆會變成 everywhere magic config。
+
+---
+
+## 📜 4. Audit / Activity（審計模組）
+
+### 🎯 解決什麼？
+
+> 發生過什麼事情？
+
+最小可以：
+
+* ✅ 記錄事件（誰在什麼時間做了什麼）
+* ✅ 可追蹤
+* ✅ 可回溯
+
+### DDD Concept
+
+```ts
+ActivityLog (Entity)
+DomainEvent
+```
+
+### 為什麼很重要？
+
+* 除錯
+* 法規
+* 客戶信任
+* 未來做 analytics
+
+👉 就算現在不顯示 UI，也該先存在 Domain Event。
