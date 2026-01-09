@@ -1,7 +1,7 @@
 /**
  * Core Engine
  *
- * \ud83d\udc8e Pure domain engine with ZERO framework dependencies
+ * 💎 Pure domain engine with ZERO framework dependencies
  *
  * Core Principles:
  * - NO Angular imports allowed
@@ -13,4 +13,4 @@
  * Domain-specific commands/handlers live in account-domain or saas-domain.
  */
 
-export {};
+export * from './src/ports';

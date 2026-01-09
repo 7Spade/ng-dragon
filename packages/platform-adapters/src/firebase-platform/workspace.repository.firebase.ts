@@ -1,5 +1,5 @@
-import { WorkspaceId } from '@account-domain';
-import { WorkspaceRepository, WorkspaceSnapshot, WorkspaceCreatedEvent } from '@saas-domain';
+import { WorkspaceId, WorkspaceSnapshot } from '@account-domain';
+import { WorkspaceRepository } from '@core-engine';
 
 import { getCollection } from './firestore';
 
@@ -8,9 +8,9 @@ const EVENTS_COLLECTION = 'workspace-events';
 
 export class WorkspaceRepositoryFirebase implements WorkspaceRepository {
   private readonly workspacesCollection = getCollection<WorkspaceSnapshot>(WORKSPACES_COLLECTION);
-  private readonly eventsCollection = getCollection<WorkspaceCreatedEvent>(EVENTS_COLLECTION);
+  private readonly eventsCollection = getCollection(EVENTS_COLLECTION);
 
-  async appendWorkspaceEvent(event: WorkspaceCreatedEvent): Promise<void> {
+  async appendWorkspaceEvent(event: Parameters<WorkspaceRepository['appendWorkspaceEvent']>[0]): Promise<void> {
     await this.eventsCollection.doc().set(event);
   }
 

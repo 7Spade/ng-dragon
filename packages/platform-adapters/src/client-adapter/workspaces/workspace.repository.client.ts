@@ -1,7 +1,7 @@
-import { WorkspaceId, WorkspaceSnapshot } from '@account-domain';
+import { DomainEvent, WorkspaceId, WorkspaceSnapshot } from '@account-domain';
 import { Injectable, inject } from '@angular/core';
 import { Firestore, collection, doc, getDoc, getDocs, setDoc } from '@angular/fire/firestore';
-import { WorkspaceCreatedEvent, WorkspaceRepository } from '@saas-domain';
+import { WorkspaceRepository } from '@core-engine';
 
 @Injectable({ providedIn: 'root' })
 export class WorkspaceRepositoryClient implements WorkspaceRepository {
@@ -9,7 +9,7 @@ export class WorkspaceRepositoryClient implements WorkspaceRepository {
   private readonly workspacesCol = collection(this.firestore, 'workspaces');
   private readonly eventsCol = collection(this.firestore, 'workspace-events');
 
-  async appendWorkspaceEvent(event: WorkspaceCreatedEvent): Promise<void> {
+  async appendWorkspaceEvent(event: DomainEvent<WorkspaceSnapshot>): Promise<void> {
     await setDoc(doc(this.eventsCol), event);
   }
 
