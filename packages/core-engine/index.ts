@@ -1,16 +1,16 @@
 /**
  * Core Engine
  *
- * 💎 Pure domain core with ZERO framework dependencies
+ * \ud83d\udc8e Pure domain engine with ZERO framework dependencies
  *
  * Core Principles:
  * - NO Angular imports allowed
  * - NO Firebase imports allowed
  * - Pure TypeScript only
  * - Framework-agnostic domain logic
+ *
+ * This package intentionally exposes only abstract building blocks.
+ * Domain-specific commands/handlers live in account-domain or saas-domain.
  */
 
-// Application layer entrypoints
-export * from './src/commands/create-organization.command';
-export * from './src/use-cases/create-organization.usecase';
-export * from './src/ports/workspace.repository.port';
+export {};

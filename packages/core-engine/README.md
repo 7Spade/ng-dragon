@@ -29,12 +29,7 @@ core-engine/
 
 ## 使用範例
 
-```typescript
-import { DomainEvent } from '@core-engine/ports';
-import { CommandHandler } from '@core-engine/commands';
-
-// 在 adapters 中實作 EventStore，再注入 use-case
-```
+核心層僅保留抽象接口；實際 command / handler / port 請在 domain 套件定義，並由 platform-adapters 負責具體實作與注入。
 
 ## 依賴位置
 
