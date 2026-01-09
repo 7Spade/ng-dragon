@@ -5,7 +5,11 @@
     "types": []
   },
   "files": [
-    "src/main.ts"
+    "src/main.ts",
+    "../platform-adapters/index.ts",
+    "../core-engine/index.ts",
+    "../saas-domain/index.ts",
+    "../account-domain/index.ts"
   ],
   "include": [
     "src/**/*.d.ts"
