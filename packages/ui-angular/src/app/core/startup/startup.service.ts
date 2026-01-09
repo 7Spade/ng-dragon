@@ -1,20 +1,34 @@
-import { Injectable, inject, APP_INITIALIZER } from '@angular/core';
+import { Injectable, inject, APP_INITIALIZER, effect } from '@angular/core';
 import { User } from '@angular/fire/auth';
 import { Firestore, doc, getDoc } from '@angular/fire/firestore';
+import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { ACLService } from '@delon/acl';
 import { MenuService, SettingsService, TitleService, ALAIN_I18N_TOKEN } from '@delon/theme';
-import { Observable, from, of } from 'rxjs';
+import { Observable, from, of, firstValueFrom } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 import { I18NService } from '../i18n/i18n.service';
 import { FirebaseAuthBridgeService } from '../auth/firebase-auth-bridge.service';
+import { ContextService } from '../context/context.service';
+import type { ContextType } from '@account-domain';
 
 interface UserProfile {
   name?: string;
   avatar?: string;
   email?: string;
   role?: string;
+}
+
+interface AppData {
+  app: { name: string; description: string };
+  user: { name: string; avatar: string; email: string };
+  menus: {
+    user: any[];
+    organization: any[];
+    team: any[];
+    partner: any[];
+  };
 }
 
 /**
@@ -36,6 +50,7 @@ export function provideStartup() {
 @Injectable()
 export class StartupService {
   private firestore = inject(Firestore);
+  private http = inject(HttpClient);
   private menuService = inject(MenuService);
   private settingService = inject(SettingsService);
   private aclService = inject(ACLService);
@@ -43,6 +58,19 @@ export class StartupService {
   private router = inject(Router);
   private i18n = inject<I18NService>(ALAIN_I18N_TOKEN);
   private authBridge = inject(FirebaseAuthBridgeService);
+  private contextService = inject(ContextService);
+
+  private appData: AppData | null = null;
+
+  constructor() {
+    // React to context changes and reload menu
+    effect(() => {
+      const context = this.contextService.currentContext();
+      if (this.appData) {
+        this.loadMenuForContext(context.type);
+      }
+    });
+  }
 
   load(): Observable<void> {
     return from(this.loadAsync()).pipe(
@@ -55,71 +83,99 @@ export class StartupService {
   }
 
   private async loadAsync(): Promise<void> {
-    // 1. 載入語言資料
+    // 1. Load language data
     const defaultLang = this.i18n.defaultLang;
     const langData = await this.i18n.loadLangData(defaultLang).toPromise();
     this.i18n.use(defaultLang, langData);
 
-    // 2. 等待 Firebase Auth 初始化（統一從 bridge 取得，避免重複監聽）
-    this.authBridge.init(); // 保證唯一註冊且可被 APP_INITIALIZER 或其它入口共用
+    // 2. Load app data (menus structure)
+    this.appData = await firstValueFrom(
+      this.http.get<AppData>('./assets/tmp/app-data.json').pipe(
+        catchError(err => {
+          console.error('Failed to load app-data.json:', err);
+          return of(this.getDefaultAppData());
+        })
+      )
+    );
+
+    // 3. Wait for Firebase Auth initialization
+    this.authBridge.init();
     const user = await this.authBridge.waitForAuthState();
 
-    // 3. 設定應用資訊
+    // 4. Set application info
     this.settingService.setApp({
-      name: 'NG-EVENTS',
-      description: 'Event Management Application'
+      name: this.appData.app.name,
+      description: this.appData.app.description
     });
 
-    // 4. 根據登入狀態載入資料
+    // 5. Load data based on authentication state
     if (user) {
       await this.loadAuthenticatedUserData(user);
     } else {
       await this.loadAnonymousUserData();
     }
 
-    // 5. 設定 ACL 權限
+    // 6. Load initial menu based on current context
+    const currentContext = this.contextService.currentContext();
+    this.loadMenuForContext(currentContext.type);
+
+    // 7. Set ACL permissions
     this.aclService.setFull(true);
 
-    // 6. 設定頁面標題
+    // 8. Set page title
     this.titleService.default = '';
-    this.titleService.suffix = 'NG-EVENTS';
+    this.titleService.suffix = this.appData.app.name;
   }
 
   /**
-   * 載入已登入用戶的資料
+   * Load menu for specific context
+   */
+  private loadMenuForContext(contextType: ContextType): void {
+    if (!this.appData) return;
+
+    const menu = this.appData.menus[contextType] || this.appData.menus.user;
+    this.menuService.clear();
+    this.menuService.add(menu);
+    console.log(`Menu loaded for context: ${contextType}`, menu);
+  }
+
+  /**
+   * Load authenticated user data
    */
   private async loadAuthenticatedUserData(user: User): Promise<void> {
     try {
-      // 從 Firestore 載入用戶資料
+      // Load user profile from Firestore
       const userProfile = await this.getUserProfile(user.uid);
 
-      // 設定用戶資訊
+      // Set user info
       this.settingService.setUser({
         name: userProfile.name || user.displayName || user.email,
         avatar: userProfile.avatar || user.photoURL || './assets/tmp/img/avatar.jpg',
         email: user.email || ''
       });
-
-      // 載入用戶特定的選單
-      const menu = await this.loadUserMenu(user.uid, userProfile.role);
-      this.menuService.add(menu);
     } catch (error) {
       console.error('Failed to load user data:', error);
-      // 載入預設選單作為 fallback
-      this.loadDefaultMenu();
+      // Use default user data as fallback
+      this.settingService.setUser({
+        name: user.displayName || user.email || 'User',
+        avatar: user.photoURL || './assets/tmp/img/avatar.jpg',
+        email: user.email || ''
+      });
     }
   }
 
   /**
-   * 載入未登入用戶的資料
+   * Load anonymous user data
    */
   private async loadAnonymousUserData(): Promise<void> {
-    // 未登入時載入預設選單
-    this.loadDefaultMenu();
+    // Load default menu for anonymous users
+    if (this.appData) {
+      this.menuService.add(this.appData.menus.user);
+    }
   }
 
   /**
-   * 從 Firestore 獲取用戶資料
+   * Get user profile from Firestore
    */
   private async getUserProfile(uid: string): Promise<UserProfile> {
     const docRef = doc(this.firestore, 'users', uid);
@@ -133,39 +189,30 @@ export class StartupService {
   }
 
   /**
-   * 根據用戶角色載入選單
+   * Get default app data structure
    */
-  private async loadUserMenu(uid: string, role?: string): Promise<any[]> {
-    // TODO: 根據用戶角色從 Firestore 或 Remote Config 載入選單
-    // 目前使用預設選單
-    return this.getDefaultMenu();
-  }
-
-  /**
-   * 載入預設選單
-   */
-  private loadDefaultMenu(): void {
-    this.menuService.add(this.getDefaultMenu());
-  }
-
-  /**
-   * 獲取預設選單結構
-   */
-  private getDefaultMenu(): any[] {
-    return [
-      {
-        text: '主選單',
-        group: true,
-        children: [
+  private getDefaultAppData(): AppData {
+    return {
+      app: { name: 'NG-EVENTS', description: 'Event Management Application' },
+      user: { name: 'Admin', avatar: './assets/tmp/img/avatar.jpg', email: 'admin@example.com' },
+      menus: {
+        user: [
           {
-            text: '儀表板',
-            link: '/dashboard',
-            icon: { type: 'icon', value: 'appstore' }
+            text: '主選單',
+            group: true,
+            children: [
+              {
+                text: '儀表板',
+                link: '/dashboard',
+                icon: { type: 'icon', value: 'appstore' }
+              }
+            ]
           }
-        ]
+        ],
+        organization: [],
+        team: [],
+        partner: []
       }
-    ];
+    };
   }
 }
-
-// END OF FILE

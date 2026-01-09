@@ -1,16 +1,16 @@
-import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, Input, inject, effect } from '@angular/core';
+import { Router } from '@angular/router';
 import { DA_SERVICE_TOKEN } from '@delon/auth';
 import { I18nPipe, SettingsService, User } from '@delon/theme';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
-import { AsyncPipe, NgFor, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { WorkspaceService, Workspace } from '../../../workspaces/workspace.service';
-import { FirebaseAuthBridgeService } from '@core';
+import { FirebaseAuthBridgeService, ContextService } from '@core';
 
 @Component({
   selector: 'header-user',
@@ -37,32 +37,55 @@ import { FirebaseAuthBridgeService } from '@core';
     }
     <nz-dropdown-menu #userMenu="nzDropdownMenu">
       <div nz-menu class="width-lg">
+        <!-- Current Context Display -->
+        @if (contextService.currentContext(); as context) {
+          <div class="px-sm py-sm bg-light">
+            <div class="text-muted small">Current Context</div>
+            <div class="font-weight-bold">
+              @switch (context.type) {
+                @case ('user') { <i nz-icon nzType="user"></i> Personal }
+                @case ('organization') { <i nz-icon nzType="crown"></i> {{ context.name || 'Organization' }} }
+                @case ('team') { <i nz-icon nzType="team"></i> {{ context.name || 'Team' }} }
+                @case ('partner') { <i nz-icon nzType="user-add"></i> {{ context.name || 'Partner' }} }
+              }
+            </div>
+          </div>
+          <li nz-menu-divider></li>
+        }
+        
+        <!-- Switch to Personal Context -->
+        <div nz-menu-item (click)="switchToUserContext()">
+          <i nz-icon nzType="user" class="mr-sm"></i>{{ 'menu.context.personal' | i18n : 'Personal Context' }}
+        </div>
+        
+        <li nz-menu-divider></li>
+        
         <div class="px-sm py-sm text-muted">{{ 'menu.account.organizations' | i18n : 'Organizations' }}</div>
         
         <!-- Owned Organizations -->
-        <div class="px-sm text-muted">{{ 'menu.account.organizations.owned' | i18n : 'Owned' }}</div>
+        <div class="px-sm text-muted small">{{ 'menu.account.organizations.owned' | i18n : 'Owned' }}</div>
         @if ((ownedOrganizations$ | async)?.length) {
           @for (org of ownedOrganizations$ | async; track org.id) {
-            <div nz-menu-item (click)="selectOrganization(org.id)">
+            <div nz-menu-item (click)="selectOrganization(org.id, org.name)">
               <i nz-icon nzType="crown" class="mr-sm"></i>{{ org.name }}
             </div>
           }
         } @else {
-          <div nz-menu-item class="text-muted">{{ 'menu.account.organizations.noneOwned' | i18n : 'No owned organizations' }}</div>
+          <div nz-menu-item class="text-muted small">{{ 'menu.account.organizations.noneOwned' | i18n : 'No owned organizations' }}</div>
         }
         
         <li nz-menu-divider></li>
         
         <!-- Joined Organizations -->
-        <div class="px-sm text-muted">{{ 'menu.account.organizations.joined' | i18n : 'Joined' }}</div>
+        <div class="px-sm text-muted small">{{ 'menu.account.organizations.joined' | i18n : 'Joined' }}</div>
         @if ((joinedOrganizations$ | async)?.length) {
           @for (org of joinedOrganizations$ | async; track org.id) {
-            <div nz-menu-item (click)="selectOrganization(org.id)">
+            <div nz-menu-item (click)="selectOrganization(org.id, org.name)">
               <i nz-icon nzType="team" class="mr-sm"></i>{{ org.name }}
             </div>
           }
         } @else {
-          <div nz-menu-item class="text-muted">{{ 'menu.account.organizations.noneJoined' | i18n : 'No joined organizations' }}</div>
+          <div nz-menu-item class="text-muted small">{{ 'menu.account.organizations.noneJoined' | i18n : 'No joined organizations' }}</div>
         }
         
         <li nz-menu-divider></li>
@@ -72,9 +95,11 @@ import { FirebaseAuthBridgeService } from '@core';
           <i nz-icon nzType="plus" class="mr-sm"></i>{{ 'menu.account.organizations.create' | i18n : 'Create organization' }}
         </div>
         
-        @if (selectedOrganizationName) {
-          <div nz-menu-item class="text-muted">{{ selectedOrganizationName }}</div>
-          <div nz-menu-item [nzDisabled]="!isMember(selectedOrganizationId)" (click)="createTeam()">
+        <!-- Context Actions (shown when in organization context) -->
+        @if (contextService.isOrganizationContext() && contextService.contextId()) {
+          <li nz-menu-divider></li>
+          <div class="px-sm py-sm text-muted small">Organization Actions</div>
+          <div nz-menu-item (click)="createTeam()">
             <i nz-icon nzType="team" class="mr-sm"></i>{{ 'menu.account.organizations.createTeam' | i18n : 'Create team' }}
           </div>
           <div nz-menu-item (click)="createPartner()">
@@ -93,7 +118,7 @@ import { FirebaseAuthBridgeService } from '@core';
     </nz-dropdown-menu>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, NzDropDownModule, NzMenuModule, NzIconModule, I18nPipe, NzAvatarModule, AsyncPipe, NgFor, NgIf]
+  imports: [NzDropDownModule, NzMenuModule, NzIconModule, I18nPipe, NzAvatarModule, AsyncPipe]
 })
 export class HeaderUserComponent {
   @Input() layout: 'header' | 'aside' = 'aside';
@@ -103,12 +128,11 @@ export class HeaderUserComponent {
   private readonly tokenService = inject(DA_SERVICE_TOKEN);
   private readonly workspaceService = inject(WorkspaceService);
   private readonly authBridge = inject(FirebaseAuthBridgeService);
+  readonly contextService = inject(ContextService);
 
   // Observable streams for owned and joined organizations
   readonly ownedOrganizations$: Observable<Workspace[]>;
   readonly joinedOrganizations$: Observable<Workspace[]>;
-
-  selectedOrganizationId: string | null = null;
 
   constructor() {
     const user = this.authBridge.getCurrentUser();
@@ -136,25 +160,26 @@ export class HeaderUserComponent {
         )
       )
     );
+
+    // React to context changes
+    effect(() => {
+      const context = this.contextService.currentContext();
+      console.log('Context changed in user component:', context);
+      // Menu will reload via startup service effect
+    });
   }
 
   get user(): User {
     return this.settings.user;
   }
 
-  private isMember(orgId: string | null): boolean {
-    if (!orgId) return false;
-    // TODO: Implement proper membership check
-    return true;
+  switchToUserContext(): void {
+    this.contextService.switchToUserContext();
+    this.router.navigateByUrl('/dashboard').catch(() => void 0);
   }
 
-  get selectedOrganizationName(): string | null {
-    // TODO: Fetch selected org name from service
-    return null;
-  }
-
-  selectOrganization(orgId: string): void {
-    this.selectedOrganizationId = orgId;
+  selectOrganization(orgId: string, orgName: string): void {
+    this.contextService.switchToOrganizationContext(orgId, orgName);
     this.router.navigateByUrl(`/organizations/${orgId}`).catch(() => void 0);
   }
 
@@ -163,16 +188,21 @@ export class HeaderUserComponent {
   }
 
   createTeam(): void {
-    if (!this.isMember(this.selectedOrganizationId)) return;
-    this.router.navigateByUrl(`/organizations/${this.selectedOrganizationId}/teams/create`).catch(() => void 0);
+    const orgId = this.contextService.contextId();
+    if (!orgId) {
+      console.error('No organization context for creating team');
+      return;
+    }
+    this.router.navigateByUrl(`/organizations/${orgId}/teams/create`).catch(() => void 0);
   }
 
   createPartner(): void {
-    const orgId = this.selectedOrganizationId ?? 'select-org-first';
+    const orgId = this.contextService.contextId() ?? 'select-org-first';
     this.router.navigateByUrl(`/organizations/${orgId}/partners/create`).catch(() => void 0);
   }
 
   logout(): void {
+    this.contextService.switchToUserContext(); // Reset context on logout
     this.tokenService.clear();
     this.router.navigateByUrl(this.tokenService.login_url!);
   }
