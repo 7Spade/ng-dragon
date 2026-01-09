@@ -31,3 +31,6 @@ export * from './src/events/WorkspaceCreatedEvent';
 
 // Repositories (interfaces only - implementations in platform-adapters)
 export * from './src/repositories/WorkspaceRepository';
+
+// 4 Base Modules
+export * from './src/modules';
