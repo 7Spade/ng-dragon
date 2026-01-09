@@ -3,7 +3,7 @@ import { FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SHARED_IMPORTS } from '@shared';
 import { FirebaseAuthBridgeService } from '@core';
-import { CreateOrganizationService } from './create-organization.service';
+import { CreateOrganizationService } from '@ng-events/platform-adapters/workspaces';
 
 @Component({
   selector: 'app-create-organization-form',

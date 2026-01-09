@@ -10,8 +10,7 @@ export class WorkspaceRepositoryClient implements WorkspaceRepositoryPort {
     const workspacesCol = collection(this.firestore, 'workspaces');
     const eventsCol = collection(this.firestore, 'workspace-events');
 
-    // Save workspace snapshot
-    await setDoc(doc(workspacesCol, workspace.workspaceId), {
+    const snapshot = {
       workspaceId: workspace.workspaceId,
       accountId: workspace.accountId,
       type: workspace.type,
@@ -19,16 +18,13 @@ export class WorkspaceRepositoryClient implements WorkspaceRepositoryPort {
       ownerUserId: workspace.ownerUserId,
       members: workspace.members,
       createdAt: workspace.createdAt,
-      modules: workspace.modules || []
-    });
+      modules: workspace.modules ?? []
+    };
 
-    // Save event
+    await setDoc(doc(workspacesCol, workspace.workspaceId), snapshot);
+
     await setDoc(doc(eventsCol), {
-      workspaceId: workspace.workspaceId,
-      accountId: workspace.accountId,
-      type: workspace.type,
-      name: workspace.name,
-      ownerUserId: workspace.ownerUserId,
+      ...snapshot,
       timestamp: workspace.createdAt
     });
 
