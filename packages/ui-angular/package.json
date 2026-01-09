@@ -4,6 +4,7 @@
   "description": "Angular UI layer - Uses platform-adapters for backend integration (frontend only, no firebase-admin)",
   "private": true,
   "scripts": {
+    "ng-high-memory": "node --max_old_space_size=8000 ../../node_modules/@angular/cli/bin/ng",
     "lint": "eslint src/app --ext .ts",
     "ng": "ng",
     "start": "ng s -o",

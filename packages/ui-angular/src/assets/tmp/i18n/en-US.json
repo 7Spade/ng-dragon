@@ -21,6 +21,8 @@
   "menu.account.organizations.create": "Create organization",
   "menu.account.organizations.createTeam": "Create team",
   "menu.account.organizations.createPartner": "Create partner",
+  "menu.context.personal": "Personal Context",
+  "menu.context.organizationActions": "Organization Actions",
   "app.lock": "Lock",
   "app.login.message-invalid-credentials": "Invalid email or password",
   "app.login.remember-me": "Remember me",

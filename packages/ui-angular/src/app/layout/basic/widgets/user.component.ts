@@ -95,10 +95,10 @@ import { FirebaseAuthBridgeService, ContextService } from '@core';
           <i nz-icon nzType="plus" class="mr-sm"></i>{{ 'menu.account.organizations.create' | i18n : 'Create organization' }}
         </div>
         
-        <!-- Context Actions (shown when in organization context) -->
-        @if (contextService.isOrganizationContext() && contextService.contextId()) {
+        <!-- Context Actions (shown when in organization context AND user can manage) -->
+        @if (contextService.isOrganizationContext() && contextService.contextId() && canManageOrganization()) {
           <li nz-menu-divider></li>
-          <div class="px-sm py-sm text-muted small">Organization Actions</div>
+          <div class="px-sm py-sm text-muted small">{{ 'menu.context.organizationActions' | i18n : 'Organization Actions' }}</div>
           <div nz-menu-item (click)="createTeam()">
             <i nz-icon nzType="team" class="mr-sm"></i>{{ 'menu.account.organizations.createTeam' | i18n : 'Create team' }}
           </div>
@@ -133,6 +133,9 @@ export class HeaderUserComponent {
   // Observable streams for owned and joined organizations
   readonly ownedOrganizations$: Observable<Workspace[]>;
   readonly joinedOrganizations$: Observable<Workspace[]>;
+  
+  // Current organization for permission checking
+  private currentOrganization: Workspace | null = null;
 
   constructor() {
     const user = this.authBridge.getCurrentUser();
@@ -161,12 +164,35 @@ export class HeaderUserComponent {
       )
     );
 
-    // React to context changes
+    // React to context changes and update current organization
     effect(() => {
       const context = this.contextService.currentContext();
-      console.log('Context changed in user component:', context);
-      // Menu will reload via startup service effect
+      if (context.type === 'organization' && context.id) {
+        // Find the organization to check permissions
+        allWorkspaces$.subscribe(workspaces => {
+          this.currentOrganization = workspaces.find(ws => ws.id === context.id) || null;
+        });
+      } else {
+        this.currentOrganization = null;
+      }
     });
+  }
+  
+  /**
+   * Check if current user can manage the organization (owner or admin)
+   */
+  canManageOrganization(): boolean {
+    if (!this.currentOrganization) return false;
+    
+    const user = this.authBridge.getCurrentUser();
+    if (!user) return false;
+    
+    // User is owner
+    if (this.currentOrganization.ownerUserId === user.uid) return true;
+    
+    // User is admin member
+    const userMember = this.currentOrganization.members?.find(m => m.userId === user.uid);
+    return userMember?.role === 'admin';
   }
 
   get user(): User {
@@ -180,7 +206,8 @@ export class HeaderUserComponent {
 
   selectOrganization(orgId: string, orgName: string): void {
     this.contextService.switchToOrganizationContext(orgId, orgName);
-    this.router.navigateByUrl(`/organizations/${orgId}`).catch(() => void 0);
+    // Switch to dashboard instead of organization-specific route to avoid 404
+    this.router.navigateByUrl('/dashboard').catch(() => void 0);
   }
 
   createOrganization(): void {
