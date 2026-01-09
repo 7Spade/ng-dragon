@@ -1,16 +1,16 @@
+import { AsyncPipe, NgFor, NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { FirebaseAuthBridgeService } from '@core';
 import { DA_SERVICE_TOKEN } from '@delon/auth';
 import { I18nPipe, SettingsService, User } from '@delon/theme';
+import { WorkspaceService, WorkspaceView } from '@platform-adapters/workspaces';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
-import { AsyncPipe, NgFor, NgIf } from '@angular/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { WorkspaceService, Workspace } from '@platform-adapters/workspaces';
-import { FirebaseAuthBridgeService } from '@core';
 
 @Component({
   selector: 'header-user',
@@ -21,13 +21,7 @@ import { FirebaseAuthBridgeService } from '@core';
         {{ user.name }}
       </div>
     } @else {
-      <div
-        class="alain-default__aside-user"
-        nz-dropdown
-        [nzDropdownMenu]="userMenu"
-        nzTrigger="click"
-        nzPlacement="bottomLeft"
-      >
+      <div class="alain-default__aside-user" nz-dropdown [nzDropdownMenu]="userMenu" nzTrigger="click" nzPlacement="bottomLeft">
         <nz-avatar class="alain-default__aside-user-avatar" [nzSrc]="user.avatar" />
         <div class="alain-default__aside-user-info">
           <strong>{{ user.name }}</strong>
@@ -37,53 +31,49 @@ import { FirebaseAuthBridgeService } from '@core';
     }
     <nz-dropdown-menu #userMenu="nzDropdownMenu">
       <div nz-menu class="width-lg">
-        <div class="px-sm py-sm text-muted">{{ 'menu.account.organizations' | i18n : 'Organizations' }}</div>
-        
+        <div class="px-sm py-sm text-muted">{{ 'menu.account.organizations' | i18n: 'Organizations' }}</div>
+
         <!-- Owned Organizations -->
-        <div class="px-sm text-muted">{{ 'menu.account.organizations.owned' | i18n : 'Owned' }}</div>
+        <div class="px-sm text-muted">{{ 'menu.account.organizations.owned' | i18n: 'Owned' }}</div>
         @if ((ownedOrganizations$ | async)?.length) {
           @for (org of ownedOrganizations$ | async; track org.id) {
-            <div nz-menu-item (click)="selectOrganization(org.id)">
-              <i nz-icon nzType="crown" class="mr-sm"></i>{{ org.name }}
-            </div>
+            <div nz-menu-item (click)="selectOrganization(org.id)"> <i nz-icon nzType="crown" class="mr-sm"></i>{{ org.name }} </div>
           }
         } @else {
-          <div nz-menu-item class="text-muted">{{ 'menu.account.organizations.noneOwned' | i18n : 'No owned organizations' }}</div>
+          <div nz-menu-item class="text-muted">{{ 'menu.account.organizations.noneOwned' | i18n: 'No owned organizations' }}</div>
         }
-        
+
         <li nz-menu-divider></li>
-        
+
         <!-- Joined Organizations -->
-        <div class="px-sm text-muted">{{ 'menu.account.organizations.joined' | i18n : 'Joined' }}</div>
+        <div class="px-sm text-muted">{{ 'menu.account.organizations.joined' | i18n: 'Joined' }}</div>
         @if ((joinedOrganizations$ | async)?.length) {
           @for (org of joinedOrganizations$ | async; track org.id) {
-            <div nz-menu-item (click)="selectOrganization(org.id)">
-              <i nz-icon nzType="team" class="mr-sm"></i>{{ org.name }}
-            </div>
+            <div nz-menu-item (click)="selectOrganization(org.id)"> <i nz-icon nzType="team" class="mr-sm"></i>{{ org.name }} </div>
           }
         } @else {
-          <div nz-menu-item class="text-muted">{{ 'menu.account.organizations.noneJoined' | i18n : 'No joined organizations' }}</div>
+          <div nz-menu-item class="text-muted">{{ 'menu.account.organizations.noneJoined' | i18n: 'No joined organizations' }}</div>
         }
-        
+
         <li nz-menu-divider></li>
-        
+
         <!-- Create Organization -->
         <div nz-menu-item (click)="createOrganization()">
-          <i nz-icon nzType="plus" class="mr-sm"></i>{{ 'menu.account.organizations.create' | i18n : 'Create organization' }}
+          <i nz-icon nzType="plus" class="mr-sm"></i>{{ 'menu.account.organizations.create' | i18n: 'Create organization' }}
         </div>
-        
+
         @if (selectedOrganizationName) {
           <div nz-menu-item class="text-muted">{{ selectedOrganizationName }}</div>
           <div nz-menu-item [nzDisabled]="!isMember(selectedOrganizationId)" (click)="createTeam()">
-            <i nz-icon nzType="team" class="mr-sm"></i>{{ 'menu.account.organizations.createTeam' | i18n : 'Create team' }}
+            <i nz-icon nzType="team" class="mr-sm"></i>{{ 'menu.account.organizations.createTeam' | i18n: 'Create team' }}
           </div>
           <div nz-menu-item (click)="createPartner()">
-            <i nz-icon nzType="user-add" class="mr-sm"></i>{{ 'menu.account.organizations.createPartner' | i18n : 'Create partner' }}
+            <i nz-icon nzType="user-add" class="mr-sm"></i>{{ 'menu.account.organizations.createPartner' | i18n: 'Create partner' }}
           </div>
         }
-        
+
         <li nz-menu-divider></li>
-        
+
         <!-- Logout -->
         <div nz-menu-item (click)="logout()">
           <i nz-icon nzType="logout" class="mr-sm"></i>
@@ -105,34 +95,26 @@ export class HeaderUserComponent {
   private readonly authBridge = inject(FirebaseAuthBridgeService);
 
   // Observable streams for owned and joined organizations
-  readonly ownedOrganizations$: Observable<Workspace[]>;
-  readonly joinedOrganizations$: Observable<Workspace[]>;
+  readonly ownedOrganizations$: Observable<WorkspaceView[]>;
+  readonly joinedOrganizations$: Observable<WorkspaceView[]>;
 
   selectedOrganizationId: string | null = null;
+  selectedOrganizationName: string | null = null;
 
   constructor() {
     const user = this.authBridge.getCurrentUser();
     const userId = user?.uid;
 
-    // Get all user workspaces and split into owned and joined
     const allWorkspaces$ = this.workspaceService.getUserWorkspaces();
 
-    // Owned organizations (where user is the owner)
     this.ownedOrganizations$ = allWorkspaces$.pipe(
-      map(workspaces => 
-        workspaces.filter(ws => 
-          ws.type === 'organization' && ws.ownerUserId === userId
-        )
-      )
+      map(workspaces => workspaces.filter(ws => ws.workspaceType === 'organization' && ws.ownerAccountId === userId))
     );
 
-    // Joined organizations (where user is a member but not owner)
     this.joinedOrganizations$ = allWorkspaces$.pipe(
-      map(workspaces => 
-        workspaces.filter(ws => 
-          ws.type === 'organization' && 
-          ws.ownerUserId !== userId &&
-          ws.members?.some(m => m.userId === userId)
+      map(workspaces =>
+        workspaces.filter(
+          ws => ws.workspaceType === 'organization' && ws.ownerAccountId !== userId && ws.members?.some(m => m.accountId === userId)
         )
       )
     );
@@ -146,11 +128,6 @@ export class HeaderUserComponent {
     if (!orgId) return false;
     // TODO: Implement proper membership check
     return true;
-  }
-
-  get selectedOrganizationName(): string | null {
-    // TODO: Fetch selected org name from service
-    return null;
   }
 
   selectOrganization(orgId: string): void {

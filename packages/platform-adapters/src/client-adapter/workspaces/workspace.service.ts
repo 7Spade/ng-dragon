@@ -1,4 +1,4 @@
-import { WorkspaceSnapshot, WorkspaceType, WorkspaceMember } from '@account-domain';
+import { WorkspaceSnapshot, WorkspaceMember } from '@account-domain';
 import { Injectable, inject } from '@angular/core';
 import { Auth, authState } from '@angular/fire/auth';
 import { Firestore, collection, query, where, collectionData } from '@angular/fire/firestore';
@@ -7,7 +7,7 @@ import { map, switchMap } from 'rxjs/operators';
 
 export interface WorkspaceView extends WorkspaceSnapshot {
   id: string;
-  members?: WorkspaceMember[];
+  members: WorkspaceMember[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -23,7 +23,9 @@ export class WorkspaceService {
         const workspacesCol = collection(this.firestore, 'workspaces');
         const q = query(workspacesCol, where('ownerAccountId', '==', user.uid));
 
-        return collectionData<WorkspaceView>(q, { idField: 'id' }).pipe(map(workspaces => workspaces.map(ws => this.mapWorkspace(ws))));
+        return collectionData(q, { idField: 'id' }).pipe(
+          map(workspaces => workspaces.map(ws => this.mapWorkspace(ws as WorkspaceSnapshot & { id?: string })))
+        );
       })
     );
   }
@@ -39,8 +41,8 @@ export class WorkspaceService {
           where('members', 'array-contains', { accountId: user.uid, role: 'member', accountType: 'user' })
         );
 
-        return collectionData<WorkspaceView>(memberQuery, { idField: 'id' }).pipe(
-          map(workspaces => workspaces.map(ws => this.mapWorkspace(ws)))
+        return collectionData(memberQuery, { idField: 'id' }).pipe(
+          map(workspaces => workspaces.map(ws => this.mapWorkspace(ws as WorkspaceSnapshot & { id?: string })))
         );
       })
     );
@@ -50,20 +52,20 @@ export class WorkspaceService {
     const workspacesCol = collection(this.firestore, 'workspaces');
     const q = query(workspacesCol, where('workspaceId', '==', workspaceId));
 
-    return collectionData<WorkspaceView>(q, { idField: 'id' }).pipe(
+    return collectionData(q, { idField: 'id' }).pipe(
       map(workspaces => {
         if (workspaces.length === 0) return null;
-        return this.mapWorkspace(workspaces[0]);
+        return this.mapWorkspace(workspaces[0] as WorkspaceSnapshot & { id?: string });
       })
     );
   }
 
-  private mapWorkspace(ws: WorkspaceView): WorkspaceView {
+  private mapWorkspace(ws: WorkspaceSnapshot & { id?: string; members?: WorkspaceMember[] }): WorkspaceView {
     return {
-      id: ws.id || ws.workspaceId,
-      workspaceId: ws.workspaceId ?? ws.id,
+      id: ws.id ?? ws.workspaceId,
+      workspaceId: ws.workspaceId,
       accountId: ws.accountId,
-      workspaceType: (ws.workspaceType ?? ws.type) as WorkspaceType,
+      workspaceType: ws.workspaceType,
       modules: ws.modules ?? [],
       createdAt: ws.createdAt,
       name: ws.name,
