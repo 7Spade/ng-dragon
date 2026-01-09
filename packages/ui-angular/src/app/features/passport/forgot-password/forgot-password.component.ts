@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
-import { Auth, sendPasswordResetEmail } from '@angular/fire/auth';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { FirebaseAuthClient } from '@platform-adapters';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -65,7 +65,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 })
 export class ForgotPasswordComponent {
   private fb = inject(FormBuilder);
-  private auth = inject(Auth);
+  private authClient = inject(FirebaseAuthClient);
   private router = inject(Router);
   private msg = inject(NzMessageService);
 
@@ -90,10 +90,7 @@ export class ForgotPasswordComponent {
     const email = this.form.value.email;
 
     try {
-      await sendPasswordResetEmail(this.auth, email, {
-        url: `${window.location.origin}/passport/login`,
-        handleCodeInApp: false
-      });
+      await this.authClient.sendPasswordReset(email, `${window.location.origin}/passport/login`);
 
       this.msg.success('密碼重置郵件已發送，請檢查您的信箱（包含垃圾郵件夾）');
 

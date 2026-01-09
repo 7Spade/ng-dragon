@@ -1,21 +1,14 @@
 import { Injectable, inject, APP_INITIALIZER } from '@angular/core';
-import { User } from '@angular/fire/auth';
-import { Firestore, doc, getDoc } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
 import { ACLService } from '@delon/acl';
 import { MenuService, SettingsService, TitleService, ALAIN_I18N_TOKEN } from '@delon/theme';
 import { Observable, from, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
+import { FirebaseAuthUser, UserProfile, UserProfileClient } from '@platform-adapters';
+
 import { I18NService } from '../i18n/i18n.service';
 import { FirebaseAuthBridgeService } from '../auth/firebase-auth-bridge.service';
-
-interface UserProfile {
-  name?: string;
-  avatar?: string;
-  email?: string;
-  role?: string;
-}
 
 /**
  * Used for application startup
@@ -35,7 +28,6 @@ export function provideStartup() {
 
 @Injectable()
 export class StartupService {
-  private firestore = inject(Firestore);
   private menuService = inject(MenuService);
   private settingService = inject(SettingsService);
   private aclService = inject(ACLService);
@@ -43,6 +35,7 @@ export class StartupService {
   private router = inject(Router);
   private i18n = inject<I18NService>(ALAIN_I18N_TOKEN);
   private authBridge = inject(FirebaseAuthBridgeService);
+  private userProfileClient = inject(UserProfileClient);
 
   load(): Observable<void> {
     return from(this.loadAsync()).pipe(
@@ -88,7 +81,7 @@ export class StartupService {
   /**
    * 載入已登入用戶的資料
    */
-  private async loadAuthenticatedUserData(user: User): Promise<void> {
+  private async loadAuthenticatedUserData(user: FirebaseAuthUser): Promise<void> {
     try {
       // 從 Firestore 載入用戶資料
       const userProfile = await this.getUserProfile(user.uid);
@@ -122,14 +115,7 @@ export class StartupService {
    * 從 Firestore 獲取用戶資料
    */
   private async getUserProfile(uid: string): Promise<UserProfile> {
-    const docRef = doc(this.firestore, 'users', uid);
-    const docSnap = await getDoc(docRef);
-
-    if (docSnap.exists()) {
-      return docSnap.data() as UserProfile;
-    }
-
-    return {};
+    return this.userProfileClient.getUserProfile(uid);
   }
 
   /**

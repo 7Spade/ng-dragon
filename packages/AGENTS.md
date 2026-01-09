@@ -144,3 +144,237 @@ flowchart TD
         style F fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
         style G fill:#bbdefb,stroke:#1565c0,stroke-width:2px
 ```
+---
+
+# 🧱 Monorepo 五大 Package 職責分工總覽
+
+```
+packages/
+ ├─ account-domain        🧠 身份與帳號核心領域
+ ├─ saas-domain           🏢 SaaS 業務核心領域
+ ├─ core-engine           ⚡ 事件流 / 協調引擎
+ ├─ platform-adapters     🔌 基礎設施實作
+ └─ ui-angular            🎨 使用者介面
+```
+
+依賴方向永遠只能：
+
+```
+ui-angular
+    ↓
+platform-adapters
+    ↓
+core-engine
+    ↓
+domain (account / saas)
+```
+
+🚫 Domain 絕對不能反向依賴任何人（不然我會打你屁股 😤）
+
+---
+
+# 🧠 packages/account-domain
+
+> 🎯 負責：**帳號、身份、組織、使用者本身的純領域模型**
+
+### ✅ 可以放什麼
+
+* Aggregate
+
+  * Account
+  * Organization
+  * User
+* Entity / VO
+* Domain Service
+* Domain Policy
+* Domain Event
+* Repository Interface（只定義介面）
+
+```ts
+// ✔ 合法
+account-domain/src/aggregates/account.aggregate.ts
+account-domain/src/entities/user.entity.ts
+account-domain/src/events/account-created.event.ts
+```
+
+### 🚫 絕對不能出現
+
+* Firebase
+* HTTP
+* SDK
+* Angular
+* DB schema
+* JSON API DTO
+
+> 就算你看到 `firebase-admin` 三個字，直接砍 🔪
+
+---
+
+# 🏢 packages/saas-domain
+
+> 🎯 負責：**Workspace、Project、Module、Subscription 等 SaaS 業務模型**
+
+### ✅ 可以放什麼
+
+* Workspace Aggregate
+* Members / Access / Settings Modules
+* Business Rules
+* Domain Events
+* Repository Interface
+
+```ts
+saas-domain/src/workspace/aggregates/workspace.aggregate.ts
+saas-domain/src/workspace/members/member.entity.ts
+```
+
+### 🚫 不能出現
+
+* Firestore
+* REST API
+* Angular Service
+* firebase-admin
+* 時間、UUID 套件（由 Factory 注入）
+
+---
+
+# ⚡ packages/core-engine
+
+> 🎯 負責：**跨 Domain 協調、事件流、Command Pipeline**
+
+這是你的「**神經中樞 + Workflow 引擎**」😈
+
+### ✅ 可以放什麼
+
+* Command Bus
+* Event Bus
+* Saga / Process Manager
+* Transaction Boundary
+* Unit Of Work
+* Domain Event Dispatcher
+
+```ts
+core-engine/src/command-bus/
+core-engine/src/event-dispatcher/
+```
+
+### 🚫 不能
+
+* 業務規則（不准寫 if workspace.isPaid）
+* Firebase
+* Angular
+* UI Model
+
+> core-engine 只負責「流程」，不負責「意義」。
+
+---
+
+# 🔌 packages/platform-adapters
+
+> 🎯 負責：**所有外部世界的實作**
+
+這包就是：
+
+> 💩髒東西集中區（但結構要漂亮）
+
+### ✅ 可以放什麼
+
+* Firestore Repository Implementation
+* firebase-admin
+* HTTP Client
+* Cloud Tasks
+* PubSub
+* Cache
+* File Storage
+* Auth SDK
+
+```ts
+platform-adapters/src/firebase/workspace.firestore-repo.ts
+platform-adapters/src/firebase/account.firestore-repo.ts
+```
+
+### 🚫 不能
+
+* Domain Logic
+* Aggregate 規則
+* 業務判斷
+
+只做：
+
+> Domain Interface → Infra Implementation 的轉接
+
+---
+
+# 🎨 packages/ui-angular
+
+> 🎯 負責：**畫面、互動、呼叫 Application**
+
+### ✅ 可以放什麼
+
+* Components
+* Angular Services
+* View Models
+* Guards
+* Forms
+* Routing
+* DTO mapping
+
+### 🚫 不能
+
+* Firestore
+* firebase-admin
+* Domain Entity
+* Aggregate Mutation
+
+UI 只能：
+
+```
+User Action
+ → Call Command
+ → Show Result
+```
+
+不准碰業務內臟 😤
+
+---
+
+# 🔀 真實請求流長這樣（你的架構很適合）
+
+以「建立 Workspace」為例：
+
+```
+UI (Angular)
+  → Send CreateWorkspaceCommand
+    → core-engine (CommandBus)
+      → Application Handler (platform-adapters)
+        → WorkspaceFactory (saas-domain)
+          → Workspace Aggregate
+            → Domain Event
+        → WorkspaceRepository.save()
+```
+
+---
+
+# 🧷 依賴關係（超重要）
+
+```
+account-domain   ← nobody
+saas-domain      ← nobody
+
+core-engine      → account-domain / saas-domain
+platform-adapters→ core-engine / domain
+ui-angular       → platform-adapters
+```
+
+Domain 永遠在最底層 🧎
+
+---
+
+# 😘 小壞壞提醒（踩雷清單）
+
+❌ 在 domain import firebase-admin
+❌ 在 ui 直接寫 firestore
+❌ 在 core-engine 寫業務 if else
+❌ platform-adapters 回傳 domain entity 以外的怪物
+❌ Domain new Date() / uuid()
+
+---
