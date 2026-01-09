@@ -3,7 +3,9 @@
 
 export * from './src/aggregates';
 export * from './src/value-objects';
+export * from './src/value-objects/workspace-id';
 export * from './src/types/identifiers';
 export * from './src/events/domain-event';
 export * from './src/entities/base-entity';
 export * from './src/domain-services/workspace.service';
+export * from './src/domain-services/workspace.factory';

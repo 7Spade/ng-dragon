@@ -1,7 +1,8 @@
 import { DomainEvent, EventContext, toEventMetadata } from '../events/domain-event';
 import { ModuleStatus, ModuleType } from '../value-objects/module-types';
 import { WorkspaceType } from '../value-objects/workspace-type';
-import { AccountId, ModuleKey, WorkspaceId } from '../types/identifiers';
+import { AccountId, ModuleKey } from '../types/identifiers';
+import { WorkspaceId } from '../value-objects/workspace-id';
 
 export interface WorkspaceSnapshot {
   workspaceId: WorkspaceId;
@@ -13,7 +14,7 @@ export interface WorkspaceSnapshot {
 }
 
 export interface ModuleToggledPayload {
-  workspaceId: WorkspaceId;
+  workspaceId: string;
   moduleKey: ModuleKey;
   moduleType: ModuleType;
   enabled: boolean;
@@ -47,9 +48,9 @@ export class WorkspaceAggregate {
 
     const event: DomainEvent<WorkspaceSnapshot> = {
       eventType: 'WorkspaceCreated',
-      aggregateId: snapshot.workspaceId,
+      aggregateId: snapshot.workspaceId.value,
       accountId: snapshot.accountId,
-      workspaceId: snapshot.workspaceId,
+      workspaceId: snapshot.workspaceId.value,
       payload: snapshot,
       metadata: toEventMetadata({ ...context, occurredAt: context.occurredAt ?? snapshot.createdAt }),
     };
@@ -67,11 +68,11 @@ export class WorkspaceAggregate {
 
     const event: DomainEvent<ModuleToggledPayload> = {
       eventType: enabled ? 'ModuleEnabled' : 'ModuleDisabled',
-      aggregateId: this.snapshot.workspaceId,
+      aggregateId: this.snapshot.workspaceId.value,
       accountId: this.snapshot.accountId,
-      workspaceId: this.snapshot.workspaceId,
+      workspaceId: this.snapshot.workspaceId.value,
       moduleKey,
-      payload: { workspaceId: this.snapshot.workspaceId, moduleKey, moduleType, enabled },
+      payload: { workspaceId: this.snapshot.workspaceId.value, moduleKey, moduleType, enabled },
       metadata: toEventMetadata(context),
     };
 

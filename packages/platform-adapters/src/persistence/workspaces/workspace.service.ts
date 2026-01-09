@@ -17,8 +17,13 @@ export class WorkspaceServiceAdapter {
 
   async createProject(command: CreateProjectWorkspaceCommand): Promise<WorkspaceCommandResult> {
     const result = this.domain.createProjectWorkspace(command);
+    const workspaceId = result.snapshot.workspaceId.value;
 
-    await this.workspacesCol.doc(result.snapshot.workspaceId).set(result.snapshot);
+    if (!workspaceId) {
+      throw new Error('WorkspaceId cannot be empty');
+    }
+
+    await this.workspacesCol.doc(workspaceId).set({ ...result.snapshot, workspaceId });
     await Promise.all(result.events.map((event) => this.eventsCol.doc().set(event)));
 
     return result;

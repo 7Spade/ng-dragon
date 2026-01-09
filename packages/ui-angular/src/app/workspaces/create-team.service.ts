@@ -1,19 +1,14 @@
 import { Injectable, inject } from '@angular/core';
-import { CreateTeamUseCase } from '@core-engine';
-import { WorkspaceRepositoryClient } from './workspace.repository.client';
+import { Functions, httpsCallable } from '@angular/fire/functions';
+import { from } from 'rxjs';
 import { CreateTeamCommand } from '@core-engine';
 
 @Injectable({ providedIn: 'root' })
 export class CreateTeamService {
-  private readonly repository = inject(WorkspaceRepositoryClient);
-  private readonly useCase: CreateTeamUseCase;
-
-  constructor() {
-    // Wire up dependencies: UseCase -> Repository (@angular/fire - client SDK)
-    this.useCase = new CreateTeamUseCase(this.repository);
-  }
+  private readonly functions = inject(Functions);
 
   async createTeam(command: CreateTeamCommand): Promise<string> {
-    return await this.useCase.execute(command);
+    const callable = httpsCallable<CreateTeamCommand, string>(this.functions, 'workspaces-createTeam');
+    return from(callable(command)).toPromise().then((res) => res?.data ?? "");
   }
 }

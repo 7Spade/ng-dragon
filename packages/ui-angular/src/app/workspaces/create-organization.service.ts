@@ -1,19 +1,14 @@
 import { Injectable, inject } from '@angular/core';
-import { CreateOrganizationUseCase } from '@core-engine';
-import { WorkspaceRepositoryClient } from './workspace.repository.client';
+import { Functions, httpsCallable } from '@angular/fire/functions';
+import { from } from 'rxjs';
 import { CreateOrganizationCommand } from '@core-engine';
 
 @Injectable({ providedIn: 'root' })
 export class CreateOrganizationService {
-  private readonly repository = inject(WorkspaceRepositoryClient);
-  private readonly useCase: CreateOrganizationUseCase;
-
-  constructor() {
-    // Wire up dependencies: UseCase -> Repository (@angular/fire - client SDK)
-    this.useCase = new CreateOrganizationUseCase(this.repository);
-  }
+  private readonly functions = inject(Functions);
 
   async createOrganization(command: CreateOrganizationCommand): Promise<string> {
-    return await this.useCase.execute(command);
+    const callable = httpsCallable<CreateOrganizationCommand, string>(this.functions, 'workspaces-createOrganization');
+    return from(callable(command)).toPromise().then((res) => res?.data ?? "");
   }
 }
