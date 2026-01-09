@@ -78,8 +78,9 @@ export class CreateOrganizationFormComponent {
         return;
       }
 
-      // Generate workspace ID
+      // Generate workspace ID and traceId
       const workspaceId = `ws-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+      const traceId = `trace-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
       
       // Send command to application service
       const resultWorkspaceId = await this.createOrgService.createOrganization({
@@ -87,6 +88,9 @@ export class CreateOrganizationFormComponent {
         accountId: user.uid,
         organizationName: this.form.value.organizationName ?? '',
         actorId: user.uid,
+        traceId,
+        causedBy: ['user-action'],
+        modules: [],
         createdAt: new Date().toISOString()
       });
 
