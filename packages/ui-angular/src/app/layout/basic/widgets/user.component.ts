@@ -9,7 +9,7 @@ import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { AsyncPipe, NgFor, NgIf } from '@angular/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { WorkspaceService, Workspace } from '../../../workspaces/workspace.service';
+import { WorkspaceService, Workspace } from '@platform-adapters/workspaces';
 import { FirebaseAuthBridgeService } from '@core';
 
 @Component({
