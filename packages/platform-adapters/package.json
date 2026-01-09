@@ -1,7 +1,7 @@
 {
   "name": "@ng-events/platform-adapters",
   "version": "1.0.0",
-  "description": "Platform adapters for Firebase, auth, notifications, analytics, and AI - Strict SDK separation",
+  "description": "Platform adapters for Firebase, auth, notifications, analytics, and AI - Strict SDK separation (server vs client)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -21,16 +21,31 @@
     "@google-cloud/pubsub": "^5.2.0",
     "@google/genai": "^1.34.0",
     "@ng-events/core-engine": "*",
-    "@ng-events/saas-domain": "*",
-    "firebase-admin": "^12.0.0"
+    "@ng-events/saas-domain": "*"
   },
   "peerDependencies": {
-    "@angular/core": "^20.0.0",
-    "@angular/fire": "^20.0.0",
-    "firebase-admin": "^12.0.0"
+    "@angular/core": "^20.0.0"
   },
   "devDependencies": {
     "@types/node": "^25.0.3",
     "typescript": "^5.0.0"
+  },
+  "tsconfig": {
+    "compilerOptions": {
+      "baseUrl": ".",
+      "paths": {
+        "firebase-admin": ["__forbidden__"],
+        "@platform-adapters/server/*": ["src/server-adapter/*"],
+        "@platform-adapters/client/*": ["src/client-adapter/*"]
+      }
+    }
+  },
+  "copilot": {
+    "notes": [
+      "All firebase-admin usage must be server-side only",
+      "Server adapters: src/server-adapter/*",
+      "Frontend-safe adapters: src/client-adapter/* (use Angular-fire or safe helpers)",
+      "Never import server-adapter in ui-angular or other frontend code"
+    ]
   }
 }

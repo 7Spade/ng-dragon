@@ -1,7 +1,7 @@
 import { AccountId, ModuleKey, WorkspaceId } from '@account-domain/src/types/identifiers';
 import { ModuleStatus } from '@account-domain/src/value-objects/module-types';
 
-export interface CreateOrganizationCommand {
+export interface createorganizationcommand {
   workspaceId: WorkspaceId;
   accountId: AccountId;
   organizationName: string;

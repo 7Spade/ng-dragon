@@ -1,7 +1,7 @@
 {
   "name": "@ng-events/saas-domain",
   "version": "1.0.0",
-  "description": "SaaS business domain models - Pure TypeScript with core-engine",
+  "description": "SaaS business domain models - Pure TypeScript with core-engine (frontend & backend safe, no firebase-admin)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -21,5 +21,22 @@
   },
   "devDependencies": {
     "typescript": "^5.0.0"
+  },
+  "tsconfig": {
+    "compilerOptions": {
+      "baseUrl": ".",
+      "paths": {
+        "firebase-admin": ["__forbidden__"],
+        "@ng-events/platform-adapters/*": ["__forbidden__"]
+      }
+    }
+  },
+  "copilot": {
+    "notes": [
+      "saas-domain is pure domain model (frontend & backend safe)",
+      "Never import firebase-admin here",
+      "Do not import platform-adapters server helpers",
+      "Only use core-engine or other safe TypeScript packages"
+    ]
   }
 }

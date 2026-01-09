@@ -1,15 +1,15 @@
 import { WorkspaceAggregate, WorkspaceSnapshot } from '@account-domain/src/aggregates/workspace.aggregate';
 import { EventContext } from '@account-domain/src/events/domain-event';
 import { WorkspaceType } from '@account-domain/src/value-objects/workspace-type';
-import { CreateOrganizationCommand } from '../commands/CreateOrganizationCommand';
+import { createorganizationcommand } from '../commands/create-organization-command';
 import { WorkspaceCreatedEvent } from '../events/WorkspaceCreatedEvent';
 
-export class WorkspaceFactory {
-  createOrganization(command: CreateOrganizationCommand): {
+export class workspacefactory {
+  createOrganization(command: createorganizationcommand): {
     snapshot: WorkspaceSnapshot;
     event: WorkspaceCreatedEvent;
   } {
-    const workspaceType: WorkspaceType = 'Organization';
+    const workspaceType: WorkspaceType = 'organization';
     const context: EventContext = {
       actorId: command.actorId ?? command.accountId,
       traceId: command.traceId,

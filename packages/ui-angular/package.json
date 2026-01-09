@@ -1,7 +1,7 @@
 {
   "name": "@ng-events/ui-angular",
   "version": "1.0.0",
-  "description": "Angular UI layer - Uses platform-adapters for backend integration",
+  "description": "Angular UI layer - Uses platform-adapters for backend integration (frontend only, no firebase-admin)",
   "private": true,
   "scripts": {
     "lint": "eslint src/app --ext .ts",
@@ -51,6 +51,23 @@
     "@delon/testing": "^20.1.1",
     "@ng-util/monaco-editor": "^20.1.0",
     "@types/jasmine": "~5.1.0",
+    "@types/node": "^20.19.27",
     "typescript": "~5.9.2"
+  },
+    "tsconfig": {
+    "compilerOptions": {
+      "baseUrl": ".",
+      "paths": {
+        "firebase-admin": ["__forbidden__"],
+        "@ng-events/platform-adapters/*": ["packages/platform-adapters/src/client-adapter/*"]
+      }
+    }
+  },
+  "copilot": {
+    "notes": [
+      "ui-angular is frontend-only",
+      "Never import firebase-admin here",
+      "Only import @angular/fire or frontend-safe helpers from platform-adapters"
+    ]
   }
 }
