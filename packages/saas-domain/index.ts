@@ -18,4 +18,4 @@ export * from './src/events/workspace-created.event';
 export * from './src/commands/create-organization-command';
 export * from './src/application/workspace-application-service';
 export * from './src/domain/workspace-factory';
-export * from './src/repositories/WorkspaceRepository';
+export * from './src/repositories/workspace-repository';

@@ -4,7 +4,9 @@ import { Firestore, collection, doc, getDoc, getDocs, setDoc } from '@angular/fi
 import { WorkspaceRepository } from '@core-engine';
 
 @Injectable({ providedIn: 'root' })
-export class WorkspaceRepositoryClient implements WorkspaceRepository {
+export class WorkspaceRepositoryClient
+  implements WorkspaceRepository<WorkspaceSnapshot, DomainEvent<WorkspaceSnapshot>>
+{
   private readonly firestore = inject(Firestore);
   private readonly workspacesCol = collection(this.firestore, 'workspaces');
   private readonly eventsCol = collection(this.firestore, 'workspace-events');
