@@ -29,8 +29,7 @@ platform-adapters/
 
 ## Workspace persistence（Firestore）
 
-- `FirestoreWorkspaceRepository`：依 `WorkspaceRepository` port 實作，事件寫入 `workspace-events`，快照寫入 `workspaces`，`list()` 直接讀取快照集合。
-- `createWorkspaceApplicationService()`：返回注入 Firestore repository 的 `WorkspaceApplicationService`，可直接在 Cloud Functions / Worker 中接受 `CreateOrganizationCommand`。
+- `WorkspaceServiceAdapter`：委派 domain WorkspaceService，並以 firebase-admin 寫入 `workspaces` 與 `workspace-events`。
 
 ## 一句話規則
 
