@@ -14,6 +14,7 @@
  * - Causality tracking
  * - Aggregate Root patterns
  * - Projection (Read Model) definitions
+ * - Event Sourcing infrastructure (NEW - Phase 2)
  */
 
 export * from './causality';
@@ -21,3 +22,4 @@ export * from './event-store';
 export * from './aggregates';
 export * from './projection';
 export * from './src/value-objects';
+export * from './src/ports';
