@@ -5,6 +5,7 @@
  *
  * Contains domain logic for:
  * - Workspace lifecycle and organization management
+ * - Team and partner management
  * - SaaS-specific business rules
  *
  * Rules:
@@ -16,6 +17,7 @@
 
 // Commands
 export * from './src/commands/create-organization-command';
+export * from './src/commands/create-team-command';
 
 // Application Services
 export * from './src/application/workspace-application-service';

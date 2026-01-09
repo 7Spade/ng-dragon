@@ -1,5 +1,6 @@
 import { WorkspaceAggregate, WorkspaceSnapshot, EventContext, WorkspaceType } from '@account-domain';
 import { CreateOrganizationCommand } from '../commands/create-organization-command';
+import { CreateTeamCommand } from '../commands/create-team-command';
 import { WorkspaceCreatedEvent } from '../events/WorkspaceCreatedEvent';
 
 export class WorkspaceFactory {
@@ -23,6 +24,33 @@ export class WorkspaceFactory {
         modules: command.modules,
         createdAt: command.createdAt,
         name: command.organizationName
+      },
+      context
+    );
+
+    return { snapshot: aggregate.state, event };
+  }
+
+  createTeam(command: CreateTeamCommand): {
+    snapshot: WorkspaceSnapshot;
+    event: WorkspaceCreatedEvent;
+  } {
+    const workspaceType: WorkspaceType = 'team';
+    const context: EventContext = {
+      actorId: command.actorId ?? command.accountId,
+      traceId: command.traceId,
+      causedBy: command.causedBy,
+      occurredAt: command.createdAt
+    };
+
+    const { aggregate, event } = WorkspaceAggregate.create(
+      {
+        workspaceId: command.workspaceId,
+        accountId: command.accountId,
+        workspaceType,
+        modules: command.modules,
+        createdAt: command.createdAt,
+        name: command.teamName
       },
       context
     );
