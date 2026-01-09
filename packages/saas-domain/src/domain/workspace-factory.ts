@@ -21,6 +21,16 @@ export class WorkspaceFactory {
     snapshot: WorkspaceSnapshot;
     event: WorkspaceCreatedEvent;
   } {
+    return this.createWorkspace(command, command.workspaceType ?? 'organization');
+  }
+
+  createWorkspace(
+    command: CreateOrganizationCommand,
+    workspaceType: WorkspaceSnapshot['workspaceType']
+  ): {
+    snapshot: WorkspaceSnapshot;
+    event: WorkspaceCreatedEvent;
+  } {
     const workspaceId = command.workspaceId ?? `ws-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
     const context: EventContext = {
       actorId: command.actorId ?? command.ownerUserId,
@@ -34,7 +44,7 @@ export class WorkspaceFactory {
       {
         workspaceId,
         accountId: command.accountId,
-        workspaceType: command.workspaceType ?? 'organization',
+        workspaceType,
         createdAt: command.createdAt ?? context.occurredAt,
         modules,
         name: command.organizationName,

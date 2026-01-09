@@ -21,6 +21,7 @@
   "menu.account.organizations.create": "建立組織",
   "menu.account.organizations.createTeam": "建立團隊",
   "menu.account.organizations.createPartner": "建立合作夥伴",
+  "menu.account.organizations.createProject": "建立專案",
   "app.lock": "鎖屏",
   "app.login.message-invalid-credentials": "賬戶或密碼錯誤",
   "app.login.remember-me": "自動登錄",

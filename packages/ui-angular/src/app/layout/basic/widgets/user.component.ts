@@ -70,6 +70,9 @@ import { map } from 'rxjs/operators';
           <div nz-menu-item (click)="createPartner()">
             <i nz-icon nzType="user-add" class="mr-sm"></i>{{ 'menu.account.organizations.createPartner' | i18n: 'Create partner' }}
           </div>
+          <div nz-menu-item (click)="createProject()">
+            <i nz-icon nzType="appstore-add" class="mr-sm"></i>{{ 'menu.account.organizations.createProject' | i18n: 'Create project' }}
+          </div>
         }
 
         <li nz-menu-divider></li>
@@ -146,6 +149,10 @@ export class HeaderUserComponent {
 
   createPartner(): void {
     this.router.navigateByUrl('/workspaces/create/partner').catch(() => void 0);
+  }
+
+  createProject(): void {
+    this.router.navigateByUrl('/workspaces/create/project').catch(() => void 0);
   }
 
   logout(): void {
