@@ -11,7 +11,7 @@ Audit date: 2026-01-09. Approach: grep search for inbound imports/usages inside 
 | packages/saas-domain/src/application/workspace-application-service.ts | No inbound references outside the barrel export; factory import uses a mismatched path and is itself unused. | **Unused** |
 | packages/saas-domain/src/domain/workspace-factory.ts | Only used by the unused application service; no other imports found. | **Unused** |
 | packages/ui-angular/src/app/features/routes.ts | Imported in `app.config.ts` to register feature routes. | **In use** |
-| packages/ui-angular/src/app/layout/basic/widgets/user.component.ts | Rendered in `layout/basic/basic.component.html` as `<header-user>`. | **In use** |
+| packages/ui-angular/src/app/layout/basic/widgets/user.component.ts | Rendered in `layout/basic/basic.component.ts` as `<header-user>`. | **In use** |
 | packages/ui-angular/src/app/workspaces/create-organization-form.component.ts | Routed via `app/features/routes.ts`; depends on the creation service. | **In use** |
 | packages/ui-angular/src/app/workspaces/create-organization.service.ts | Injected in the create-organization form component to call the use case. | **In use** |
 
