@@ -1,10 +1,10 @@
-import { AccountId, ModuleKey, WorkspaceId } from '@account-domain/src/types/identifiers';
-import { ModuleStatus } from '@account-domain/src/value-objects/module-types';
+import { AccountId, ModuleKey, WorkspaceId, ModuleStatus } from '@account-domain';
 
-export interface createorganizationcommand {
+export interface CreateOrganizationCommand {
   workspaceId: WorkspaceId;
   accountId: AccountId;
   organizationName: string;
+  ownerUserId: AccountId;
   actorId?: AccountId;
   moduleKey?: ModuleKey;
   modules?: ModuleStatus[];

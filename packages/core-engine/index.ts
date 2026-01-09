@@ -8,15 +8,9 @@
  * - NO Firebase imports allowed
  * - Pure TypeScript only
  * - Framework-agnostic domain logic
- *
- * Contains:
- * - Event Store abstractions
- * - Causality tracking
- * - Aggregate Root patterns
- * - Projection (Read Model) definitions
  */
 
-export * from './causality';
-export * from './event-store';
-export * from './aggregates';
-export * from './projection';
+// Application layer entrypoints
+export * from './src/commands/create-organization.command';
+export * from './src/use-cases/create-organization.usecase';
+export * from './src/ports/workspace.repository.port';

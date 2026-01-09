@@ -1,15 +1,15 @@
-import { createorganizationcommand } from '../commands/create-organization-command';
-import { workspacefactory } from '../domain/workspace-factory';
-import { WorkspaceCreatedEvent } from '../events/WorkspaceCreatedEvent';
+import { CreateOrganizationCommand } from '../commands/create-organization-command';
+import { WorkspaceFactory } from '../domain/workspace-factory';
+import { WorkspaceCreatedEvent } from '../events/workspace-created.event';
 import { WorkspaceRepository } from '../repositories/WorkspaceRepository';
 
-export class workspaceapplicationservice {
+export class WorkspaceApplicationService {
   constructor(
     private readonly workspaceRepository: WorkspaceRepository,
-    private readonly workspaceFactory: workspacefactory = new workspacefactory()
+    private readonly workspaceFactory: WorkspaceFactory = new WorkspaceFactory()
   ) {}
 
-  async createOrganization(command: createorganizationcommand): Promise<WorkspaceCreatedEvent> {
+  async createOrganization(command: CreateOrganizationCommand): Promise<WorkspaceCreatedEvent> {
     const { snapshot, event } = this.workspaceFactory.createOrganization(command);
     await this.workspaceRepository.appendWorkspaceEvent(event);
     await this.workspaceRepository.saveWorkspaceSnapshot(snapshot);

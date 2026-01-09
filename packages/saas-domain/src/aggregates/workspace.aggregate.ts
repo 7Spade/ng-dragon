@@ -5,6 +5,17 @@ export interface WorkspaceMember {
   role: 'owner' | 'admin' | 'member';
 }
 
+export interface WorkspaceSnapshot {
+  workspaceId: string;
+  accountId: string;
+  type: 'organization' | 'team' | 'project';
+  name: string;
+  ownerUserId: string;
+  members: WorkspaceMember[];
+  createdAt: string;
+  modules: any[];
+}
+
 export class Workspace {
   private constructor(
     public readonly workspaceId: string,
@@ -22,15 +33,15 @@ export class Workspace {
     accountId: string;
     name: string;
     ownerUserId: string;
+    modules?: any[];
+    createdAt?: string;
   }): { workspace: Workspace; event: WorkspaceCreatedEvent } {
-    // Validation
     if (!props.name || props.name.trim().length === 0) {
       throw new Error('Organization name cannot be empty');
     }
 
-    const timestamp = new Date().toISOString();
+    const timestamp = props.createdAt ?? new Date().toISOString();
 
-    // Create workspace with organization type
     const workspace = new Workspace(
       props.workspaceId,
       props.accountId,
@@ -39,10 +50,9 @@ export class Workspace {
       props.ownerUserId,
       [{ userId: props.ownerUserId, role: 'owner' }],
       timestamp,
-      []
+      props.modules ?? []
     );
 
-    // Create domain event
     const event: WorkspaceCreatedEvent = {
       workspaceId: props.workspaceId,
       accountId: props.accountId,
@@ -55,7 +65,7 @@ export class Workspace {
     return { workspace, event };
   }
 
-  toSnapshot() {
+  toSnapshot(): WorkspaceSnapshot {
     return {
       workspaceId: this.workspaceId,
       accountId: this.accountId,

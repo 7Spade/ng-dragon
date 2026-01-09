@@ -1,34 +1,21 @@
-import { WorkspaceAggregate, WorkspaceSnapshot } from '@account-domain/src/aggregates/workspace.aggregate';
-import { EventContext } from '@account-domain/src/events/domain-event';
-import { WorkspaceType } from '@account-domain/src/value-objects/workspace-type';
-import { createorganizationcommand } from '../commands/create-organization-command';
-import { WorkspaceCreatedEvent } from '../events/WorkspaceCreatedEvent';
+import { Workspace, WorkspaceSnapshot } from '../aggregates/workspace.aggregate';
+import { CreateOrganizationCommand } from '../commands/create-organization-command';
+import { WorkspaceCreatedEvent } from '../events/workspace-created.event';
 
-export class workspacefactory {
-  createOrganization(command: createorganizationcommand): {
+export class WorkspaceFactory {
+  createOrganization(command: CreateOrganizationCommand): {
     snapshot: WorkspaceSnapshot;
     event: WorkspaceCreatedEvent;
   } {
-    const workspaceType: WorkspaceType = 'organization';
-    const context: EventContext = {
-      actorId: command.actorId ?? command.accountId,
-      traceId: command.traceId,
-      causedBy: command.causedBy,
-      occurredAt: command.createdAt
-    };
+    const { workspace, event } = Workspace.createOrganization({
+      workspaceId: command.workspaceId,
+      accountId: command.accountId,
+      name: command.organizationName,
+      ownerUserId: command.ownerUserId,
+      modules: command.modules,
+      createdAt: command.createdAt
+    });
 
-    const { aggregate, event } = WorkspaceAggregate.create(
-      {
-        workspaceId: command.workspaceId,
-        accountId: command.accountId,
-        workspaceType,
-        modules: command.modules,
-        createdAt: command.createdAt,
-        name: command.organizationName
-      },
-      context
-    );
-
-    return { snapshot: aggregate.state, event };
+    return { snapshot: workspace.toSnapshot(), event };
   }
 }
