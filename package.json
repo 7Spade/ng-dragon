@@ -31,7 +31,6 @@
     "lint": "npm run lint:ts && npm run lint:style",
     "lint:ts": "npx eslint --cache --fix",
     "lint:style": "npx stylelint 'packages/ui-angular/src/**/*.less'",
-    "e2e": "cd packages/ui-angular && ng e2e",
     "test": "cd packages/ui-angular && ng test --watch",
     "test-coverage": "cd packages/ui-angular && ng test --code-coverage --watch=false",
     "color-less": "ng-alain-plugin-theme -t=colorLess",
@@ -40,6 +39,7 @@
     "prepare": "husky install"
   },
   "devDependencies": {
+    "@angular-devkit/build-angular": "^21.0.5",
     "@angular-eslint/builder": "^20.3.0",
     "@angular/build": "^20.3.1",
     "@angular/cli": "^20.3.1",
@@ -47,8 +47,6 @@
     "@delon/testing": "^20.1.1",
     "@eslint/js": "^9.35.0",
     "@ng-util/monaco-editor": "^20.1.0",
-    "@types/jasmine": "~5.1.0",
-    "@types/jasminewd2": "~2.0.13",
     "@typescript-eslint/eslint-plugin": "^8.44.0",
     "@typescript-eslint/parser": "^8.44.0",
     "@typescript-eslint/utils": "^8.44.0",
@@ -73,7 +71,6 @@
     "ng-alain-plugin-theme": "^18.0.0",
     "ngx-tinymce": "^20.0.0",
     "prettier": "^3.6.2",
-    "protractor": "~7.0.0",
     "source-map-explorer": "^2.5.3",
     "stylelint": "^16.24.0",
     "stylelint-config-clean-order": "^7.0.0",
