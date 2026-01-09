@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject } from '@angular/core';
-import { Auth, signInWithEmailAndPassword } from '@angular/fire/auth';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { StartupService } from '@core';
 import { ReuseTabService } from '@delon/abc/reuse-tab';
 import { DA_SERVICE_TOKEN } from '@delon/auth';
 import { I18nPipe } from '@delon/theme';
+import { FirebaseAuthClient } from '@platform-adapters';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
@@ -32,7 +32,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 })
 export class UserLoginComponent {
   private readonly router = inject(Router);
-  private readonly auth = inject(Auth);
+  private readonly authClient = inject(FirebaseAuthClient);
   private readonly reuseTabService = inject(ReuseTabService, { optional: true });
   private readonly tokenService = inject(DA_SERVICE_TOKEN);
   private readonly startupSrv = inject(StartupService);
@@ -60,14 +60,11 @@ export class UserLoginComponent {
     this.loading = true;
     this.cdr.detectChanges();
 
-    // 使用 Firebase Auth 登入
-    signInWithEmailAndPassword(this.auth, userName.value, password.value)
+    this.authClient
+      .signIn(userName.value, password.value)
       .then(async () => {
-        // 清空路由復用信息
         this.reuseTabService?.clear();
 
-        // Token 已經由 FirebaseAuthBridgeService 自動設定到 @delon/auth
-        // 重新載入 StartupService
         this.startupSrv.load().subscribe(() => {
           let url = this.tokenService.referrer!.url || '/';
           if (url.includes('/passport')) {

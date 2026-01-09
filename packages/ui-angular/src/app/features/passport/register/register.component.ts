@@ -1,10 +1,9 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject } from '@angular/core';
-import { Auth, createUserWithEmailAndPassword, updateProfile } from '@angular/fire/auth';
-import { Firestore, doc, setDoc } from '@angular/fire/firestore';
 import { AbstractControl, FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { I18nPipe } from '@delon/theme';
 import { MatchControl } from '@delon/util/form';
+import { FirebaseAuthClient, UserProfileClient } from '@platform-adapters';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzSafeAny } from 'ng-zorro-antd/core/types';
@@ -32,8 +31,8 @@ import { NzProgressModule } from 'ng-zorro-antd/progress';
 })
 export class UserRegisterComponent {
   private readonly router = inject(Router);
-  private readonly auth = inject(Auth);
-  private readonly firestore = inject(Firestore);
+  private readonly authClient = inject(FirebaseAuthClient);
+  private readonly userProfileClient = inject(UserProfileClient);
   private readonly cdr = inject(ChangeDetectorRef);
 
   // #region fields
@@ -104,22 +103,15 @@ export class UserRegisterComponent {
     this.loading = true;
     this.cdr.detectChanges();
 
-    // 使用 Firebase Auth 建立帳號
-    createUserWithEmailAndPassword(this.auth, mail, password)
+    this.authClient
+      .register(mail, password, mail.split('@')[0])
       .then(async credential => {
-        // 更新用戶 profile
-        await updateProfile(credential.user, {
-          displayName: mail.split('@')[0] // 使用 email 前綴作為顯示名稱
-        });
-
-        // 在 Firestore 建立用戶資料
-        await setDoc(doc(this.firestore, 'users', credential.user.uid), {
+        await this.userProfileClient.saveUserProfile(credential.user.uid, {
           email: mail,
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
           role: 'user'
         });
 
-        // 跳轉到註冊成功頁面
         this.router.navigate(['passport', 'register-result'], { queryParams: { email: mail } });
       })
       .catch(error => {
