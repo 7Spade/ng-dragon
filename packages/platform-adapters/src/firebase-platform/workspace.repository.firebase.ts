@@ -1,3 +1,4 @@
+import { WorkspaceId } from '@account-domain';
 import { WorkspaceRepository, WorkspaceSnapshot, WorkspaceCreatedEvent } from '@saas-domain';
 
 import { getCollection } from './firestore';
@@ -17,7 +18,7 @@ export class WorkspaceRepositoryFirebase implements WorkspaceRepository {
     await this.workspacesCollection.doc(snapshot.workspaceId).set(snapshot);
   }
 
-  async getWorkspaceSnapshot(workspaceId: string): Promise<WorkspaceSnapshot | null> {
+  async getWorkspaceSnapshot(workspaceId: WorkspaceId): Promise<WorkspaceSnapshot | null> {
     const doc = await this.workspacesCollection.doc(workspaceId).get();
     if (!doc.exists) return null;
     return doc.data() as WorkspaceSnapshot;
@@ -25,6 +26,6 @@ export class WorkspaceRepositoryFirebase implements WorkspaceRepository {
 
   async listWorkspaces(): Promise<WorkspaceSnapshot[]> {
     const snapshot = await this.workspacesCollection.get();
-    return snapshot.docs.map((doc) => doc.data() as WorkspaceSnapshot);
+    return snapshot.docs.map(doc => doc.data() as WorkspaceSnapshot);
   }
 }
