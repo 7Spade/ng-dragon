@@ -73,5 +73,10 @@
   "app.forgot-password.send": "發送重設連結",
   "app.forgot-password.back": "返回登入",
   "app.forgot-password.success": "密碼重設郵件已發送！請檢查您的收件箱。",
-  "app.forgot-password.error": "發送重設郵件失敗。請重試。"
+  "app.forgot-password.error": "發送重設郵件失敗。請重試。",
+  "menu.projects.create": "創建項目",
+  "menu.projects.my": "我的項目",
+  "menu.projects.management": "項目管理",
+  "menu.account.projects": "項目",
+  "menu.account.projects.none": "沒有項目"
 }

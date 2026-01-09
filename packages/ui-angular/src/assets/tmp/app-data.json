@@ -49,6 +49,26 @@
             "icon": "anticon-unordered-list"
           }
         ]
+      },
+      {
+        "text": "项目",
+        "i18n": "menu.projects",
+        "group": true,
+        "hideInBreadcrumb": true,
+        "children": [
+          {
+            "text": "创建项目",
+            "i18n": "menu.projects.create",
+            "link": "/projects/create",
+            "icon": "anticon-folder-add"
+          },
+          {
+            "text": "我的项目",
+            "i18n": "menu.projects.my",
+            "link": "/projects",
+            "icon": "anticon-project"
+          }
+        ]
       }
     ],
     "organization": [
@@ -101,6 +121,20 @@
             "i18n": "menu.tasks.list",
             "link": "/tasks/list",
             "icon": "anticon-unordered-list"
+          }
+        ]
+      },
+      {
+        "text": "项目管理",
+        "i18n": "menu.projects.management",
+        "group": true,
+        "hideInBreadcrumb": true,
+        "children": [
+          {
+            "text": "创建项目",
+            "i18n": "menu.projects.create",
+            "link": "/organizations/:orgId/projects/create",
+            "icon": "anticon-folder-add"
           }
         ]
       }

@@ -73,5 +73,10 @@
   "app.forgot-password.send": "Send Reset Link",
   "app.forgot-password.back": "Back to login",
   "app.forgot-password.success": "Password reset email sent! Please check your inbox.",
-  "app.forgot-password.error": "Failed to send reset email. Please try again."
+  "app.forgot-password.error": "Failed to send reset email. Please try again.",
+  "menu.projects.create": "Create Project",
+  "menu.projects.my": "My Projects",
+  "menu.projects.management": "Project Management",
+  "menu.account.projects": "Projects",
+  "menu.account.projects.none": "No projects"
 }
