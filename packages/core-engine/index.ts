@@ -20,3 +20,7 @@ export * from './causality';
 export * from './event-store';
 export * from './aggregates';
 export * from './projection';
+
+export * from './src/ports/workspace.repository.port';
+export * from './src/commands/create-organization.command';
+export * from './src/use-cases/create-organization.usecase';

@@ -18,3 +18,4 @@ export * from './src/application/workspace-application-service';
 export * from './src/domain/workspace-factory';
 export * from './src/events/WorkspaceCreatedEvent';
 export * from './src/repositories/WorkspaceRepository';
+export * from './src/aggregates/workspace.aggregate';

@@ -1,6 +1,5 @@
-import { Workspace as WorkspacePort, WorkspaceRepositoryPort } from '../../../core-engine/src/ports/workspace.repository.port';
-import { Workspace } from '../../../saas-domain/src/aggregates/workspace.aggregate';
-import { WorkspaceCreatedEvent } from '../../../saas-domain/src/events/workspace-created.event';
+import { WorkspaceRepositoryPort, Workspace as WorkspacePort } from '@ng-events/core-engine';
+import { Workspace } from '@ng-events/saas-domain';
 import { getCollection } from './firestore';
 
 const WORKSPACES_COLLECTION = 'workspaces';
