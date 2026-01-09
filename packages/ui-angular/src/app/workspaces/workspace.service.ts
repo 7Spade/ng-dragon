@@ -13,7 +13,7 @@ export interface Workspace {
   id: string;
   name: string;
   ownerUserId: string;
-  type: 'organization' | 'team' | 'project';
+  type: 'organization' | 'team' | 'partner' | 'project';
   members: WorkspaceMember[];
   accountId?: string;
   createdAt?: string;

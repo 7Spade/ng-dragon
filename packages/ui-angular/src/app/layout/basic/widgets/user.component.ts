@@ -90,6 +90,34 @@ import { FirebaseAuthBridgeService, ContextService } from '@core';
         
         <li nz-menu-divider></li>
         
+        <!-- Teams Section -->
+        <div class="px-sm py-sm text-muted">{{ 'menu.account.teams' | i18n : 'Teams' }}</div>
+        @if ((ownedTeams$ | async)?.length) {
+          @for (team of ownedTeams$ | async; track team.id) {
+            <div nz-menu-item (click)="selectTeam(team.id, team.name)">
+              <i nz-icon nzType="team" class="mr-sm"></i>{{ team.name }}
+            </div>
+          }
+        } @else {
+          <div nz-menu-item class="text-muted small">{{ 'menu.account.teams.none' | i18n : 'No teams' }}</div>
+        }
+        
+        <li nz-menu-divider></li>
+        
+        <!-- Partners Section -->
+        <div class="px-sm py-sm text-muted">{{ 'menu.account.partners' | i18n : 'Partners' }}</div>
+        @if ((ownedPartners$ | async)?.length) {
+          @for (partner of ownedPartners$ | async; track partner.id) {
+            <div nz-menu-item (click)="selectPartner(partner.id, partner.name)">
+              <i nz-icon nzType="user-add" class="mr-sm"></i>{{ partner.name }}
+            </div>
+          }
+        } @else {
+          <div nz-menu-item class="text-muted small">{{ 'menu.account.partners.none' | i18n : 'No partners' }}</div>
+        }
+        
+        <li nz-menu-divider></li>
+        
         <!-- Create Organization -->
         <div nz-menu-item (click)="createOrganization()">
           <i nz-icon nzType="plus" class="mr-sm"></i>{{ 'menu.account.organizations.create' | i18n : 'Create organization' }}
@@ -134,6 +162,10 @@ export class HeaderUserComponent {
   readonly ownedOrganizations$: Observable<Workspace[]>;
   readonly joinedOrganizations$: Observable<Workspace[]>;
   
+  // Observable streams for owned teams and partners
+  readonly ownedTeams$: Observable<Workspace[]>;
+  readonly ownedPartners$: Observable<Workspace[]>;
+  
   // Computed observable for permission check
   readonly canManageCurrentOrg$: Observable<boolean>;
 
@@ -160,6 +192,24 @@ export class HeaderUserComponent {
           ws.type === 'organization' && 
           ws.ownerUserId !== userId &&
           ws.members?.some(m => m.userId === userId)
+        )
+      )
+    );
+
+    // Owned teams (where user is the owner)
+    this.ownedTeams$ = allWorkspaces$.pipe(
+      map(workspaces => 
+        workspaces.filter(ws => 
+          ws.type === 'team' && ws.ownerUserId === userId
+        )
+      )
+    );
+
+    // Owned partners (where user is the owner)
+    this.ownedPartners$ = allWorkspaces$.pipe(
+      map(workspaces => 
+        workspaces.filter(ws => 
+          ws.type === 'partner' && ws.ownerUserId === userId
         )
       )
     );
@@ -197,6 +247,16 @@ export class HeaderUserComponent {
   selectOrganization(orgId: string, orgName: string): void {
     this.contextService.switchToOrganizationContext(orgId, orgName);
     // Switch to dashboard instead of organization-specific route to avoid 404
+    this.router.navigateByUrl('/dashboard').catch(() => void 0);
+  }
+
+  selectTeam(teamId: string, teamName: string): void {
+    this.contextService.switchToTeamContext(teamId, teamName);
+    this.router.navigateByUrl('/dashboard').catch(() => void 0);
+  }
+
+  selectPartner(partnerId: string, partnerName: string): void {
+    this.contextService.switchToPartnerContext(partnerId, partnerName);
     this.router.navigateByUrl('/dashboard').catch(() => void 0);
   }
 
