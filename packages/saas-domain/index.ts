@@ -4,17 +4,27 @@
  * 🏢 Pure TypeScript business domain models
  *
  * Contains domain logic for:
- * - Workspace lifecycle
+ * - Workspace lifecycle and organization management
+ * - SaaS-specific business rules
  *
  * Rules:
  * - Pure TypeScript only
- * - Can depend on @core-engine or @account-domain
+ * - Can depend on @account-domain
  * - NO framework dependencies (Angular, Firebase, etc.)
  * - NO SDK dependencies
  */
 
+// Commands
 export * from './src/commands/create-organization-command';
+
+// Application Services
 export * from './src/application/workspace-application-service';
+
+// Domain Services & Factories
 export * from './src/domain/workspace-factory';
+
+// Events
 export * from './src/events/WorkspaceCreatedEvent';
+
+// Repositories (interfaces only - implementations in platform-adapters)
 export * from './src/repositories/WorkspaceRepository';

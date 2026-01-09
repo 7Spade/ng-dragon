@@ -1,4 +1,4 @@
-import { WorkspaceSnapshot } from '@account-domain/src/aggregates/workspace.aggregate';
+import { WorkspaceSnapshot } from '@account-domain';
 import { WorkspaceCreatedEvent } from '../events/WorkspaceCreatedEvent';
 
 export interface WorkspaceRepository {
