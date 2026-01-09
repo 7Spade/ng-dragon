@@ -24,7 +24,8 @@
     "@ng-events/saas-domain": "*"
   },
   "peerDependencies": {
-    "@angular/core": "^20.0.0"
+    "@angular/core": "^20.0.0",
+    "@angular/fire": "^20.0.0"
   },
   "devDependencies": {
     "@types/node": "^25.0.3",
@@ -34,9 +35,15 @@
     "compilerOptions": {
       "baseUrl": ".",
       "paths": {
-        "firebase-admin": ["__forbidden__"],
-        "@platform-adapters/server/*": ["src/server-adapter/*"],
-        "@platform-adapters/client/*": ["src/client-adapter/*"]
+        "firebase-admin": [
+          "__forbidden__"
+        ],
+        "@platform-adapters/server/*": [
+          "src/server-adapter/*"
+        ],
+        "@platform-adapters/client/*": [
+          "src/client-adapter/*"
+        ]
       }
     }
   },

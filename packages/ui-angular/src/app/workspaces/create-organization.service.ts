@@ -1,18 +1,11 @@
-import { Injectable, inject } from '@angular/core';
-import { CreateOrganizationUseCase, CreateOrganizationCommand } from '@ng-events/core-engine';
-import { WorkspaceRepositoryClient } from './workspace.repository.client';
+import { Injectable } from '@angular/core';
+import { CreateOrganizationClient, CreateOrganizationCommand } from '@ng-events/platform-adapters';
 
 @Injectable({ providedIn: 'root' })
 export class CreateOrganizationService {
-  private readonly repository = inject(WorkspaceRepositoryClient);
-  private readonly useCase: CreateOrganizationUseCase;
-
-  constructor() {
-    // Wire up dependencies: UseCase -> Repository (@angular/fire - client SDK)
-    this.useCase = new CreateOrganizationUseCase(this.repository);
-  }
+  constructor(private readonly client: CreateOrganizationClient) {}
 
   async createOrganization(command: CreateOrganizationCommand): Promise<string> {
-    return await this.useCase.execute(command);
+    return this.client.createOrganization(command);
   }
 }

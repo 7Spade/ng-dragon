@@ -8,3 +8,7 @@ export * from './src/external-apis';
 
 // firebase-platform and persistence use firebase-admin (server-only)
 // Import them explicitly from './server' if needed in backend code
+
+// Client-side adapters (frontend-safe)
+export * from './src/client';
+

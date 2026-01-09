@@ -2,8 +2,9 @@ import { Injectable, inject } from '@angular/core';
 import { Firestore, collection, doc, setDoc } from '@angular/fire/firestore';
 import { WorkspaceRepositoryPort, Workspace } from '@ng-events/core-engine';
 
+// Frontend-safe repository using @angular/fire (client SDK)
 @Injectable({ providedIn: 'root' })
-export class WorkspaceRepositoryClient implements WorkspaceRepositoryPort {
+export class WorkspaceClientRepository implements WorkspaceRepositoryPort {
   private readonly firestore = inject(Firestore);
 
   async save(workspace: Workspace): Promise<string> {
