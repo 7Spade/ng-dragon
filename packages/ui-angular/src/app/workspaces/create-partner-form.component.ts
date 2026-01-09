@@ -109,8 +109,9 @@ export class CreatePartnerFormComponent {
       const partnerId = await this.createPartnerService.createPartner(command);
       console.log('Partner created successfully:', partnerId);
       
-      // Navigate back to dashboard
-      await this.router.navigateByUrl('/dashboard');
+      // Show success message and reset form instead of navigating
+      alert(`Partner "${this.form.value.name}" created successfully!`);
+      this.form.reset();
     } catch (error) {
       console.error('Error creating partner:', error);
       this.submitting = false;

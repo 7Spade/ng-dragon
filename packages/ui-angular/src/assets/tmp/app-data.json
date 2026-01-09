@@ -29,6 +29,26 @@
             "icon": "anticon-check-circle"
           }
         ]
+      },
+      {
+        "text": "任务",
+        "i18n": "menu.tasks",
+        "group": true,
+        "hideInBreadcrumb": true,
+        "children": [
+          {
+            "text": "创建任务",
+            "i18n": "menu.tasks.create",
+            "link": "/tasks/create",
+            "icon": "anticon-plus-circle"
+          },
+          {
+            "text": "任务列表",
+            "i18n": "menu.tasks.list",
+            "link": "/tasks/list",
+            "icon": "anticon-unordered-list"
+          }
+        ]
       }
     ],
     "organization": [
@@ -63,6 +83,26 @@
             "icon": "anticon-project"
           }
         ]
+      },
+      {
+        "text": "任务",
+        "i18n": "menu.tasks",
+        "group": true,
+        "hideInBreadcrumb": true,
+        "children": [
+          {
+            "text": "创建任务",
+            "i18n": "menu.tasks.create",
+            "link": "/tasks/create",
+            "icon": "anticon-plus-circle"
+          },
+          {
+            "text": "任务列表",
+            "i18n": "menu.tasks.list",
+            "link": "/tasks/list",
+            "icon": "anticon-unordered-list"
+          }
+        ]
       }
     ],
     "team": [
@@ -89,6 +129,26 @@
             "i18n": "menu.teamMembers",
             "link": "/team/members",
             "icon": "anticon-user"
+          }
+        ]
+      },
+      {
+        "text": "任务",
+        "i18n": "menu.tasks",
+        "group": true,
+        "hideInBreadcrumb": true,
+        "children": [
+          {
+            "text": "创建任务",
+            "i18n": "menu.tasks.create",
+            "link": "/tasks/create",
+            "icon": "anticon-plus-circle"
+          },
+          {
+            "text": "团队任务",
+            "i18n": "menu.tasks.team",
+            "link": "/tasks/team",
+            "icon": "anticon-unordered-list"
           }
         ]
       }

@@ -125,12 +125,8 @@ export class CreateTeamFormComponent {
       });
 
       this.successMessage = `Team "${this.form.value.teamName}" created successfully!`;
+      this.form.reset();
       this.cdr.markForCheck();
-      
-      // Navigate after a short delay to show success message
-      setTimeout(() => {
-        this.router.navigate(['/organizations', this.organizationId]);
-      }, 1500);
     } catch (error) {
       this.errorMessage = error instanceof Error ? error.message : 'Failed to create team';
       console.error('Error creating team:', error);
