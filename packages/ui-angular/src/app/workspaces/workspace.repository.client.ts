@@ -1,5 +1,15 @@
 import { Injectable, inject } from '@angular/core';
-import { Firestore, collection, doc, setDoc, getDoc, getDocs } from '@angular/fire/firestore';
+import {
+  Firestore,
+  collection,
+  doc,
+  setDoc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+  QueryConstraint
+} from '@angular/fire/firestore';
 import { WorkspaceRepository, WorkspaceCreatedEvent } from '@saas-domain';
 import { WorkspaceSnapshot } from '@account-domain';
 
@@ -36,9 +46,20 @@ export class WorkspaceRepositoryClient implements WorkspaceRepository {
     return docSnap.data() as WorkspaceSnapshot;
   }
 
-  async listWorkspaces(): Promise<WorkspaceSnapshot[]> {
+  async listWorkspaces(filter?: { workspaceType?: WorkspaceSnapshot['workspaceType']; accountId?: string }): Promise<WorkspaceSnapshot[]> {
     const workspacesCol = collection(this.firestore, 'workspaces');
-    const querySnapshot = await getDocs(workspacesCol);
+    const constraints: QueryConstraint[] = [];
+
+    if (filter?.workspaceType) {
+      constraints.push(where('workspaceType', '==', filter.workspaceType));
+    }
+
+    if (filter?.accountId) {
+      constraints.push(where('accountId', '==', filter.accountId));
+    }
+
+    const q = constraints.length > 0 ? query(workspacesCol, ...constraints) : workspacesCol;
+    const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => doc.data() as WorkspaceSnapshot);
   }
 }

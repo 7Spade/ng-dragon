@@ -9,6 +9,8 @@ export interface WorkspaceSnapshot {
   workspaceType: WorkspaceType;
   modules: ModuleStatus[];
   createdAt: string;
+  description?: string;
+  organizationId?: string;
   name?: string;
 }
 
@@ -25,6 +27,8 @@ export interface WorkspaceCreationInput {
   workspaceType: WorkspaceType;
   createdAt?: string;
   modules?: ModuleStatus[];
+  description?: string;
+  organizationId?: string;
   name?: string;
 }
 
@@ -39,11 +43,13 @@ export class WorkspaceAggregate {
     const snapshot: WorkspaceSnapshot = {
       workspaceId: input.workspaceId,
       accountId: input.accountId,
-      workspaceType: input.workspaceType,
-      modules: input.modules ?? [],
-      createdAt,
-      name: input.name
-    };
+        workspaceType: input.workspaceType,
+        modules: input.modules ?? [],
+        createdAt,
+        description: input.description,
+        organizationId: input.organizationId,
+        name: input.name
+      };
 
     const event: DomainEvent<WorkspaceSnapshot> = {
       eventType: 'WorkspaceCreated',

@@ -5,6 +5,7 @@ import { CreateProjectCommand } from '../commands/create-project-command';
 import { WorkspaceFactory } from '../domain/workspace-factory';
 import { WorkspaceCreatedEvent } from '../events/WorkspaceCreatedEvent';
 import { WorkspaceRepository } from '../repositories/WorkspaceRepository';
+import { WorkspaceSnapshot, WorkspaceType } from '@account-domain';
 
 export class WorkspaceApplicationService {
   constructor(
@@ -38,5 +39,13 @@ export class WorkspaceApplicationService {
     await this.workspaceRepository.appendWorkspaceEvent(event);
     await this.workspaceRepository.saveWorkspaceSnapshot(snapshot);
     return event;
+  }
+
+  async listWorkspaces(filter?: { workspaceType?: WorkspaceType; accountId?: string }): Promise<WorkspaceSnapshot[]> {
+    return this.workspaceRepository.listWorkspaces(filter);
+  }
+
+  async listProjects(accountId: string): Promise<WorkspaceSnapshot[]> {
+    return this.workspaceRepository.listWorkspaces({ workspaceType: 'project', accountId });
   }
 }

@@ -114,6 +114,8 @@ export class WorkspaceFactory {
         workspaceType,
         modules: moduleStatuses,
         createdAt: command.createdAt,
+        description: command.description,
+        organizationId: command.organizationId,
         name: command.projectName
       },
       context

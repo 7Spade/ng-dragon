@@ -7,6 +7,8 @@ import { CreateOrganizationFormComponent } from '../workspaces/create-organizati
 import { CreateTeamFormComponent } from '../workspaces/create-team-form.component';
 import { CreatePartnerFormComponent } from '../workspaces/create-partner-form.component';
 import { CreateProjectFormComponent } from '../workspaces/create-project-form.component';
+import { ProjectsListComponent } from '../workspaces/projects-list.component';
+import { ProjectDetailComponent } from '../workspaces/project-detail.component';
 
 export const routes: Routes = [
   {
@@ -38,8 +40,16 @@ export const routes: Routes = [
         component: CreateProjectFormComponent
       },
       {
+        path: 'projects',
+        component: ProjectsListComponent
+      },
+      {
         path: 'organizations/:orgId/projects/create',
         component: CreateProjectFormComponent
+      },
+      {
+        path: 'projects/:projectId',
+        component: ProjectDetailComponent
       }
     ]
   },
