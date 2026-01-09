@@ -86,11 +86,24 @@ export class CreatePartnerFormComponent {
         return;
       }
 
+      // Generate workspace ID using timestamp-based pattern (matching organization creation)
+      const timestamp = Date.now();
+      const randomSuffix = Math.random().toString(36).substring(2, 15);
+      const workspaceId = `ws-${timestamp}-${randomSuffix}`;
+      
+      // Generate trace ID for event sourcing
+      const traceId = `trace-${timestamp}-${randomSuffix}`;
+
       const command: CreatePartnerCommand = {
-        name: this.form.value.name,
+        workspaceId,
+        accountId: user.uid,
+        partnerName: this.form.value.name,
         organizationId: this.organizationId,
-        ownerUserId: user.uid,
-        description: this.form.value.description || undefined
+        actorId: user.uid,
+        traceId,
+        createdAt: new Date().toISOString(),
+        causedBy: ['user-action'],
+        modules: []
       };
 
       const partnerId = await this.createPartnerService.createPartner(command);

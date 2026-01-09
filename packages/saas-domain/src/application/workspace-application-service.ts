@@ -25,10 +25,10 @@ export class WorkspaceApplicationService {
     return event;
   }
 
-  async createPartner(command: CreatePartnerCommand): Promise<string> {
+  async createPartner(command: CreatePartnerCommand): Promise<WorkspaceCreatedEvent> {
     const { snapshot, event } = this.workspaceFactory.createPartner(command);
     await this.workspaceRepository.appendWorkspaceEvent(event);
     await this.workspaceRepository.saveWorkspaceSnapshot(snapshot);
-    return snapshot.workspaceId;
+    return event;
   }
 }

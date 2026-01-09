@@ -106,7 +106,10 @@ export class CreateTeamFormComponent {
       }
 
       // Generate workspace ID for team
-      const workspaceId = `ws-team-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+      const timestamp = Date.now();
+      const randomSuffix = Math.random().toString(36).substring(2, 15);
+      const workspaceId = `ws-${timestamp}-${randomSuffix}`;
+      const traceId = `trace-${timestamp}-${randomSuffix}`;
       
       // Send command to application service
       const resultWorkspaceId = await this.createTeamService.createTeam({
@@ -115,7 +118,10 @@ export class CreateTeamFormComponent {
         teamName: this.form.value.teamName ?? '',
         organizationId: this.organizationId,
         actorId: user.uid,
-        createdAt: new Date().toISOString()
+        traceId,
+        createdAt: new Date().toISOString(),
+        causedBy: ['user-action'],
+        modules: []
       });
 
       this.successMessage = `Team "${this.form.value.teamName}" created successfully!`;

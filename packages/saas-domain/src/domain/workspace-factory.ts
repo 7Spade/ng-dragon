@@ -64,22 +64,22 @@ export class WorkspaceFactory {
     event: WorkspaceCreatedEvent;
   } {
     const workspaceType: WorkspaceType = 'partner';
-    const now = new Date().toISOString();
+    const now = command.createdAt || new Date().toISOString();
     const context: EventContext = {
-      actorId: command.ownerUserId,
-      traceId: `partner-creation-${Date.now()}`,
-      causedBy: [],
+      actorId: command.actorId || command.accountId,
+      traceId: command.traceId || `partner-creation-${Date.now()}`,
+      causedBy: command.causedBy || ['system'],
       occurredAt: now
     };
 
     const { aggregate, event } = WorkspaceAggregate.create(
       {
-        workspaceId: `partner-${Date.now()}`,
-        accountId: command.ownerUserId,
+        workspaceId: command.workspaceId,
+        accountId: command.accountId,
         workspaceType,
-        modules: [],
+        modules: command.modules || [],
         createdAt: now,
-        name: command.name
+        name: command.partnerName
       },
       context
     );
