@@ -1,6 +1,7 @@
 import { CreateOrganizationCommand } from '../commands/create-organization-command';
 import { CreateTeamCommand } from '../commands/create-team-command';
 import { CreatePartnerCommand } from '../commands/create-partner-command';
+import { CreateProjectCommand } from '../commands/create-project-command';
 import { WorkspaceFactory } from '../domain/workspace-factory';
 import { WorkspaceCreatedEvent } from '../events/WorkspaceCreatedEvent';
 import { WorkspaceRepository } from '../repositories/WorkspaceRepository';
@@ -27,6 +28,13 @@ export class WorkspaceApplicationService {
 
   async createPartner(command: CreatePartnerCommand): Promise<WorkspaceCreatedEvent> {
     const { snapshot, event } = this.workspaceFactory.createPartner(command);
+    await this.workspaceRepository.appendWorkspaceEvent(event);
+    await this.workspaceRepository.saveWorkspaceSnapshot(snapshot);
+    return event;
+  }
+
+  async createProject(command: CreateProjectCommand): Promise<WorkspaceCreatedEvent> {
+    const { snapshot, event } = this.workspaceFactory.createProject(command);
     await this.workspaceRepository.appendWorkspaceEvent(event);
     await this.workspaceRepository.saveWorkspaceSnapshot(snapshot);
     return event;

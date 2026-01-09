@@ -19,6 +19,7 @@
 export * from './src/commands/create-organization-command';
 export * from './src/commands/create-team-command';
 export * from './src/commands/create-partner-command';
+export * from './src/commands/create-project-command';
 
 // Application Services
 export * from './src/application/workspace-application-service';
