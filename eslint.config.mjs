@@ -144,7 +144,34 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'warn'
     }
   },
-  // DDD Architecture: Prevent SDK mixing in packages
+  // DDD Architecture: Prevent SDK mixing and enforce package boundaries
+  {
+    files: ['packages/account-domain/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: [
+                '@angular/*',
+                '@platform-adapters',
+                '@platform-adapters/*',
+                '@ui-angular',
+                '@ui-angular/*',
+                '@core-engine',
+                '@core-engine/*',
+                '@saas-domain',
+                '@saas-domain/*',
+                '*firebase*'
+              ],
+              message: '❌ account-domain stays pure: no SDKs or cross-package dependencies.'
+            }
+          ]
+        }
+      ]
+    }
+  },
   {
     files: ['packages/core-engine/**/*.ts'],
     rules: {
@@ -153,8 +180,18 @@ export default tseslint.config(
         {
           patterns: [
             {
-              group: ['*firebase*', '@angular/*'],
-              message: '❌ Core-engine must be framework-agnostic! No Firebase or Angular imports allowed.'
+              group: [
+                '*firebase*',
+                '@angular/*',
+                '@platform-adapters',
+                '@platform-adapters/*',
+                '@ui-angular',
+                '@ui-angular/*',
+                '@saas-domain',
+                '@saas-domain/*'
+              ],
+              message:
+                '❌ Core-engine must stay framework-agnostic and independent from adapters/UI/domains. Use ports instead.'
             }
           ]
         }
@@ -169,8 +206,31 @@ export default tseslint.config(
         {
           patterns: [
             {
-              group: ['*firebase*', '@angular/*'],
-              message: '❌ SaaS-domain must be framework-agnostic! No Firebase or Angular imports allowed.'
+              group: [
+                '*firebase*',
+                '@angular/*',
+                '@platform-adapters',
+                '@platform-adapters/*',
+                '@ui-angular',
+                '@ui-angular/*'
+              ],
+              message: '❌ SaaS-domain must be framework-agnostic and must not depend on UI or adapters.'
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    files: ['packages/platform-adapters/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@ui-angular', '@ui-angular/*'],
+              message: '❌ Platform adapters cannot depend on ui-angular. Keep adapter boundary clean.'
             }
           ]
         }
@@ -217,8 +277,17 @@ export default tseslint.config(
         {
           patterns: [
             {
-              group: ['firebase-admin'],
-              message: '❌ Angular app cannot use firebase-admin! Use @angular/fire or platform-adapters only.'
+              group: [
+                'firebase-admin',
+                '@account-domain',
+                '@account-domain/*',
+                '@saas-domain',
+                '@saas-domain/*',
+                '@core-engine',
+                '@core-engine/*'
+              ],
+              message:
+                '❌ Angular app cannot use firebase-admin or import domains directly! Go through @platform-adapters instead.'
             }
           ]
         }
