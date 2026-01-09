@@ -14,11 +14,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # 依賴安裝
-  setup-dependencies:
-    runs-on: ubuntu-latest
-    env:
-      YARN_CACHE_FOLDER: .yarn/cache
+  lint:
+    name: Lint
+    runs-on: ubuntu-4-core
+
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -29,6 +28,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'yarn'
           cache-dependency-path: |
+            yarn.lock
             package.json
             packages/*/package.json
 
@@ -36,20 +36,34 @@ jobs:
         run: corepack enable
 
       - name: Install Dependencies
-        run: yarn install
+        run: yarn install --immutable
 
-  # lint job，可以和 test job 平行
-  lint:
-    runs-on: ubuntu-latest
-    needs: setup-dependencies   # 可選依賴 setup 完成再跑
-    steps:
-      - uses: actions/checkout@v5
-      - run: yarn lint
+      - name: Run Lint
+        run: yarn lint
 
-  # test job，也可平行
   test:
-    runs-on: ubuntu-latest
-    needs: setup-dependencies
+    name: Test
+    runs-on: ubuntu-4-core
+
     steps:
-      - uses: actions/checkout@v5
-      - run: yarn test
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+          cache-dependency-path: |
+            yarn.lock
+            package.json
+            packages/*/package.json
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install Dependencies
+        run: yarn install --immutable
+
+      - name: Run Tests
+        run: yarn test
