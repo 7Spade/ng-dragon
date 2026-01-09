@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { SHARED_IMPORTS } from '@shared';
 import { FirebaseAuthBridgeService } from '@core';
 import { CreateOrganizationService } from '@platform-adapters/workspaces';
+import { SHARED_IMPORTS } from '@shared';
 
 @Component({
   selector: 'app-create-organization-form',
@@ -22,9 +22,7 @@ import { CreateOrganizationService } from '@platform-adapters/workspaces';
 
         <div class="text-right">
           <button nz-button nzType="default" (click)="cancel()" class="mr-sm">Cancel</button>
-          <button nz-button nzType="primary" [nzLoading]="submitting" [disabled]="form.invalid || submitting">
-            Create Organization
-          </button>
+          <button nz-button nzType="primary" [nzLoading]="submitting" [disabled]="form.invalid || submitting"> Create Organization </button>
         </div>
 
         @if (errorMessage) {
@@ -44,17 +42,13 @@ export class CreateOrganizationFormComponent {
     organizationName: ['', Validators.required]
   });
 
-  readonly breadcrumb = [
-    { title: 'Home', link: '/dashboard' },
-    { title: 'Organizations' },
-    { title: 'Create' }
-  ];
+  readonly breadcrumb = [{ title: 'Home', link: '/dashboard' }, { title: 'Organizations' }, { title: 'Create' }];
 
   private readonly createOrgService = inject(CreateOrganizationService);
   private readonly router = inject(Router);
   private readonly authBridge = inject(FirebaseAuthBridgeService);
   private readonly cdr = inject(ChangeDetectorRef);
-  
+
   submitting = false;
   errorMessage = '';
   successMessage = '';
@@ -65,7 +59,7 @@ export class CreateOrganizationFormComponent {
 
   async submit(): Promise<void> {
     if (this.form.invalid || this.submitting) return;
-    
+
     this.submitting = true;
     this.errorMessage = '';
     this.successMessage = '';
@@ -79,15 +73,16 @@ export class CreateOrganizationFormComponent {
       }
 
       // Send command to UseCase via service
-      const workspaceId = await this.createOrgService.createOrganization({
+      await this.createOrgService.createOrganization({
         accountId: user.uid,
-        name: this.form.value.organizationName ?? '',
-        ownerUserId: user.uid
+        organizationName: this.form.value.organizationName ?? '',
+        ownerUserId: user.uid,
+        actorId: user.uid
       });
 
       this.successMessage = `Organization "${this.form.value.organizationName}" created successfully!`;
       this.cdr.markForCheck();
-      
+
       // Navigate after a short delay to show success message
       setTimeout(() => {
         this.router.navigate(['/dashboard']);

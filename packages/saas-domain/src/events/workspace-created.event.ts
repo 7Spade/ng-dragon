@@ -1,10 +1,3 @@
-import { AccountId, WorkspaceId } from '@account-domain';
+import { DomainEvent, WorkspaceSnapshot } from '@account-domain';
 
-export interface WorkspaceCreatedEvent {
-  workspaceId: WorkspaceId;
-  accountId: AccountId;
-  type: 'organization' | 'team' | 'project';
-  name: string;
-  ownerUserId: string;
-  timestamp: string;
-}
+export type WorkspaceCreatedEvent = DomainEvent<WorkspaceSnapshot>;

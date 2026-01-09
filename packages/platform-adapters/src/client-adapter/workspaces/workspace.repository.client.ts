@@ -1,33 +1,29 @@
+import { WorkspaceId, WorkspaceSnapshot } from '@account-domain';
 import { Injectable, inject } from '@angular/core';
-import { Firestore, collection, doc, setDoc } from '@angular/fire/firestore';
-import { WorkspaceRepositoryPort, Workspace } from '@core-engine';
+import { Firestore, collection, doc, getDoc, getDocs, setDoc } from '@angular/fire/firestore';
+import { WorkspaceCreatedEvent, WorkspaceRepository } from '@saas-domain';
 
 @Injectable({ providedIn: 'root' })
-export class WorkspaceRepositoryClient implements WorkspaceRepositoryPort {
+export class WorkspaceRepositoryClient implements WorkspaceRepository {
   private readonly firestore = inject(Firestore);
+  private readonly workspacesCol = collection(this.firestore, 'workspaces');
+  private readonly eventsCol = collection(this.firestore, 'workspace-events');
 
-  async save(workspace: Workspace): Promise<string> {
-    const workspacesCol = collection(this.firestore, 'workspaces');
-    const eventsCol = collection(this.firestore, 'workspace-events');
+  async appendWorkspaceEvent(event: WorkspaceCreatedEvent): Promise<void> {
+    await setDoc(doc(this.eventsCol), event);
+  }
 
-    const snapshot = {
-      workspaceId: workspace.workspaceId,
-      accountId: workspace.accountId,
-      type: workspace.type,
-      name: workspace.name,
-      ownerUserId: workspace.ownerUserId,
-      members: workspace.members,
-      createdAt: workspace.createdAt,
-      modules: workspace.modules ?? []
-    };
+  async saveWorkspaceSnapshot(snapshot: WorkspaceSnapshot): Promise<void> {
+    await setDoc(doc(this.workspacesCol, snapshot.workspaceId), snapshot);
+  }
 
-    await setDoc(doc(workspacesCol, workspace.workspaceId), snapshot);
+  async getWorkspaceSnapshot(workspaceId: WorkspaceId): Promise<WorkspaceSnapshot | null> {
+    const snapshot = await getDoc(doc(this.workspacesCol, workspaceId));
+    return snapshot.exists() ? (snapshot.data() as WorkspaceSnapshot) : null;
+  }
 
-    await setDoc(doc(eventsCol), {
-      ...snapshot,
-      timestamp: workspace.createdAt
-    });
-
-    return workspace.workspaceId;
+  async listWorkspaces(): Promise<WorkspaceSnapshot[]> {
+    const snapshot = await getDocs(this.workspacesCol);
+    return snapshot.docs.map(docSnap => docSnap.data() as WorkspaceSnapshot);
   }
 }

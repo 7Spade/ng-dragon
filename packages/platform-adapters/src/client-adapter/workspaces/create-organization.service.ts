@@ -1,19 +1,25 @@
 import { Injectable, inject } from '@angular/core';
-import { CreateOrganizationUseCase, CreateOrganizationCommand } from '@core-engine';
+import { WorkspaceApplicationService, CreateOrganizationCommand } from '@saas-domain';
 
 import { WorkspaceRepositoryClient } from './workspace.repository.client';
+
+const randomWorkspaceId = () => `ws-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
 @Injectable({ providedIn: 'root' })
 export class CreateOrganizationService {
   private readonly repository = inject(WorkspaceRepositoryClient);
-  private readonly useCase: CreateOrganizationUseCase;
-
-  constructor() {
-    // Wire up dependencies: UseCase -> Repository (@angular/fire - client SDK)
-    this.useCase = new CreateOrganizationUseCase(this.repository);
-  }
+  private readonly application = new WorkspaceApplicationService(this.repository);
 
   async createOrganization(command: CreateOrganizationCommand): Promise<string> {
-    return await this.useCase.execute(command);
+    const workspaceId = command.workspaceId ?? randomWorkspaceId();
+
+    const event = await this.application.createOrganization({
+      ...command,
+      workspaceId,
+      actorId: command.actorId ?? command.ownerUserId,
+      workspaceType: command.workspaceType ?? 'organization'
+    });
+
+    return event.workspaceId ?? workspaceId;
   }
 }

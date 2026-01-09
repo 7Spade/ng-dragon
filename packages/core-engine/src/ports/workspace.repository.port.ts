@@ -1,14 +1,8 @@
-export interface Workspace {
-  workspaceId: string;
-  accountId: string;
-  type: 'organization' | 'team' | 'project';
-  name: string;
-  ownerUserId: string;
-  members: Array<{ userId: string; role: string }>;
-  createdAt: string;
-  modules?: any[];
-}
+import { DomainEvent, WorkspaceId, WorkspaceSnapshot } from '@account-domain';
 
 export interface WorkspaceRepositoryPort {
-  save(workspace: Workspace): Promise<string>;
+  appendWorkspaceEvent(event: DomainEvent<WorkspaceSnapshot>): Promise<void>;
+  saveWorkspaceSnapshot(snapshot: WorkspaceSnapshot): Promise<void>;
+  getWorkspaceSnapshot(workspaceId: WorkspaceId): Promise<WorkspaceSnapshot | null>;
+  listWorkspaces(): Promise<WorkspaceSnapshot[]>;
 }

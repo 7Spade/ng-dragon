@@ -1,23 +1,13 @@
+import { WorkspaceSnapshot, WorkspaceType, WorkspaceMember } from '@account-domain';
 import { Injectable, inject } from '@angular/core';
 import { Auth, authState } from '@angular/fire/auth';
 import { Firestore, collection, query, where, collectionData } from '@angular/fire/firestore';
 import { Observable, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 
-export interface WorkspaceMember {
-  userId: string;
-  role: string;
-}
-
-export interface Workspace {
+export interface WorkspaceView extends WorkspaceSnapshot {
   id: string;
-  name: string;
-  ownerUserId: string;
-  type: 'organization' | 'team' | 'project';
-  members: WorkspaceMember[];
-  accountId?: string;
-  createdAt?: string;
-  modules?: any[];
+  members?: WorkspaceMember[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -25,54 +15,60 @@ export class WorkspaceService {
   private readonly firestore = inject(Firestore);
   private readonly auth = inject(Auth);
 
-  getUserWorkspaces(): Observable<Workspace[]> {
+  getUserWorkspaces(): Observable<WorkspaceView[]> {
     return authState(this.auth).pipe(
-      switchMap((user) => {
+      switchMap(user => {
         if (!user) return of([]);
 
         const workspacesCol = collection(this.firestore, 'workspaces');
-        const q = query(workspacesCol, where('ownerUserId', '==', user.uid));
+        const q = query(workspacesCol, where('ownerAccountId', '==', user.uid));
 
-        return collectionData(q, { idField: 'id' }).pipe(map((workspaces) => workspaces.map((ws) => this.mapWorkspace(ws))));
+        return collectionData<WorkspaceView>(q, { idField: 'id' }).pipe(map(workspaces => workspaces.map(ws => this.mapWorkspace(ws))));
       })
     );
   }
 
-  getUserWorkspacesIncludingMemberships(): Observable<Workspace[]> {
+  getUserWorkspacesIncludingMemberships(): Observable<WorkspaceView[]> {
     return authState(this.auth).pipe(
-      switchMap((user) => {
+      switchMap(user => {
         if (!user) return of([]);
 
         const workspacesCol = collection(this.firestore, 'workspaces');
-        const memberQuery = query(workspacesCol, where('members', 'array-contains', { userId: user.uid, role: 'member' }));
+        const memberQuery = query(
+          workspacesCol,
+          where('members', 'array-contains', { accountId: user.uid, role: 'member', accountType: 'user' })
+        );
 
-        return collectionData(memberQuery, { idField: 'id' }).pipe(map((workspaces) => workspaces.map((ws) => this.mapWorkspace(ws))));
+        return collectionData<WorkspaceView>(memberQuery, { idField: 'id' }).pipe(
+          map(workspaces => workspaces.map(ws => this.mapWorkspace(ws)))
+        );
       })
     );
   }
 
-  getWorkspaceById(workspaceId: string): Observable<Workspace | null> {
+  getWorkspaceById(workspaceId: string): Observable<WorkspaceView | null> {
     const workspacesCol = collection(this.firestore, 'workspaces');
     const q = query(workspacesCol, where('workspaceId', '==', workspaceId));
 
-    return collectionData(q, { idField: 'id' }).pipe(
-      map((workspaces: any[]) => {
+    return collectionData<WorkspaceView>(q, { idField: 'id' }).pipe(
+      map(workspaces => {
         if (workspaces.length === 0) return null;
         return this.mapWorkspace(workspaces[0]);
       })
     );
   }
 
-  private mapWorkspace(ws: any): Workspace {
+  private mapWorkspace(ws: WorkspaceView): WorkspaceView {
     return {
       id: ws.id || ws.workspaceId,
-      name: ws.name,
-      ownerUserId: ws.ownerUserId,
-      type: ws.type,
-      members: ws.members || [],
+      workspaceId: ws.workspaceId ?? ws.id,
       accountId: ws.accountId,
+      workspaceType: (ws.workspaceType ?? ws.type) as WorkspaceType,
+      modules: ws.modules ?? [],
       createdAt: ws.createdAt,
-      modules: ws.modules || []
+      name: ws.name,
+      members: ws.members ?? [],
+      ownerAccountId: ws.ownerAccountId ?? ws.accountId
     };
   }
 }
