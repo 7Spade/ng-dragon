@@ -61,3 +61,29 @@ Purpose: document what the comparison branch already provides that is absent on 
 - **Automation/tooling**
   - Re-enable MCP/Playwright/GitHub Actions with pinned SHAs, least-privilege permissions, and pnpm caching. Add emulator-based adapter tests (no live Firebase in CI).
   - Gate merges on lint + focused Playwright smoke for restored flows; publish artifacts (coverage, accessibility snapshots) for triage.
+
+## Execution-ready backlog (prioritized, with acceptance criteria)
+
+- **Core engine**
+  - [ ] Recreate `event-store`, projector, and replayer interfaces in `packages/core-engine/src/ports` with branded IDs and sealed metadata. **Acceptance:** type-level brand prevents cross-aggregate append; schema validation rejects payloads lacking `occurredAt`, `causedBy`, or `affected` metadata.
+  - [ ] Introduce an `appendEvents` guard that enforces batch-size limits and immutability before adapters persist. **Acceptance:** unit test proves mutation attempts throw; batch > configured max is rejected.
+  - [ ] Add replay/backpressure options (page size, stop token) and document handler contract. **Acceptance:** replay job can stop mid-stream without data loss and resumes from token.
+
+- **Platform adapters**
+  - [ ] Implement `FirebaseEventStore` with per-aggregate collections, optimistic concurrency via transactions, and retry/backoff. **Acceptance:** concurrency test shows conflicting appends fail cleanly with retry; writes include causality chain + affected entities.
+  - [ ] Implement `FirestoreSearchRepository` with composite index hints and relevance scoring. **Acceptance:** query plan uses provided index; scoring sorts by relevance + recency.
+  - [ ] Expose workspace/auth client adapters via factories that hide SDK types. **Acceptance:** UI imports only factory tokens/DTOs; no Firebase types leak past platform-adapters.
+
+- **SaaS domain (workspace base modules)**
+  - [ ] Restore Identity/Access-Control/Audit/Settings aggregates, events, and policies under `packages/saas-domain/src/workspace/*`. **Acceptance:** membership lifecycle and role/permission matrices are enforced via invariants; audit entries normalize actor + target.
+  - [ ] Add domain services for workspace/module bootstrap emitting module-enable events. **Acceptance:** creating a workspace triggers module bootstrap events guarded by dependency checks.
+  - [ ] Provide repository interfaces only (no SDK usage) and inject time/ID factories. **Acceptance:** domain layer compiles with zero SDK imports and no `new Date()`/`uuid()` calls.
+
+- **UI (Angular)**
+  - [ ] Restore standalone, lazy-loaded flows for org/partner/project/team CRUD plus global search with signals and OnPush. **Acceptance:** forms map 1:1 to domain commands; keyboard + screen-reader flows pass ARIA/contrast checks; header reflects member/profile context.
+  - [ ] Add workspace context service + adapter facades; ensure UI never touches SDK types. **Acceptance:** lint rule or tsconfig path prevents Firebase types in `ui-angular`.
+  - [ ] Reintroduce i18n keys for restored screens and smoke E2E covering create/list/detail/search. **Acceptance:** Playwright smoke passes locally/CI; i18n build has no missing key errors.
+
+- **Automation/tooling**
+  - [ ] Re-enable Copilot/MCP/Playwright workflows with pinned SHAs and least-privilege permissions. **Acceptance:** workflows define explicit `permissions`, cache pnpm/yarn, and succeed on a dry run.
+  - [ ] Add emulator-based adapter tests (no live Firebase) and gate merges on lint + focused Playwright suite. **Acceptance:** CI pipeline runs lint + adapter emulator tests + Playwright smoke; artifacts (coverage/a11y snapshots) are uploaded.
