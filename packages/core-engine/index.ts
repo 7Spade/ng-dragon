@@ -1,7 +1,7 @@
 /**
  * Core Engine
  *
- * 💎 Pure domain engine with ZERO framework dependencies
+ * Pure domain engine with ZERO framework dependencies
  *
  * Core Principles:
  * - NO Angular imports allowed
@@ -14,3 +14,6 @@
  */
 
 export * from './src/ports';
+export * from './src/queries';
+export * from './src/value-objects';
+export * from './src/mappers';

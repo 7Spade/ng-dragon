@@ -1,1 +1,1 @@
-//
+export * from './search-query';
