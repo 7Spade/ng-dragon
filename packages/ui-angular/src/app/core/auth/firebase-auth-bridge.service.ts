@@ -1,13 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { DA_SERVICE_TOKEN } from '@delon/auth';
+import { FirebaseAuthClient, FirebaseAuthUnsubscribe, FirebaseAuthUser, FirebaseIdTokenResult } from '@platform-adapters';
 import { ReplaySubject, firstValueFrom, take } from 'rxjs';
-
-import {
-  FirebaseAuthClient,
-  FirebaseAuthUnsubscribe,
-  FirebaseAuthUser,
-  FirebaseIdTokenResult
-} from '@platform-adapters';
 
 @Injectable({ providedIn: 'root' })
 export class FirebaseAuthBridgeService {

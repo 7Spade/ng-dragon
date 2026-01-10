@@ -23,10 +23,10 @@ import { CELL_WIDGETS, SF_WIDGETS, ST_WIDGETS } from '@shared';
 import { zhCN as dateLang } from 'date-fns/locale';
 import { NzConfig, provideNzConfig } from 'ng-zorro-antd/core/config';
 import { zh_CN as zorroLang } from 'ng-zorro-antd/i18n';
-import { FirebaseAuthBridgeService } from './core/auth/firebase-auth-bridge.service';
 
 import { ICONS } from '../style-icons';
 import { ICONS_AUTO } from '../style-icons-auto';
+import { FirebaseAuthBridgeService } from './core/auth/firebase-auth-bridge.service';
 import { routes } from './features/routes';
 
 const defaultLang: AlainProvideLang = {

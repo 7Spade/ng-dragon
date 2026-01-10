@@ -1,7 +1,7 @@
 import { DomainEvent, EventContext, toEventMetadata } from '../events/domain-event';
+import { AccountId, WorkspaceId } from '../types/identifiers';
 import { AccountType } from '../value-objects/account-type';
 import { WorkspaceType } from '../value-objects/workspace-type';
-import { AccountId, WorkspaceId } from '../types/identifiers';
 
 export interface AccountSnapshot {
   accountId: AccountId;
@@ -35,7 +35,10 @@ export interface AccountCreationInput {
 export class AccountAggregate {
   constructor(private readonly snapshot: AccountSnapshot) {}
 
-  static create(input: AccountCreationInput, context: EventContext): {
+  static create(
+    input: AccountCreationInput,
+    context: EventContext
+  ): {
     aggregate: AccountAggregate;
     event: DomainEvent<AccountCreatedPayload>;
   } {
@@ -45,7 +48,7 @@ export class AccountAggregate {
       accountType: input.accountType,
       displayName: input.displayName,
       createdAt,
-      workspaceIds: input.workspaceIds ?? [],
+      workspaceIds: input.workspaceIds ?? []
     };
 
     const event: DomainEvent<AccountCreatedPayload> = {
@@ -56,21 +59,25 @@ export class AccountAggregate {
         accountId: snapshot.accountId,
         accountType: snapshot.accountType,
         displayName: snapshot.displayName,
-        createdAt: snapshot.createdAt,
+        createdAt: snapshot.createdAt
       },
-      metadata: toEventMetadata({ ...context, occurredAt: context.occurredAt ?? snapshot.createdAt }),
+      metadata: toEventMetadata({ ...context, occurredAt: context.occurredAt ?? snapshot.createdAt })
     };
 
     return { aggregate: new AccountAggregate(snapshot), event };
   }
 
-  createWorkspace(workspaceId: WorkspaceId, workspaceType: WorkspaceType, context: EventContext): {
+  createWorkspace(
+    workspaceId: WorkspaceId,
+    workspaceType: WorkspaceType,
+    context: EventContext
+  ): {
     aggregate: AccountAggregate;
     event: DomainEvent<WorkspaceCreatedPayload>;
   } {
     const nextSnapshot: AccountSnapshot = {
       ...this.snapshot,
-      workspaceIds: [...this.snapshot.workspaceIds, workspaceId],
+      workspaceIds: [...this.snapshot.workspaceIds, workspaceId]
     };
 
     const event: DomainEvent<WorkspaceCreatedPayload> = {
@@ -81,9 +88,9 @@ export class AccountAggregate {
       payload: {
         workspaceId,
         workspaceType,
-        accountId: this.snapshot.accountId,
+        accountId: this.snapshot.accountId
       },
-      metadata: toEventMetadata(context),
+      metadata: toEventMetadata(context)
     };
 
     return { aggregate: new AccountAggregate(nextSnapshot), event };

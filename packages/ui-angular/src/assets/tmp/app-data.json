@@ -20,6 +20,26 @@
           "i18n": "menu.dashboard",
           "link": "/dashboard/v1",
           "icon": "anticon-dashboard"
+        },
+        {
+          "text": "個人",
+          "link": "/workspaces/personal",
+          "icon": "anticon-user"
+        },
+        {
+          "text": "組織",
+          "link": "/organizations",
+          "icon": "anticon-apartment"
+        },
+        {
+          "text": "團隊",
+          "link": "/teams",
+          "icon": "anticon-team"
+        },
+        {
+          "text": "合作夥伴",
+          "link": "/partners",
+          "icon": "anticon-user-add"
         }
       ]
     }

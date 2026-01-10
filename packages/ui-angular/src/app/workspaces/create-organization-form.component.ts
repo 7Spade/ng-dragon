@@ -1,7 +1,7 @@
+import { WorkspaceType } from '@account-domain';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { WorkspaceType } from '@account-domain';
 import { FirebaseAuthBridgeService } from '@core';
 import { CreateOrganizationService } from '@platform-adapters';
 import { SHARED_IMPORTS } from '@shared';
@@ -46,8 +46,7 @@ export class CreateOrganizationFormComponent {
   });
 
   private readonly route = inject(ActivatedRoute);
-  readonly workspaceType: WorkspaceType =
-    (this.route.snapshot.data['workspaceType'] as WorkspaceType | undefined) ?? 'organization';
+  readonly workspaceType: WorkspaceType = (this.route.snapshot.data['workspaceType'] as WorkspaceType | undefined) ?? 'organization';
   private readonly workspaceLabel = this.toWorkspaceLabel(this.workspaceType);
 
   readonly pageTitle = `Create ${this.workspaceLabel}`;
