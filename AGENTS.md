@@ -1,75 +1,22 @@
-# 專案 Packages 邊界說明
+# Packages 邊界（總覽）
 
-此文件用來明確說明專案中各個 package 的責任範圍與邊界，以方便維護與開發協作。
+`packages/AGENTS.md` 是唯一事實來源；本檔提供精簡地圖，讓 Copilot 能零認知就知道程式要放哪裡。規劃或拆任務前，請在對話中呼叫 **server-sequential-thinking** 與 **software-planning-mcp** 取得步驟與待辦，再比對下列邊界。
 
-## packages
+## 依賴軌道
+```
+ui-angular → platform-adapters → core-engine → saas-domain → account-domain
+```
+- SDK 只允許出現在 `platform-adapters/src`；Domain / Core 只能寫純 TS。
+- UI 只能透過 adapters/facade 取用後端，不得直連 SDK 或 domain。
 
-根目錄，所有子 package 的集合。  
-不包含實際程式碼，僅用於管理與統一建構配置。
+## Package 職責與禁制
+- **account-domain**：帳號 / 工作區 / 模組啟用前置。純 VO/Entity/Policy/Event/Repository 介面。❌ SDK、Angular、HTTP、DB schema。
+- **saas-domain**：任務 / 議題 / 財務 / 品質 / 驗收等 SaaS 模型，僅依賴 account-domain。❌ 任何 SDK 或 UI 依賴。
+- **core-engine**：Command / Event / Saga / Bus / Unit of Work 抽象與流程協調，零業務 if/else，零 SDK。實作交給 adapters。
+- **platform-adapters**：唯一 SDK 層，實作 `core-engine` 的 ports（Firebase、HTTP、AI、Queue、Storage）。不得含業務規則，僅做轉接。
+- **ui-angular**：`src/app` 下的 Angular UI，透過 adapters 呼叫後端；允許 `@angular/fire`，禁止 `firebase-admin` 與直接使用 domain/core。
 
----
+## 放檔案的唯一入口
+所有程式碼一律放在各 package 的 `src/` 下（如 `packages/account-domain/src/aggregates/...`）。新增模組或路徑前先更新對應 README/AGENTS，保持與 Mermaid 架構文件一致。
 
-## account-domain
-
-**責任**：  
-- 定義帳號、使用者、組織、角色等核心業務模型。  
-- 實作 Value Object、Entity、Domain Service 等純領域邏輯。  
-
-**邊界**：  
-- 不依賴 UI 或第三方平台。  
-- 僅提供純粹的業務概念與規則給上層或其他 domain 使用。
-
----
-
-## core-engine
-
-**責任**：  
-- 核心事件、聚合、命令、投影、事件存儲（Event Store）等基礎架構。  
-- 提供 CQRS / Event Sourcing 的通用框架。  
-
-**邊界**：  
-- 與 domain 輕度耦合（聚合根操作），但不含任何 UI 或特定平台代碼。  
-- 供 domain 與上層應用層使用。
-
----
-
-## platform-adapters
-
-**責任**：  
-- 對接外部平台或服務，如資料庫、HTTP API、第三方 SDK。  
-- 實作 repository、adapter、gateway 等。  
-
-**邊界**：  
-- 不含業務邏輯，只做資料轉換與外部接口。  
-- 依賴 core-engine 提供的聚合 / 事件框架。
-
----
-
-## saas-domain
-
-**責任**：  
-- 特定 SaaS 功能相關的業務邏輯，如多租戶、方案設定、訂閱管理等。  
-- 擴展 account-domain 的基礎概念。  
-
-**邊界**：  
-- 依賴 account-domain 及 core-engine，但不依賴 UI。  
-- 專注於 SaaS 業務，避免與平台適配器直接耦合。
-
----
-
-## ui-angular
-
-**責任**：  
-- Angular 前端應用層。  
-- 提供登入、組織切換器、頁面呈現與用戶互動。  
-
-**邊界**：  
-- 僅依賴 domain 與 saas-domain 提供的服務 / API。  
-- 不實作 domain 或 core-engine 核心邏輯。
-
----
-
-> 💡 原則：
-> 1. **Domain-first**：業務邏輯在 domain，UI/平台只做呈現與橋接。  
-> 2. **不可跨界依賴**：每個 package 只依賴明確上層或下層。  
-> 3. **單一責任**：每個 package 專注一件事情，避免混合多種角色。
+更多細節與完整示意請參考 [`packages/AGENTS.md`](packages/AGENTS.md)。

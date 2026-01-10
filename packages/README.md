@@ -1,76 +1,33 @@
-# Packages Architecture
+# Packages Architecture（對齊 `packages/AGENTS.md`）
 
-DDD + Event Sourcing 分層，所有業務與技術元件都從 `packages/` 內部的 `src/` 作為單一入口，避免平行或重複的資料夾結構。
+`packages/AGENTS.md` 是邊界事實來源；此檔提供簡版地圖。新增功能前，請先用 **server-sequential-thinking** + **software-planning-mcp** 產生步驟與待辦，再比對下列路徑。
 
-## Overview（現況 + 後續規劃）
-
+## 目錄與單一入口
 ```
 packages/
-├── account-domain/          # 帳號 / 工作區 / 模組啟用（純 TS）
+├── account-domain/      # 帳號 / 工作區 / 模組啟用，純 TS
 │   └── src/{aggregates,value-objects,events,policies,domain-services,repositories,entities,types}
-├── core-engine/             # CQRS + Event Sourcing 基礎設施（純 TS）
+├── core-engine/         # CQRS + Event Sourcing 抽象，純 TS
 │   └── src/{commands,queries,use-cases,ports,mappers,dtos,jobs,schedulers}
-├── platform-adapters/       # 外部 SDK 介接（唯一可碰 SDK）
-│   └── src/{auth,ai,external-apis/google/genai,messaging,persistence}
-├── saas-domain/             # SaaS 模組（任務/議題/財務/品質/驗收）（純 TS）
+├── platform-adapters/   # 外部 SDK 介接，唯一可碰 SDK
+│   └── src/{auth,ai,external-apis/google/genai,messaging,persistence,firebase-platform}
+├── saas-domain/         # SaaS 模組（task/issue/finance/quality/acceptance），純 TS
 │   └── src/{aggregates,value-objects,events,domain-services,repositories,entities,policies}
-├── ui-angular/              # Angular 前端（位於根目錄 src/app）
-└── README.md
+└── ui-angular/          # Angular UI，位於根目錄 src/app（此處僅承載說明）
 ```
+> 所有新檔案一律放入各自 package 的 `src/`；禁止新增平行根目錄。
 
-> 未來的子模組請直接放在各自 package 的 `src/` 下，保持單一路徑，避免再出現平行根目錄。
-
-## Dependency Flow
-
+## 依賴軌道（單一方向）
 ```
-account-domain --> saas-domain --> ui-angular
-        \           ^
-         \          |
-          \-> core-engine <- platform-adapters
+ui-angular → platform-adapters → core-engine → saas-domain → account-domain
 ```
+- SDK 僅允許 `platform-adapters/src`；domain/core 層只寫純 TypeScript。
+- UI 只透過 adapters/facade 呼叫後端，不得直接觸碰 SDK 或 domain。
 
-- `account-domain`：身份 / 工作區 / 模組啟用前置邏輯，純 TS。
-- `core-engine`：事件、命令、聚合、投影基礎設施，純 TS、零 SDK。
-- `platform-adapters`：外部 SDK 介接（Firebase、訊息、持久化、Google GenAI 等）。
-- `saas-domain`：SaaS 業務模組，僅依賴 account-domain。
-- `ui-angular`：僅透過 adapters 使用能力，不可直接觸碰 core 或 SDK。
+## 硬性守則
+1. **單一入口**：每個 package 只有 `src/`；新增模組前先更新 README/AGENTS。
+2. **SDK 隔離**：任何第三方 SDK（Firebase、HTTP、AI）只准在 `platform-adapters`。
+3. **文件先行**：對齊 Mermaid 架構文件；先更新文件再寫碼。
+4. **計畫先跑工具**：規劃任務時先呼叫 server-sequential-thinking 產出步驟，再用 software-planning-mcp 維護待辦。
 
-## SDK Separation (硬規則)
-
-| 層級 | 可用 | 禁用 | 說明 |
-| --- | --- | --- | --- |
-| core-engine | TypeScript | Angular / Firebase / 任何 SDK | 純基礎設施 |
-| account-domain / saas-domain | TypeScript | 所有 SDK | 純業務邏輯 |
-| platform-adapters/src/persistence,auth,ai,external-apis | 第三方 SDK (firebase-admin, @angular/fire, Google AI SDK 等依場景) | 在未定義的層使用 SDK | 唯一 SDK 入口 |
-| ui-angular (src/app) | @angular/fire, @platform-adapters (client 介面) | firebase-admin | 前端 UI 層 |
-
-## TypeScript Path Mappings (root tsconfig)
-
-```json
-{
-  "paths": {
-    "@account-domain": ["packages/account-domain/index"],
-    "@account-domain/*": ["packages/account-domain/*"],
-    "@core-engine": ["packages/core-engine/index"],
-    "@core-engine/*": ["packages/core-engine/*"],
-    "@saas-domain": ["packages/saas-domain/index"],
-    "@saas-domain/*": ["packages/saas-domain/*"],
-    "@platform-adapters": ["packages/platform-adapters/index"],
-    "@platform-adapters/*": ["packages/platform-adapters/*"]
-  }
-}
-```
-
-## ESLint Protection
-
-- ❌ `core-engine/` 禁止 Angular / Firebase
-- ❌ `account-domain/`、`saas-domain/` 禁止任何 SDK
-- ❌ `platform-adapters` 中 `firebase/admin/` 禁止 `@angular/fire`
-- ❌ `platform-adapters` 中 `firebase/angular-fire/` 禁止 `firebase-admin`
-- ❌ `src/app/` 禁止 `firebase-admin`
-
-## Readiness Alignment（Mermaid 文件對齊）
-
-- `account-domain` 已收斂至單一 `src/` 入口；新增聚合請直接放入對應子資料夾。
-- `platform-adapters` 的 Google AI 集中於 `src/external-apis/google/genai`，避免平行的 `@google` 根。
-- `core-engine` / `saas-domain` / `ui-angular` 皆以 `src/` 為唯一入口，未來子模組請先更新 README/AGENTS 後再實作。
+完整細節與踩雷清單請閱讀 [`packages/AGENTS.md`](AGENTS.md)。

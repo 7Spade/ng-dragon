@@ -1,11 +1,8 @@
 # Core Engine
 
-💎 **Pure TypeScript CQRS / Event Sourcing 基礎層，零框架依賴**
+💎 **Pure TypeScript CQRS / Event Sourcing 抽象層** — 依 [`packages/AGENTS.md`](../AGENTS.md) 的邊界，所有實作交給 `platform-adapters`，業務規則交給 domain。開工前請先用 **server-sequential-thinking** + **software-planning-mcp** 拆解任務。
 
-> **核心永遠不知道 Angular 是什麼，也不碰任何 SDK**
-
-## 結構（現況 + 預備）
-
+## 結構（單一入口）
 ```
 core-engine/
 └── src/
@@ -17,29 +14,15 @@ core-engine/
     ├── dtos/          # 輸入/輸出 DTO
     ├── jobs/          # 背景工作定義
     ├── schedulers/    # 排程介面
-    └── __tests__/     # 核心規則測試（新增元件時同步補齊）
+    └── __tests__/     # 核心規則測試
 ```
+> 所有新增元件一律放在 `src/`；新增前先更新 README/AGENTS。
 
-## 原則
+## Guardrails
+- ❌ 禁止 Angular / Firebase / 任何 SDK
+- ❌ 不寫業務條件判斷（核心只協調流程）
+- ✅ 可被 `account-domain` / `saas-domain` 呼叫，實作則由 `platform-adapters` 提供
+- ✅ 單一依賴軌道：UI → adapters → core-engine → domain
 
-- ❌ 禁止 Angular / Firebase / 任意 SDK
-- ✅ 只定義介面與純邏輯，實作放在 `platform-adapters`
-- ✅ 可由 `account-domain` / `saas-domain` 引用
-- ✅ 單一入口 `src/`，新增元件前先更新 README/AGENTS
-
-## 使用範例
-
-核心層僅保留抽象接口；實際 command / handler / port 請在 domain 套件定義，並由 platform-adapters 負責具體實作與注入。
-
-## 依賴位置
-
-```
-core-engine (純抽象) <-- platform-adapters (具體實作)
-         ^
-         |
-account-domain / saas-domain (呼叫抽象介面)
-```
-
-## License
-
-MIT
+## 使用說明
+核心層只保留抽象接口與流程協調；Command/Handler/Port 定義在此，實作與外部服務連線全部移至 `platform-adapters`。修改抽象時，請同步更新對應的 adapter 實作與測試。
