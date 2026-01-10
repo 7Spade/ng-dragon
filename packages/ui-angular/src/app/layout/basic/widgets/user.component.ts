@@ -102,20 +102,15 @@ import { map, shareReplay } from 'rxjs/operators';
           <i nz-icon nzType="plus" class="mr-sm"></i>{{ 'menu.account.organizations.create' | i18n: 'Create organization' }}
         </div>
 
-        @if (activeWorkspaceName()) {
-          <div nz-menu-item class="text-muted">
-            {{ 'menu.account.workspaces.current' | i18n: 'Current context' }}: {{ activeWorkspaceName() }}
-          </div>
-          <div nz-menu-item [nzDisabled]="!isMember(activeWorkspaceId())" (click)="createTeam()">
-            <i nz-icon nzType="team" class="mr-sm"></i>{{ 'menu.account.organizations.createTeam' | i18n: 'Create team' }}
-          </div>
-          <div nz-menu-item (click)="createPartner()">
-            <i nz-icon nzType="user-add" class="mr-sm"></i>{{ 'menu.account.organizations.createPartner' | i18n: 'Create partner' }}
-          </div>
-          <div nz-menu-item (click)="createProject()">
-            <i nz-icon nzType="appstore-add" class="mr-sm"></i>{{ 'menu.account.organizations.createProject' | i18n: 'Create project' }}
-          </div>
-        }
+        <div nz-menu-item [nzDisabled]="!isMember(activeWorkspaceId())" (click)="createTeam()">
+          <i nz-icon nzType="team" class="mr-sm"></i>{{ 'menu.account.organizations.createTeam' | i18n: 'Create team' }}
+        </div>
+        <div nz-menu-item (click)="createPartner()">
+          <i nz-icon nzType="user-add" class="mr-sm"></i>{{ 'menu.account.organizations.createPartner' | i18n: 'Create partner' }}
+        </div>
+        <div nz-menu-item (click)="createProject()">
+          <i nz-icon nzType="appstore-add" class="mr-sm"></i>{{ 'menu.account.organizations.createProject' | i18n: 'Create project' }}
+        </div>
 
         <li nz-menu-divider></li>
 
