@@ -1,11 +1,4 @@
-import {
-  AppendEventsRequest,
-  AppendEventsResponse,
-  EventEnvelope,
-  EventStore,
-  ListEventsParams,
-  ReplayOptions
-} from '@core-engine';
+import { AppendEventsRequest, AppendEventsResponse, EventEnvelope, EventStore, ListEventsParams, ReplayOptions } from '@core-engine';
 
 import { firestore } from '../../firebase-platform/firestore';
 
@@ -76,7 +69,6 @@ export class FirebaseEventStore implements EventStore {
     const batchSize = options.batchSize ?? options.limit ?? 100;
     let afterSequence = options.afterSequence ?? 0;
 
-    // eslint-disable-next-line no-constant-condition
     while (true) {
       const batch = await this.listEvents<TPayload>({
         aggregateId: options.aggregateId,

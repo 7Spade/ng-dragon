@@ -189,9 +189,7 @@ export class HeaderUserComponent {
 
   private readonly storedWorkspaceId = signal<string | null>(this.loadStoredWorkspaceId());
   readonly activeWorkspaceId = signal<string | null>(this.storedWorkspaceId());
-  private readonly activeWorkspace = computed(() =>
-    this.availableWorkspaces().find(ws => ws.id === this.activeWorkspaceId()) ?? null
-  );
+  private readonly activeWorkspace = computed(() => this.availableWorkspaces().find(ws => ws.id === this.activeWorkspaceId()) ?? null);
   readonly activeWorkspaceName = computed(() => {
     const ws = this.activeWorkspace();
     if (!ws) return null;
@@ -219,8 +217,8 @@ export class HeaderUserComponent {
       .catch(() => this.currentUserId.set(null));
 
     effect(() => {
-       const list = this.availableWorkspaces();
-       if (!list.length) return;
+      const list = this.availableWorkspaces();
+      if (!list.length) return;
 
       const storedId = this.storedWorkspaceId();
       const stored = storedId ? list.find(ws => ws.id === storedId) : null;
@@ -267,9 +265,7 @@ export class HeaderUserComponent {
 
   readonly partnerWorkspaces = computed(() => this.availableWorkspaces().filter(ws => ws.workspaceType === 'partner'));
 
-  readonly personalWorkspaces = computed(() =>
-    this.availableWorkspaces().filter(ws => ws.workspaceType === 'personal')
-  );
+  readonly personalWorkspaces = computed(() => this.availableWorkspaces().filter(ws => ws.workspaceType === 'personal'));
 
   private readonly membershipLookup = computed(() => this.workspacePartitions().membership);
 
@@ -325,7 +321,7 @@ export class HeaderUserComponent {
     const isPersonal = workspace.workspaceType === 'personal';
     this.settings.setUser({
       ...this.settings.user,
-      name: isPersonal ? this.settings.user.name : workspace.name ?? this.settings.user.name,
+      name: isPersonal ? this.settings.user.name : (workspace.name ?? this.settings.user.name),
       avatar: this.workspaceAvatarById(workspace.id),
       email: isPersonal ? this.settings.user.email : baseEmail
     });
