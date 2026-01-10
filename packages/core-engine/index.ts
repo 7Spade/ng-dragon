@@ -17,10 +17,10 @@
  * - Event Sourcing infrastructure (NEW - Phase 2)
  */
 
-export * from './causality';
-export * from './event-store';
-export * from './aggregates';
-export * from './projection';
+export * from './src/causality';
+export * from './src/event-store';
+export * from './src/aggregates';
+export * from './src/projection';
 export * from './src/value-objects';
 export * from './src/ports';
 export * from './src/mappers';
