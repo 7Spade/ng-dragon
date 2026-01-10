@@ -1,14 +1,3 @@
-/**
- * ContainerScope - Logical Container Value Object
- *
- * Represents a Workspace as a logical scope/boundary, NOT an actor.
- * Per Logical-Container-Role.md:
- * - Workspace is a Context/Scope/Boundary
- * - Answers "Where?" not "Who?"
- * - Never appears in Event.actorAccountId
- *
- * Dependency: Account → Workspace → Module → Entity
- */
 export class ContainerScope {
     constructor(scopeId, scopeType) {
         this.scopeId = scopeId;

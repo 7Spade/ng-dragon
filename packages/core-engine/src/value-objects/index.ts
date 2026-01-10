@@ -1,3 +1,3 @@
 export { CausalityChain } from './causality-chain';
 export { AffectedEntity } from './affected-entity';
-export { EventMetadata } from './event-metadata';
+export { EventMetadata, IContainerScope } from './event-metadata';

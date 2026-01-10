@@ -17,6 +17,7 @@
     "incremental": true,
     "paths": {
       "@account-domain": ["packages/account-domain/index.ts"],
+      "@core-engine": ["packages/core-engine/index.ts"],
       "@saas-domain": ["packages/saas-domain/index.ts"],
       "@platform-adapters": ["packages/platform-adapters/index.ts"],
       "@ui-angular/*": ["packages/ui-angular/src/app/*"]

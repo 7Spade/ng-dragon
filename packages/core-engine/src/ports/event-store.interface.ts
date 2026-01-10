@@ -46,7 +46,7 @@ export interface IEventStore {
   appendEvents<TPayload>(
     aggregateId: string,
     aggregateType: string,
-    events: Array<{
+    events: ReadonlyArray<{
       eventType: string;
       payload: TPayload;
       metadata: EventMetadata;

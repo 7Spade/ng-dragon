@@ -8,8 +8,11 @@
  * - Never appears in Event.actorAccountId
  *
  * Dependency: Account → Workspace → Module → Entity
+ *
+ * Implements IContainerScope from core-engine for compatibility
  */
-export declare class ContainerScope {
+import type { IContainerScope } from '@core-engine';
+export declare class ContainerScope implements IContainerScope {
     readonly scopeId: string;
     readonly scopeType: 'workspace' | 'organization' | 'team' | 'project';
     constructor(scopeId: string, scopeType: 'workspace' | 'organization' | 'team' | 'project');
