@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { ACLService } from '@delon/acl';
 import { MenuService, SettingsService, TitleService, ALAIN_I18N_TOKEN } from '@delon/theme';
 import { FirebaseAuthUser, UserProfile, UserProfileClient } from '@platform-adapters';
-import { Observable, from, of } from 'rxjs';
+import { Observable, from, of, firstValueFrom } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 import { FirebaseAuthBridgeService } from '../auth/firebase-auth-bridge.service';
@@ -49,7 +49,7 @@ export class StartupService {
   private async loadAsync(): Promise<void> {
     // 1. 載入語言資料
     const defaultLang = this.i18n.defaultLang;
-    const langData = await this.i18n.loadLangData(defaultLang).toPromise();
+    const langData = await firstValueFrom(this.i18n.loadLangData(defaultLang));
     this.i18n.use(defaultLang, langData);
 
     // 2. 等待 Firebase Auth 初始化（統一從 bridge 取得，避免重複監聽）
@@ -93,7 +93,7 @@ export class StartupService {
       });
 
       // 載入用戶特定的選單
-      const menu = await this.loadUserMenu(user.uid, userProfile.role);
+      const menu = await this.loadUserMenu();
       this.menuService.add(menu);
     } catch (error) {
       console.error('Failed to load user data:', error);
@@ -120,7 +120,7 @@ export class StartupService {
   /**
    * 根據用戶角色載入選單
    */
-  private async loadUserMenu(uid: string, role?: string): Promise<any[]> {
+  private async loadUserMenu(): Promise<any[]> {
     // TODO: 根據用戶角色從 Firestore 或 Remote Config 載入選單
     // 目前使用預設選單
     return this.getDefaultMenu();

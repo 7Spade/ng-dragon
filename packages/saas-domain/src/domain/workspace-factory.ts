@@ -1,11 +1,4 @@
-import {
-  DomainEvent,
-  EventContext,
-  ModuleStatus,
-  WorkspaceAggregate,
-  WorkspaceSnapshot,
-  WorkspaceMember
-} from '@account-domain';
+import { DomainEvent, EventContext, ModuleStatus, WorkspaceAggregate, WorkspaceSnapshot, WorkspaceMember } from '@account-domain';
 
 import { CreateOrganizationCommand } from '../commands/create-organization-command';
 import { WorkspaceCreatedEvent } from '../events/workspace-created.event';
