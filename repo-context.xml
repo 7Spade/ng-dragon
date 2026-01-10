@@ -65,12 +65,22 @@ packages/core-engine/package.json
 packages/core-engine/src/commands/index.ts
 packages/core-engine/src/dtos/index.ts
 packages/core-engine/src/jobs/index.ts
+packages/core-engine/src/mappers/domain-event.mapper.ts
 packages/core-engine/src/mappers/index.ts
+packages/core-engine/src/ports/event-projector.interface.ts
+packages/core-engine/src/ports/event-replayer.interface.ts
+packages/core-engine/src/ports/event-store.interface.ts
 packages/core-engine/src/ports/index.ts
+packages/core-engine/src/ports/search.repository.ts
 packages/core-engine/src/ports/workspace.repository.ts
 packages/core-engine/src/queries/index.ts
+packages/core-engine/src/queries/search-query.ts
 packages/core-engine/src/schedulers/index.ts
 packages/core-engine/src/use-cases/index.ts
+packages/core-engine/src/value-objects/affected-entity.ts
+packages/core-engine/src/value-objects/causality-chain.ts
+packages/core-engine/src/value-objects/event-metadata.ts
+packages/core-engine/src/value-objects/index.ts
 packages/core-engine/tsconfig.json
 packages/platform-adapters/index.ts
 packages/platform-adapters/package.json
@@ -97,9 +107,12 @@ packages/platform-adapters/src/firebase-platform/pubsub/index.ts
 packages/platform-adapters/src/firebase-platform/remote-config/index.ts
 packages/platform-adapters/src/firebase-platform/storage/index.ts
 packages/platform-adapters/src/firebase-platform/workspace.repository.firebase.ts
+packages/platform-adapters/src/persistence/event-store/firebase-event-store.ts
 packages/platform-adapters/src/persistence/index.ts
 packages/platform-adapters/src/persistence/workspaces/firestore-workspace.repository.ts
 packages/platform-adapters/src/persistence/workspaces/workspace.service.factory.ts
+packages/platform-adapters/src/search/firestore-search.repository.ts
+packages/platform-adapters/src/search/index.ts
 packages/platform-adapters/tsconfig.json
 packages/saas-domain/index.ts
 packages/saas-domain/package.json
@@ -354,20 +367,6 @@ export interface ModuleStatus {
 }
 </file>
 
-<file path="packages/core-engine/tsconfig.json">
-{
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "rootDir": ".",
-    "outDir": "dist",
-    "composite": true
-  },
-  "include": ["**/*.ts"],
-  "exclude": ["node_modules", "dist", "**/*.spec.ts"],
-  "references": []
-}
-</file>
-
 <file path="packages/platform-adapters/src/ai/index.ts">
 // Placeholder for AI adapters.
 export {};
@@ -392,6 +391,20 @@ export const getFirebaseAdminApp = (options?: AppOptions): App => {
   }
   return initializeApp(options);
 };
+</file>
+
+<file path="packages/platform-adapters/src/firebase-platform/index.ts">
+export * from './app/firebase.app';
+export * from './app-check/app-check.client';
+export * from './auth/auth.client';
+export * from './firestore';
+export * from './storage';
+export * from './observability/firebase.logging';
+export * from './observability/firebase.metrics';
+export * from './remote-config';
+export * from './messaging';
+export * from './pubsub';
+export * from './workspace.repository.firebase';
 </file>
 
 <file path="packages/platform-adapters/src/firebase-platform/observability/firebase.logging.ts">
@@ -424,29 +437,6 @@ export interface CounterMetric {
 export const incrementCounter = ({ name, labels }: CounterMetric, amount = 1): void => {
   console.debug('[metric]', name, amount, labels);
 };
-</file>
-
-<file path="packages/platform-adapters/src/persistence/index.ts">
-export * from './workspaces/firestore-workspace.repository';
-export * from './workspaces/workspace.service.factory';
-</file>
-
-<file path="packages/platform-adapters/tsconfig.json">
-{
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "rootDir": ".",
-    "outDir": "dist",
-    "composite": true,
-    "types": ["node"]
-  },
-  "include": ["**/*.ts"],
-  "exclude": ["node_modules", "dist", "**/*.spec.ts"],
-  "references": [
-    { "path": "../core-engine" },
-    { "path": "../saas-domain" }
-  ]
-}
 </file>
 
 <file path="packages/ui-angular/angular.json">
@@ -3557,6 +3547,120 @@ export class ModuleRegistryAggregate {
 }
 </file>
 
+<file path="packages/account-domain/src/aggregates/workspace.aggregate.ts">
+import { DomainEvent, EventContext, toEventMetadata } from '../events/domain-event';
+import { AccountId, ModuleKey, WorkspaceId } from '../types/identifiers';
+import { AccountType } from '../value-objects/account-type';
+import { MemberRole } from '../value-objects/member-role';
+import { ModuleStatus, ModuleType } from '../value-objects/module-types';
+import { WorkspaceType } from '../value-objects/workspace-type';
+
+export interface WorkspaceMember {
+  accountId: AccountId;
+  role: MemberRole;
+  accountType: AccountType;
+}
+
+export interface WorkspaceSnapshot {
+  workspaceId: WorkspaceId;
+  accountId: AccountId;
+  workspaceType: WorkspaceType;
+  modules: ModuleStatus[];
+  createdAt: string;
+  name?: string;
+  members: WorkspaceMember[];
+  ownerAccountId?: AccountId;
+}
+
+export interface ModuleToggledPayload {
+  workspaceId: WorkspaceId;
+  moduleKey: ModuleKey;
+  moduleType: ModuleType;
+  enabled: boolean;
+}
+
+export interface WorkspaceCreationInput {
+  workspaceId: WorkspaceId;
+  accountId: AccountId;
+  workspaceType: WorkspaceType;
+  createdAt?: string;
+  modules?: ModuleStatus[];
+  name?: string;
+  members?: WorkspaceMember[];
+  ownerAccountId?: AccountId;
+  ownerAccountType?: AccountType;
+}
+
+export class WorkspaceAggregate {
+  constructor(private readonly snapshot: WorkspaceSnapshot) {}
+
+  static create(
+    input: WorkspaceCreationInput,
+    context: EventContext
+  ): {
+    aggregate: WorkspaceAggregate;
+    event: DomainEvent<WorkspaceSnapshot>;
+  } {
+    const createdAt = input.createdAt ?? new Date().toISOString();
+    const ownerAccountId = input.ownerAccountId ?? input.accountId;
+    const ownerAccountType = input.ownerAccountType ?? 'user';
+    const members = input.members ?? (ownerAccountId ? [{ accountId: ownerAccountId, role: 'owner', accountType: ownerAccountType }] : []);
+
+    const snapshot: WorkspaceSnapshot = {
+      workspaceId: input.workspaceId,
+      accountId: input.accountId,
+      workspaceType: input.workspaceType,
+      modules: input.modules ?? [],
+      createdAt,
+      name: input.name,
+      members,
+      ownerAccountId
+    };
+
+    const event: DomainEvent<WorkspaceSnapshot> = {
+      eventType: 'WorkspaceCreated',
+      aggregateId: snapshot.workspaceId,
+      accountId: snapshot.accountId,
+      workspaceId: snapshot.workspaceId,
+      payload: snapshot,
+      metadata: toEventMetadata({ ...context, occurredAt: context.occurredAt ?? snapshot.createdAt })
+    };
+
+    return { aggregate: new WorkspaceAggregate(snapshot), event };
+  }
+
+  toggleModule(
+    moduleKey: ModuleKey,
+    moduleType: ModuleType,
+    enabled: boolean,
+    context: EventContext
+  ): {
+    aggregate: WorkspaceAggregate;
+    event: DomainEvent<ModuleToggledPayload>;
+  } {
+    const modules = this.snapshot.modules.filter(m => m.moduleKey !== moduleKey);
+    const nextModules: ModuleStatus[] = [...modules, { moduleKey, moduleType, enabled }];
+    const nextSnapshot: WorkspaceSnapshot = { ...this.snapshot, modules: nextModules };
+
+    const event: DomainEvent<ModuleToggledPayload> = {
+      eventType: enabled ? 'ModuleEnabled' : 'ModuleDisabled',
+      aggregateId: this.snapshot.workspaceId,
+      accountId: this.snapshot.accountId,
+      workspaceId: this.snapshot.workspaceId,
+      moduleKey,
+      payload: { workspaceId: this.snapshot.workspaceId, moduleKey, moduleType, enabled },
+      metadata: toEventMetadata(context)
+    };
+
+    return { aggregate: new WorkspaceAggregate(nextSnapshot), event };
+  }
+
+  get state(): WorkspaceSnapshot {
+    return this.snapshot;
+  }
+}
+</file>
+
 <file path="packages/account-domain/tsconfig.json">
 {
   "extends": "../../tsconfig.base.json",
@@ -3571,16 +3675,213 @@ export class ModuleRegistryAggregate {
 }
 </file>
 
-<file path="packages/core-engine/src/ports/index.ts">
-export * from './workspace.repository';
+<file path="packages/core-engine/src/mappers/domain-event.mapper.ts">
+import { DomainEvent } from '@account-domain';
+
+import { EventEnvelope } from '../ports';
+import { EventId, createEventMetadata } from '../value-objects';
+
+const randomId = (): EventId => `evt_${Date.now()}_${Math.random().toString(36).slice(2, 10)}` as EventId;
+
+export const toEventEnvelope = <TPayload = unknown>(
+  event: DomainEvent<TPayload>,
+  aggregateType: string,
+  sequence: number
+): EventEnvelope<TPayload> => ({
+  id: (event.metadata?.traceId as EventId) ?? randomId(),
+  aggregateId: event.aggregateId,
+  aggregateType,
+  sequence,
+  event: {
+    ...event,
+    metadata: createEventMetadata({
+      actorId: event.metadata.actorId,
+      traceId: event.metadata.traceId,
+      causedBy: event.metadata.causedBy,
+      occurredAt: event.metadata.occurredAt
+    })
+  },
+  metadata: createEventMetadata({
+    actorId: event.metadata.actorId,
+    traceId: event.metadata.traceId,
+    causedBy: event.metadata.causedBy,
+    occurredAt: event.metadata.occurredAt
+  })
+});
 </file>
 
-<file path="packages/platform-adapters/server.ts">
-// Server-only exports (firebase-admin)
-// DO NOT import this in frontend code
+<file path="packages/core-engine/src/ports/event-projector.interface.ts">
+import { EventEnvelope } from './event-store.interface';
 
-export * from './src/firebase-platform';
-export * from './src/persistence';
+export interface EventProjector<TPayload = unknown> {
+  project(events: EventEnvelope<TPayload>[]): Promise<void>;
+}
+</file>
+
+<file path="packages/core-engine/src/ports/event-replayer.interface.ts">
+import { EventEnvelope, ReplayOptions } from './event-store.interface';
+
+export interface EventReplayer<TPayload = unknown> {
+  replay(options: ReplayOptions<TPayload>): Promise<void>;
+  onReplay?(events: EventEnvelope<TPayload>[]): Promise<void>;
+}
+</file>
+
+<file path="packages/core-engine/src/ports/event-store.interface.ts">
+import { DomainEvent } from '@account-domain';
+
+import { AffectedEntity, CausalityChain, EventId, EventMetadata } from '../value-objects';
+
+export interface EventEnvelope<TPayload = unknown> {
+  id: EventId;
+  aggregateId: string;
+  aggregateType: string;
+  sequence: number;
+  event: DomainEvent<TPayload>;
+  metadata: EventMetadata;
+  affectedEntities?: AffectedEntity[];
+}
+
+export interface EventWrite<TPayload = unknown> {
+  event: DomainEvent<TPayload>;
+  affectedEntities?: AffectedEntity[];
+}
+
+export interface AppendEventsRequest<TPayload = unknown> extends CausalityChain {
+  aggregateId: string;
+  aggregateType?: string;
+  events: EventWrite<TPayload>[];
+  expectedSequence?: number;
+}
+
+export interface AppendEventsResponse {
+  nextSequence: number;
+}
+
+export interface ListEventsParams {
+  aggregateId: string;
+  afterSequence?: number;
+  limit?: number;
+}
+
+export interface ReplayOptions<TPayload = unknown> extends ListEventsParams {
+  batchSize?: number;
+  onEvents: (events: EventEnvelope<TPayload>[]) => Promise<void> | void;
+}
+
+export interface EventStore {
+  appendEvents<TPayload = unknown>(request: AppendEventsRequest<TPayload>): Promise<AppendEventsResponse>;
+  listEvents<TPayload = unknown>(params: ListEventsParams): Promise<Array<EventEnvelope<TPayload>>>;
+  replay<TPayload = unknown>(options: ReplayOptions<TPayload>): Promise<void>;
+}
+</file>
+
+<file path="packages/core-engine/src/ports/search.repository.ts">
+import { SearchQuery } from '../queries';
+
+export interface SearchRepository<TResult> {
+  search(query: SearchQuery): Promise<TResult[]>;
+}
+</file>
+
+<file path="packages/core-engine/src/queries/search-query.ts">
+export type SearchOperator = '==' | 'array-contains' | 'array-contains-any' | 'in' | '>' | '>=' | '<' | '<=';
+
+export interface SearchFilter {
+  field: string;
+  op: SearchOperator;
+  value: unknown;
+}
+
+export interface SearchQuery {
+  term: string;
+  limit?: number;
+  cursor?: string;
+  filters?: SearchFilter[];
+}
+
+export interface NormalizedSearchQuery extends SearchQuery {
+  term: string;
+  limit: number;
+  filters: SearchFilter[];
+}
+
+export const normalizeSearchQuery = (input: SearchQuery): NormalizedSearchQuery => {
+  const trimmedTerm = (input.term ?? '').trim();
+  const limit = input.limit && input.limit > 0 ? Math.min(input.limit, 50) : 20;
+  return {
+    term: trimmedTerm,
+    limit,
+    cursor: input.cursor,
+    filters: input.filters ?? []
+  };
+};
+</file>
+
+<file path="packages/core-engine/src/value-objects/affected-entity.ts">
+export interface AffectedEntity {
+  entityId: string;
+  entityType: string;
+  workspaceId?: string;
+  moduleKey?: string;
+}
+</file>
+
+<file path="packages/core-engine/src/value-objects/causality-chain.ts">
+import { EventId, TraceId } from './event-metadata';
+
+export interface CausalityChain {
+  traceId?: TraceId;
+  causedBy?: EventId[];
+}
+</file>
+
+<file path="packages/core-engine/src/value-objects/event-metadata.ts">
+import { AccountId } from '@account-domain';
+
+export type EventId = string & { readonly __brand: 'EventId' };
+export type TraceId = string & { readonly __brand: 'TraceId' };
+
+export interface EventMetadata {
+  actorId: AccountId;
+  traceId?: TraceId;
+  causedBy?: EventId[];
+  occurredAt: string;
+}
+
+export const createEventMetadata = (input: {
+  actorId: AccountId;
+  traceId?: string;
+  causedBy?: string[];
+  occurredAt?: string;
+}): EventMetadata => ({
+  actorId: input.actorId,
+  traceId: input.traceId as TraceId | undefined,
+  causedBy: input.causedBy as EventId[] | undefined,
+  occurredAt: input.occurredAt ?? new Date().toISOString()
+});
+</file>
+
+<file path="packages/core-engine/src/value-objects/index.ts">
+export * from './event-metadata';
+export * from './causality-chain';
+export * from './affected-entity';
+</file>
+
+<file path="packages/core-engine/tsconfig.json">
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "dist",
+    "composite": true
+  },
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules", "dist", "**/*.spec.ts"],
+  "references": [
+    { "path": "../account-domain" }
+  ]
+}
 </file>
 
 <file path="packages/platform-adapters/src/client-adapter/auth/firebase-auth.client.ts">
@@ -3723,20 +4024,6 @@ export const getCollection = <T = FirebaseFirestore.DocumentData>(collectionPath
   firestore().collection(collectionPath) as FirebaseFirestore.CollectionReference<T>;
 </file>
 
-<file path="packages/platform-adapters/src/firebase-platform/index.ts">
-export * from './app/firebase.app';
-export * from './app-check/app-check.client';
-export * from './auth/auth.client';
-export * from './firestore';
-export * from './storage';
-export * from './observability/firebase.logging';
-export * from './observability/firebase.metrics';
-export * from './remote-config';
-export * from './messaging';
-export * from './pubsub';
-export * from './workspace.repository.firebase';
-</file>
-
 <file path="packages/platform-adapters/src/firebase-platform/messaging/index.ts">
 import { getMessaging, Message, MulticastMessage, BatchResponse } from 'firebase-admin/messaging';
 
@@ -3817,10 +4104,162 @@ export const storage = (): Storage => getStorage(getFirebaseAdminApp());
 export const defaultBucket = (): Bucket => storage().bucket();
 </file>
 
+<file path="packages/platform-adapters/src/persistence/event-store/firebase-event-store.ts">
+import {
+  AppendEventsRequest,
+  AppendEventsResponse,
+  EventEnvelope,
+  EventStore,
+  ListEventsParams,
+  ReplayOptions
+} from '@core-engine';
+
+import { firestore } from '../../firebase-platform/firestore';
+
+const EVENT_STREAMS_COLLECTION = 'event-streams';
+
+export class FirebaseEventStore implements EventStore {
+  private readonly db = firestore();
+
+  async appendEvents<TPayload = unknown>(request: AppendEventsRequest<TPayload>): Promise<AppendEventsResponse> {
+    const now = new Date().toISOString();
+    return this.db.runTransaction(async tx => {
+      const streamRef = this.db.collection(EVENT_STREAMS_COLLECTION).doc(request.aggregateId);
+      const streamState = await tx.get(streamRef);
+      const currentSequence = (streamState.exists ? (streamState.get('lastSequence') as number) : 0) ?? 0;
+
+      if (request.expectedSequence !== undefined && currentSequence !== request.expectedSequence) {
+        throw new Error(`Version mismatch: expected sequence ${request.expectedSequence}, found ${currentSequence}`);
+      }
+
+      const eventsRef = streamRef.collection('events');
+      let nextSequence = currentSequence;
+
+      request.events.forEach(write => {
+        nextSequence += 1;
+        const envelope: EventEnvelope<TPayload> = {
+          id: `evt-${request.aggregateId}-${nextSequence}` as EventEnvelope<TPayload>['id'],
+          aggregateId: request.aggregateId,
+          aggregateType: request.aggregateType ?? write.event.eventType,
+          sequence: nextSequence,
+          event: write.event,
+          metadata: {
+            actorId: write.event.metadata.actorId,
+            traceId: write.event.metadata.traceId,
+            causedBy: write.event.metadata.causedBy,
+            occurredAt: write.event.metadata.occurredAt ?? now
+          },
+          affectedEntities: write.affectedEntities
+        };
+
+        tx.set(eventsRef.doc(envelope.id), envelope);
+      });
+
+      tx.set(streamRef, { lastSequence: nextSequence, aggregateType: request.aggregateType ?? null, updatedAt: now }, { merge: true });
+      return { nextSequence };
+    });
+  }
+
+  async listEvents<TPayload = unknown>(params: ListEventsParams): Promise<Array<EventEnvelope<TPayload>>> {
+    const streamRef = this.db
+      .collection(EVENT_STREAMS_COLLECTION)
+      .doc(params.aggregateId)
+      .collection('events') as FirebaseFirestore.CollectionReference<EventEnvelope<TPayload>>;
+
+    let queryRef: FirebaseFirestore.Query<EventEnvelope<TPayload>> = streamRef;
+    if (params.afterSequence !== undefined) {
+      queryRef = queryRef.where('sequence', '>', params.afterSequence);
+    }
+    queryRef = queryRef.orderBy('sequence', 'asc');
+    if (params.limit !== undefined) {
+      queryRef = queryRef.limit(params.limit);
+    }
+
+    const snapshot = await queryRef.get();
+    return snapshot.docs.map(doc => doc.data());
+  }
+
+  async replay<TPayload = unknown>(options: ReplayOptions<TPayload>): Promise<void> {
+    const batchSize = options.batchSize ?? options.limit ?? 100;
+    let afterSequence = options.afterSequence ?? 0;
+
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const batch = await this.listEvents<TPayload>({
+        aggregateId: options.aggregateId,
+        afterSequence,
+        limit: batchSize
+      });
+      if (!batch.length) break;
+
+      await options.onEvents(batch);
+      afterSequence = batch[batch.length - 1].sequence;
+
+      if (batch.length < batchSize) break;
+    }
+  }
+}
+</file>
+
+<file path="packages/platform-adapters/src/persistence/index.ts">
+export * from './workspaces/firestore-workspace.repository';
+export * from './workspaces/workspace.service.factory';
+export * from './event-store/firebase-event-store';
+</file>
+
 <file path="packages/platform-adapters/src/persistence/workspaces/firestore-workspace.repository.ts">
 import { WorkspaceRepositoryFirebase } from '../../firebase-platform/workspace.repository.firebase';
 
 export { WorkspaceRepositoryFirebase as FirestoreWorkspaceRepository };
+</file>
+
+<file path="packages/platform-adapters/src/search/firestore-search.repository.ts">
+import { normalizeSearchQuery, SearchQuery, SearchRepository } from '@core-engine';
+
+import { getCollection } from '../firebase-platform/firestore';
+
+const DEFAULT_COLLECTION = 'search-index';
+
+export class FirestoreSearchRepository<TResult extends Record<string, unknown> = Record<string, unknown>>
+  implements SearchRepository<TResult>
+{
+  constructor(private readonly collectionName: string = DEFAULT_COLLECTION) {}
+
+  async search(query: SearchQuery): Promise<TResult[]> {
+    const normalized = normalizeSearchQuery(query);
+    if (!normalized.term) return [];
+
+    const ref = getCollection<TResult>(this.collectionName)
+      .where('terms', 'array-contains', normalized.term.toLowerCase())
+      .limit(normalized.limit);
+
+    const snapshot = await ref.get();
+    return snapshot.docs.map(doc => doc.data() as TResult);
+  }
+}
+</file>
+
+<file path="packages/platform-adapters/src/search/index.ts">
+export * from './firestore-search.repository';
+</file>
+
+<file path="packages/platform-adapters/tsconfig.json">
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "dist",
+    "composite": true,
+    "types": ["node"]
+  },
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules", "dist", "**/*.spec.ts"],
+  "references": [
+    { "path": "../account-domain" },
+    { "path": "../core-engine" },
+    { "path": "../saas-domain" }
+  ]
+}
 </file>
 
 <file path="packages/saas-domain/tsconfig.json">
@@ -4384,120 +4823,6 @@ export class UserRegisterComponent {
 }
 </file>
 
-<file path="packages/account-domain/src/aggregates/workspace.aggregate.ts">
-import { DomainEvent, EventContext, toEventMetadata } from '../events/domain-event';
-import { AccountId, ModuleKey, WorkspaceId } from '../types/identifiers';
-import { AccountType } from '../value-objects/account-type';
-import { MemberRole } from '../value-objects/member-role';
-import { ModuleStatus, ModuleType } from '../value-objects/module-types';
-import { WorkspaceType } from '../value-objects/workspace-type';
-
-export interface WorkspaceMember {
-  accountId: AccountId;
-  role: MemberRole;
-  accountType: AccountType;
-}
-
-export interface WorkspaceSnapshot {
-  workspaceId: WorkspaceId;
-  accountId: AccountId;
-  workspaceType: WorkspaceType;
-  modules: ModuleStatus[];
-  createdAt: string;
-  name?: string;
-  members: WorkspaceMember[];
-  ownerAccountId?: AccountId;
-}
-
-export interface ModuleToggledPayload {
-  workspaceId: WorkspaceId;
-  moduleKey: ModuleKey;
-  moduleType: ModuleType;
-  enabled: boolean;
-}
-
-export interface WorkspaceCreationInput {
-  workspaceId: WorkspaceId;
-  accountId: AccountId;
-  workspaceType: WorkspaceType;
-  createdAt?: string;
-  modules?: ModuleStatus[];
-  name?: string;
-  members?: WorkspaceMember[];
-  ownerAccountId?: AccountId;
-  ownerAccountType?: AccountType;
-}
-
-export class WorkspaceAggregate {
-  constructor(private readonly snapshot: WorkspaceSnapshot) {}
-
-  static create(
-    input: WorkspaceCreationInput,
-    context: EventContext
-  ): {
-    aggregate: WorkspaceAggregate;
-    event: DomainEvent<WorkspaceSnapshot>;
-  } {
-    const createdAt = input.createdAt ?? new Date().toISOString();
-    const ownerAccountId = input.ownerAccountId ?? input.accountId;
-    const ownerAccountType = input.ownerAccountType ?? 'user';
-    const members = input.members ?? (ownerAccountId ? [{ accountId: ownerAccountId, role: 'owner', accountType: ownerAccountType }] : []);
-
-    const snapshot: WorkspaceSnapshot = {
-      workspaceId: input.workspaceId,
-      accountId: input.accountId,
-      workspaceType: input.workspaceType,
-      modules: input.modules ?? [],
-      createdAt,
-      name: input.name,
-      members,
-      ownerAccountId
-    };
-
-    const event: DomainEvent<WorkspaceSnapshot> = {
-      eventType: 'WorkspaceCreated',
-      aggregateId: snapshot.workspaceId,
-      accountId: snapshot.accountId,
-      workspaceId: snapshot.workspaceId,
-      payload: snapshot,
-      metadata: toEventMetadata({ ...context, occurredAt: context.occurredAt ?? snapshot.createdAt })
-    };
-
-    return { aggregate: new WorkspaceAggregate(snapshot), event };
-  }
-
-  toggleModule(
-    moduleKey: ModuleKey,
-    moduleType: ModuleType,
-    enabled: boolean,
-    context: EventContext
-  ): {
-    aggregate: WorkspaceAggregate;
-    event: DomainEvent<ModuleToggledPayload>;
-  } {
-    const modules = this.snapshot.modules.filter(m => m.moduleKey !== moduleKey);
-    const nextModules: ModuleStatus[] = [...modules, { moduleKey, moduleType, enabled }];
-    const nextSnapshot: WorkspaceSnapshot = { ...this.snapshot, modules: nextModules };
-
-    const event: DomainEvent<ModuleToggledPayload> = {
-      eventType: enabled ? 'ModuleEnabled' : 'ModuleDisabled',
-      aggregateId: this.snapshot.workspaceId,
-      accountId: this.snapshot.accountId,
-      workspaceId: this.snapshot.workspaceId,
-      moduleKey,
-      payload: { workspaceId: this.snapshot.workspaceId, moduleKey, moduleType, enabled },
-      metadata: toEventMetadata(context)
-    };
-
-    return { aggregate: new WorkspaceAggregate(nextSnapshot), event };
-  }
-
-  get state(): WorkspaceSnapshot {
-    return this.snapshot;
-  }
-}
-</file>
-
 <file path="packages/account-domain/src/domain-services/index.ts">
 //
 </file>
@@ -4599,6 +4924,13 @@ export interface WorkspaceRepository<TSnapshot = WorkspaceSnapshotBase, TEvent =
 }
 </file>
 
+<file path="packages/account-domain/src/value-objects/workspace-type.ts">
+// WorkspaceType distinguishes workspace containers for modules and entities.
+// organization aligns to company-level, project for single product, personal for individual scope.
+// team / partner capture collaborative scopes without owning identity.
+export type WorkspaceType = 'organization' | 'project' | 'personal' | 'team' | 'partner';
+</file>
+
 <file path="packages/core-engine/package.json">
 {
   "name": "@ng-events/core-engine",
@@ -4666,12 +4998,12 @@ export interface WorkspaceRepository<TSnapshot = WorkspaceSnapshotBase, TEvent =
 //
 </file>
 
-<file path="packages/core-engine/src/mappers/index.ts">
-//
-</file>
-
-<file path="packages/core-engine/src/queries/index.ts">
-//
+<file path="packages/core-engine/src/ports/index.ts">
+export * from './workspace.repository';
+export * from './event-store.interface';
+export * from './event-projector.interface';
+export * from './event-replayer.interface';
+export * from './search.repository';
 </file>
 
 <file path="packages/core-engine/src/schedulers/index.ts">
@@ -4680,6 +5012,15 @@ export interface WorkspaceRepository<TSnapshot = WorkspaceSnapshotBase, TEvent =
 
 <file path="packages/core-engine/src/use-cases/index.ts">
 //
+</file>
+
+<file path="packages/platform-adapters/server.ts">
+// Server-only exports (firebase-admin)
+// DO NOT import this in frontend code
+
+export * from './src/firebase-platform';
+export * from './src/persistence';
+export * from './src/search';
 </file>
 
 <file path="packages/platform-adapters/src/client-adapter/firebase-client.providers.ts">
@@ -5112,6 +5453,56 @@ export class StartupService {
 // END OF FILE
 </file>
 
+<file path="packages/ui-angular/src/app/features/routes.ts">
+import { Routes } from '@angular/router';
+import { startPageGuard } from '@core';
+import { authSimpleCanActivate, authSimpleCanActivateChild } from '@delon/auth';
+
+import { LayoutBasicComponent } from '../layout';
+import { CreateOrganizationFormComponent } from '../workspaces/create-organization-form.component';
+
+export const routes: Routes = [
+  {
+    path: '',
+    component: LayoutBasicComponent,
+    canActivate: [startPageGuard, authSimpleCanActivate],
+    canActivateChild: [authSimpleCanActivateChild],
+    data: {},
+    children: [
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      {
+        path: 'dashboard',
+        loadChildren: () => import('./dashboard/routes').then(m => m.routes)
+      },
+      {
+        path: 'workspaces/create',
+        component: CreateOrganizationFormComponent,
+        data: { workspaceType: 'organization' }
+      },
+      {
+        path: 'workspaces/create/team',
+        component: CreateOrganizationFormComponent,
+        data: { workspaceType: 'team' }
+      },
+      {
+        path: 'workspaces/create/partner',
+        component: CreateOrganizationFormComponent,
+        data: { workspaceType: 'partner' }
+      },
+      {
+        path: 'workspaces/create/project',
+        component: CreateOrganizationFormComponent,
+        data: { workspaceType: 'project' }
+      }
+    ]
+  },
+  // passport
+  { path: '', loadChildren: () => import('./passport/routes').then(m => m.routes) },
+  { path: 'exception', loadChildren: () => import('./exception/routes').then(m => m.routes) },
+  { path: '**', redirectTo: 'exception/404' }
+];
+</file>
+
 <file path="packages/ui-angular/src/assets/tmp/i18n/en-US.json">
 {
   "menu.search.placeholder": "Search for people, file, photos... (Press F1 to focus)",
@@ -5311,30 +5702,12 @@ export class StartupService {
 }
 </file>
 
-<file path="packages/account-domain/src/value-objects/workspace-type.ts">
-// WorkspaceType distinguishes workspace containers for modules and entities.
-// organization aligns to company-level, project for single product, personal for individual scope.
-// team / partner capture collaborative scopes without owning identity.
-export type WorkspaceType = 'organization' | 'project' | 'personal' | 'team' | 'partner';
+<file path="packages/core-engine/src/mappers/index.ts">
+export * from './domain-event.mapper';
 </file>
 
-<file path="packages/core-engine/index.ts">
-/**
- * Core Engine
- *
- * 💎 Pure domain engine with ZERO framework dependencies
- *
- * Core Principles:
- * - NO Angular imports allowed
- * - NO Firebase imports allowed
- * - Pure TypeScript only
- * - Framework-agnostic domain logic
- *
- * This package intentionally exposes only abstract building blocks.
- * Domain-specific commands/handlers live in account-domain or saas-domain.
- */
-
-export * from './src/ports';
+<file path="packages/core-engine/src/queries/index.ts">
+export * from './search-query';
 </file>
 
 <file path="packages/platform-adapters/index.ts">
@@ -5655,54 +6028,26 @@ export type WorkspaceCreatedEvent = DomainEvent<WorkspaceSnapshot>;
 }
 </file>
 
-<file path="packages/ui-angular/src/app/features/routes.ts">
-import { Routes } from '@angular/router';
-import { startPageGuard } from '@core';
-import { authSimpleCanActivate, authSimpleCanActivateChild } from '@delon/auth';
+<file path="packages/core-engine/index.ts">
+/**
+ * Core Engine
+ *
+ * Pure domain engine with ZERO framework dependencies
+ *
+ * Core Principles:
+ * - NO Angular imports allowed
+ * - NO Firebase imports allowed
+ * - Pure TypeScript only
+ * - Framework-agnostic domain logic
+ *
+ * This package intentionally exposes only abstract building blocks.
+ * Domain-specific commands/handlers live in account-domain or saas-domain.
+ */
 
-import { LayoutBasicComponent } from '../layout';
-import { CreateOrganizationFormComponent } from '../workspaces/create-organization-form.component';
-
-export const routes: Routes = [
-  {
-    path: '',
-    component: LayoutBasicComponent,
-    canActivate: [startPageGuard, authSimpleCanActivate],
-    canActivateChild: [authSimpleCanActivateChild],
-    data: {},
-    children: [
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      {
-        path: 'dashboard',
-        loadChildren: () => import('./dashboard/routes').then(m => m.routes)
-      },
-      {
-        path: 'workspaces/create',
-        component: CreateOrganizationFormComponent,
-        data: { workspaceType: 'organization' }
-      },
-      {
-        path: 'workspaces/create/team',
-        component: CreateOrganizationFormComponent,
-        data: { workspaceType: 'team' }
-      },
-      {
-        path: 'workspaces/create/partner',
-        component: CreateOrganizationFormComponent,
-        data: { workspaceType: 'partner' }
-      },
-      {
-        path: 'workspaces/create/project',
-        component: CreateOrganizationFormComponent,
-        data: { workspaceType: 'project' }
-      }
-    ]
-  },
-  // passport
-  { path: '', loadChildren: () => import('./passport/routes').then(m => m.routes) },
-  { path: 'exception', loadChildren: () => import('./exception/routes').then(m => m.routes) },
-  { path: '**', redirectTo: 'exception/404' }
-];
+export * from './src/ports';
+export * from './src/queries';
+export * from './src/value-objects';
+export * from './src/mappers';
 </file>
 
 <file path="packages/core-engine/src/ports/workspace.repository.ts">
@@ -5762,6 +6107,30 @@ export class CreateOrganizationService {
     return event.workspaceId ?? workspaceId;
   }
 }
+</file>
+
+<file path="packages/saas-domain/index.ts">
+/**
+ * SaaS Domain
+ *
+ * 🏢 Pure TypeScript business domain models
+ *
+ * Contains domain logic for:
+ * - Workspace lifecycle
+ *
+ * Rules:
+ * - Pure TypeScript only
+ * - Can depend on @account-domain only
+ * - NO framework dependencies (Angular, Firebase, etc.)
+ * - NO SDK dependencies
+ */
+
+export * from './src/aggregates/workspace.aggregate';
+export * from './src/events/workspace-created.event';
+export * from './src/commands/create-organization-command';
+export * from './src/application/workspace-application-service';
+export * from './src/domain/workspace-factory';
+export * from './src/repositories/workspace-repository';
 </file>
 
 <file path="packages/saas-domain/src/application/workspace-application-service.ts">
@@ -5838,28 +6207,38 @@ export class WorkspaceRepositoryClient implements WorkspaceRepository<WorkspaceS
 }
 </file>
 
-<file path="packages/saas-domain/index.ts">
-/**
- * SaaS Domain
- *
- * 🏢 Pure TypeScript business domain models
- *
- * Contains domain logic for:
- * - Workspace lifecycle
- *
- * Rules:
- * - Pure TypeScript only
- * - Can depend on @account-domain only
- * - NO framework dependencies (Angular, Firebase, etc.)
- * - NO SDK dependencies
- */
+<file path="packages/platform-adapters/src/firebase-platform/workspace.repository.firebase.ts">
+import { WorkspaceId, WorkspaceSnapshot, DomainEvent } from '@account-domain';
+import { WorkspaceRepository } from '@core-engine';
 
-export * from './src/aggregates/workspace.aggregate';
-export * from './src/events/workspace-created.event';
-export * from './src/commands/create-organization-command';
-export * from './src/application/workspace-application-service';
-export * from './src/domain/workspace-factory';
-export * from './src/repositories/workspace-repository';
+import { getCollection } from './firestore';
+
+const WORKSPACES_COLLECTION = 'workspaces';
+const EVENTS_COLLECTION = 'workspace-events';
+
+export class WorkspaceRepositoryFirebase implements WorkspaceRepository<WorkspaceSnapshot, DomainEvent<WorkspaceSnapshot>> {
+  private readonly workspacesCollection = getCollection<WorkspaceSnapshot>(WORKSPACES_COLLECTION);
+  private readonly eventsCollection = getCollection(EVENTS_COLLECTION);
+
+  async appendWorkspaceEvent(event: DomainEvent<WorkspaceSnapshot>): Promise<void> {
+    await this.eventsCollection.doc().set(event);
+  }
+
+  async saveWorkspaceSnapshot(snapshot: WorkspaceSnapshot): Promise<void> {
+    await this.workspacesCollection.doc(snapshot.workspaceId).set(snapshot);
+  }
+
+  async getWorkspaceSnapshot(workspaceId: WorkspaceId): Promise<WorkspaceSnapshot | null> {
+    const doc = await this.workspacesCollection.doc(workspaceId).get();
+    if (!doc.exists) return null;
+    return doc.data() as WorkspaceSnapshot;
+  }
+
+  async listWorkspaces(): Promise<WorkspaceSnapshot[]> {
+    const snapshot = await this.workspacesCollection.get();
+    return snapshot.docs.map(doc => doc.data() as WorkspaceSnapshot);
+  }
+}
 </file>
 
 <file path="packages/saas-domain/src/domain/workspace-factory.ts">
@@ -5914,40 +6293,6 @@ export class WorkspaceFactory {
     );
 
     return { snapshot: aggregate.state, event: event as DomainEvent<WorkspaceSnapshot> };
-  }
-}
-</file>
-
-<file path="packages/platform-adapters/src/firebase-platform/workspace.repository.firebase.ts">
-import { WorkspaceId, WorkspaceSnapshot, DomainEvent } from '@account-domain';
-import { WorkspaceRepository } from '@core-engine';
-
-import { getCollection } from './firestore';
-
-const WORKSPACES_COLLECTION = 'workspaces';
-const EVENTS_COLLECTION = 'workspace-events';
-
-export class WorkspaceRepositoryFirebase implements WorkspaceRepository<WorkspaceSnapshot, DomainEvent<WorkspaceSnapshot>> {
-  private readonly workspacesCollection = getCollection<WorkspaceSnapshot>(WORKSPACES_COLLECTION);
-  private readonly eventsCollection = getCollection(EVENTS_COLLECTION);
-
-  async appendWorkspaceEvent(event: DomainEvent<WorkspaceSnapshot>): Promise<void> {
-    await this.eventsCollection.doc().set(event);
-  }
-
-  async saveWorkspaceSnapshot(snapshot: WorkspaceSnapshot): Promise<void> {
-    await this.workspacesCollection.doc(snapshot.workspaceId).set(snapshot);
-  }
-
-  async getWorkspaceSnapshot(workspaceId: WorkspaceId): Promise<WorkspaceSnapshot | null> {
-    const doc = await this.workspacesCollection.doc(workspaceId).get();
-    if (!doc.exists) return null;
-    return doc.data() as WorkspaceSnapshot;
-  }
-
-  async listWorkspaces(): Promise<WorkspaceSnapshot[]> {
-    const snapshot = await this.workspacesCollection.get();
-    return snapshot.docs.map(doc => doc.data() as WorkspaceSnapshot);
   }
 }
 </file>
