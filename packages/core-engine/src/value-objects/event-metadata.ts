@@ -13,17 +13,29 @@
  * - Workspace (ContainerScope): 在哪裡 (Where)
  * - Event: 發生了什麼、為什麼 (What happened, Why)
  * - Causality: Event metadata 中的因果鏈
+ * 
+ * Generic TScope allows different domain layers to use their own scope types
+ * (e.g., account-domain uses ContainerScope)
  */
-import { ContainerScope } from '../../../account-domain/src/value-objects/container-scope';
 import { CausalityChain } from './causality-chain';
 import { AffectedEntity } from './affected-entity';
 
-export class EventMetadata {
+/**
+ * Minimal interface for container scope
+ * Allows core-engine to remain independent of account-domain
+ */
+export interface IContainerScope {
+  readonly scopeId: string;
+  readonly scopeType: string;
+  toString(): string;
+}
+
+export class EventMetadata<TScope extends IContainerScope = IContainerScope> {
   constructor(
     public readonly eventId: string,
     public readonly traceId: string,
     public readonly actorAccountId: string,
-    public readonly containerScope: ContainerScope,
+    public readonly containerScope: TScope,
     public readonly causality: CausalityChain,
     public readonly occurredAt: Date,
     public readonly affects: AffectedEntity[] = []
@@ -42,7 +54,7 @@ export class EventMetadata {
   /**
    * Create a new EventMetadata with an additional cause added to the causality chain
    */
-  withAdditionalCause(parentEventId: string): EventMetadata {
+  withAdditionalCause(parentEventId: string): EventMetadata<TScope> {
     return new EventMetadata(
       this.eventId,
       this.traceId,
@@ -57,7 +69,7 @@ export class EventMetadata {
   /**
    * Create a new EventMetadata with an additional affected entity
    */
-  withAdditionalAffect(entity: AffectedEntity): EventMetadata {
+  withAdditionalAffect(entity: AffectedEntity): EventMetadata<TScope> {
     return new EventMetadata(
       this.eventId,
       this.traceId,

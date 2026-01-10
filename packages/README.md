@@ -14,6 +14,9 @@ packages/
 │   └── src/{auth,ai,external-apis/google/genai,messaging,persistence}
 ├── saas-domain/             # SaaS 模組（任務/議題/財務/品質/驗收）（純 TS）
 │   └── src/{aggregates,value-objects,events,domain-services,repositories,entities,policies}
+│       ├── application/     # Application Services (協調 domain 的純 TS 服務)
+│       ├── commands/        # 業務命令定義
+│       └── modules/         # 子模組組織 (可選)
 ├── ui-angular/              # Angular 前端（位於根目錄 src/app）
 └── README.md
 ```

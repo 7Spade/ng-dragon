@@ -9,15 +9,19 @@
 ```
 core-engine/
 └── src/
+    ├── aggregates/    # Aggregate Root 基礎模式與工具
+    ├── causality/     # Causality tracking 因果追蹤工具
     ├── commands/      # Command 定義與處理介面
-    ├── queries/       # Query 定義
-    ├── use-cases/     # 應用服務 / handler（純 TS）
-    ├── ports/         # EventStore / Projection / Bus 等抽象介面
-    ├── mappers/       # DTO ↔ Domain 轉換
     ├── dtos/          # 輸入/輸出 DTO
+    ├── event-store/   # Event Store 抽象介面與工具
     ├── jobs/          # 背景工作定義
+    ├── mappers/       # DTO ↔ Domain 轉換
+    ├── ports/         # EventStore / Projection / Bus 等抽象介面
+    ├── projection/    # Projection (Read Model) 定義與工具
+    ├── queries/       # Query 定義
     ├── schedulers/    # 排程介面
-    └── __tests__/     # 核心規則測試（新增元件時同步補齊）
+    ├── use-cases/     # 應用服務 / handler（純 TS）
+    └── value-objects/ # 共用 Value Objects
 ```
 
 ## 原則

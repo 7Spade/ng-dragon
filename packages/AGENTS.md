@@ -14,6 +14,9 @@ packages/
 │   └── src/{auth,ai,external-apis/google/genai,messaging,persistence}
 ├── saas-domain/             # SaaS 業務模型（任務/議題/財務/品質/驗收），純 TS
 │   └── src/{aggregates,value-objects,events,domain-services,repositories,entities,policies}
+│       ├── application/     # Application Services (協調 domain 的純 TS 服務，無框架依賴)
+│       ├── commands/        # 業務命令定義 (domain 層的命令對象)
+│       └── modules/         # 複雜 domain 的子模組組織 (可選，用於 bounded context)
 ├── ui-angular/              # Angular 前端（位於根目錄 src/app）
 └── README.md, AGENTS.md
 ```
@@ -41,6 +44,26 @@ account-domain --> saas-domain --> ui-angular
 2) **清晰依賴**：禁止跨層引用；UI 只能用 adapters，domain/engine 禁用任何 SDK。
 3) **SDK 隔離**：所有第三方 SDK 只允許存在於 `platform-adapters/src`（含 `external-apis/google/genai`）。
 4) **文件先行**：新增子模組時，先更新對應的 README/AGENTS，保持與 Mermaid 架構文件一致。
+
+### Domain Package 組織擴展規則
+
+對於複雜的 domain package（如 saas-domain），允許以下擴展：
+
+- **application/**：Application Services 可存在於 domain package，前提是：
+  - 純 TypeScript，無任何框架或 SDK 依賴
+  - 僅協調 domain 層的邏輯（aggregates, factories, repositories）
+  - 實現 use cases 而不包含技術細節
+  
+- **commands/**：業務命令定義可存在於 domain package，因為：
+  - Command 是 DDD 的 domain 層概念（命令對象）
+  - 與 core-engine/src/commands 不同（core 是基礎設施命令介面）
+  - 業務命令表達 domain 的意圖和操作
+  
+- **modules/**：子模組組織方式，用於：
+  - 複雜 domain 中的 bounded context 組織
+  - 每個子模組可有自己的 aggregates, entities, events, services, value-objects
+  - 例如：4 個基礎模組（identity, access-control, settings, audit）
+  - 保持每個子模組的內聚性和清晰邊界
 
 ## Workspace / Module 規則與依賴方向
 

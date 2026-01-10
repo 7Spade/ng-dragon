@@ -2,7 +2,7 @@ import { CreateOrganizationCommand } from '../commands/create-organization-comma
 import { CreateTeamCommand } from '../commands/create-team-command';
 import { CreatePartnerCommand } from '../commands/create-partner-command';
 import { CreateProjectCommand } from '../commands/create-project-command';
-import { WorkspaceFactory } from '../domain/workspace-factory';
+import { WorkspaceFactory } from '../domain-services/workspace-factory';
 import { WorkspaceCreatedEvent } from '../events/WorkspaceCreatedEvent';
 import { WorkspaceRepository } from '../repositories/WorkspaceRepository';
 import { WorkspaceSnapshot, WorkspaceType } from '@account-domain';

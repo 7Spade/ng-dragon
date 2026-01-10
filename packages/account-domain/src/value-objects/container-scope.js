@@ -1,0 +1,41 @@
+export class ContainerScope {
+    constructor(scopeId, scopeType) {
+        this.scopeId = scopeId;
+        this.scopeType = scopeType;
+        if (!scopeId || scopeId.trim().length === 0) {
+            throw new Error('Container scope ID cannot be empty');
+        }
+    }
+    /**
+     * Check if an entity is within this scope
+     */
+    isWithinScope(entityScopeId) {
+        return this.scopeId === entityScopeId;
+    }
+    /**
+     * Check if this scope can contain another scope (hierarchy check)
+     * workspace > organization > team/project
+     */
+    canContain(childScope) {
+        const hierarchy = {
+            workspace: 0,
+            organization: 1,
+            team: 2,
+            project: 2
+        };
+        return hierarchy[this.scopeType] < hierarchy[childScope.scopeType];
+    }
+    /**
+     * Check equality with another scope
+     */
+    equals(other) {
+        return this.scopeId === other.scopeId && this.scopeType === other.scopeType;
+    }
+    /**
+     * Get a string representation for debugging
+     */
+    toString() {
+        return `${this.scopeType}:${this.scopeId}`;
+    }
+}
+//# sourceMappingURL=container-scope.js.map
