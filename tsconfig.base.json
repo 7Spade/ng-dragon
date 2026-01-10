@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "target": "ES2020",
-    "module": "ESNext",
+    "module": "CommonJS",
     "lib": ["ES2020"],
     "moduleResolution": "node",
     "strict": true,
@@ -24,6 +24,10 @@
       "@saas-domain/*": ["packages/saas-domain/*"],
       "@platform-adapters": ["packages/platform-adapters/index.ts"],
       "@platform-adapters/*": ["packages/platform-adapters/*"],
+      "@workspace-domain": ["packages/workspace-domain/index.ts"],
+      "@workspace-domain/*": ["packages/workspace-domain/*"],
+      "@scaffolding": ["packages/scaffolding/index.ts"],
+      "@scaffolding/*": ["packages/scaffolding/*"],
       "@ui-angular/*": ["packages/ui-angular/src/app/*"]
     }
   },
