@@ -1,5 +1,5 @@
 import { EventEnvelope } from './event-store.interface';
 
 export interface EventProjector<TPayload = unknown> {
-  project(events: EventEnvelope<TPayload>[]): Promise<void>;
+  project(events: Array<EventEnvelope<TPayload>>): Promise<void>;
 }

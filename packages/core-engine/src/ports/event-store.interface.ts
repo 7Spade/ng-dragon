@@ -20,7 +20,7 @@ export interface EventWrite<TPayload = unknown> {
 export interface AppendEventsRequest<TPayload = unknown> extends CausalityChain {
   aggregateId: string;
   aggregateType?: string;
-  events: EventWrite<TPayload>[];
+  events: Array<EventWrite<TPayload>>;
   expectedSequence?: number;
 }
 
@@ -36,7 +36,7 @@ export interface ListEventsParams {
 
 export interface ReplayOptions<TPayload = unknown> extends ListEventsParams {
   batchSize?: number;
-  onEvents: (events: EventEnvelope<TPayload>[]) => Promise<void> | void;
+  onEvents: (events: Array<EventEnvelope<TPayload>>) => Promise<void> | void;
 }
 
 export interface EventStore {

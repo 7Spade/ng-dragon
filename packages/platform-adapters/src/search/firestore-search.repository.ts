@@ -4,9 +4,9 @@ import { getCollection } from '../firebase-platform/firestore';
 
 const DEFAULT_COLLECTION = 'search-index';
 
-export class FirestoreSearchRepository<TResult extends Record<string, unknown> = Record<string, unknown>>
-  implements SearchRepository<TResult>
-{
+export class FirestoreSearchRepository<
+  TResult extends Record<string, unknown> = Record<string, unknown>
+> implements SearchRepository<TResult> {
   constructor(private readonly collectionName: string = DEFAULT_COLLECTION) {}
 
   async search(query: SearchQuery): Promise<TResult[]> {
