@@ -36,10 +36,7 @@ export interface WorkspaceSnapshotBase {
 /**
  * Workspace repository port shared by domain/application layers.
  */
-export interface WorkspaceRepository<
-  TSnapshot = WorkspaceSnapshotBase,
-  TEvent = WorkspaceEvent<TSnapshot>
-> {
+export interface WorkspaceRepository<TSnapshot = WorkspaceSnapshotBase, TEvent = WorkspaceEvent<TSnapshot>> {
   appendWorkspaceEvent(event: TEvent): Promise<void>;
   saveWorkspaceSnapshot(snapshot: TSnapshot): Promise<void>;
   getWorkspaceSnapshot(workspaceId: WorkspaceId): Promise<TSnapshot | null>;

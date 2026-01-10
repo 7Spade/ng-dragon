@@ -6,9 +6,7 @@ import { getCollection } from './firestore';
 const WORKSPACES_COLLECTION = 'workspaces';
 const EVENTS_COLLECTION = 'workspace-events';
 
-export class WorkspaceRepositoryFirebase
-  implements WorkspaceRepository<WorkspaceSnapshot, DomainEvent<WorkspaceSnapshot>>
-{
+export class WorkspaceRepositoryFirebase implements WorkspaceRepository<WorkspaceSnapshot, DomainEvent<WorkspaceSnapshot>> {
   private readonly workspacesCollection = getCollection<WorkspaceSnapshot>(WORKSPACES_COLLECTION);
   private readonly eventsCollection = getCollection(EVENTS_COLLECTION);
 

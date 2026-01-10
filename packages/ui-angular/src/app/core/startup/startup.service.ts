@@ -2,13 +2,12 @@ import { Injectable, inject, APP_INITIALIZER } from '@angular/core';
 import { Router } from '@angular/router';
 import { ACLService } from '@delon/acl';
 import { MenuService, SettingsService, TitleService, ALAIN_I18N_TOKEN } from '@delon/theme';
+import { FirebaseAuthUser, UserProfile, UserProfileClient } from '@platform-adapters';
 import { Observable, from, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
-import { FirebaseAuthUser, UserProfile, UserProfileClient } from '@platform-adapters';
-
-import { I18NService } from '../i18n/i18n.service';
 import { FirebaseAuthBridgeService } from '../auth/firebase-auth-bridge.service';
+import { I18NService } from '../i18n/i18n.service';
 
 /**
  * Used for application startup

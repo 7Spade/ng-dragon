@@ -1,5 +1,5 @@
-import { AsyncPipe, NgFor, NgIf } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { FirebaseAuthBridgeService } from '@core';
 import { DA_SERVICE_TOKEN } from '@delon/auth';
@@ -9,8 +9,8 @@ import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { combineLatest, Observable } from 'rxjs';
+import { map, shareReplay } from 'rxjs/operators';
 
 @Component({
   selector: 'header-user',
@@ -35,8 +35,8 @@ import { map } from 'rxjs/operators';
 
         <!-- Owned Organizations -->
         <div class="px-sm text-muted">{{ 'menu.account.organizations.owned' | i18n: 'Owned' }}</div>
-        @if ((ownedOrganizations$ | async)?.length) {
-          @for (org of ownedOrganizations$ | async; track org.id) {
+        @if (ownedOrganizations().length) {
+          @for (org of ownedOrganizations(); track org.id) {
             <div nz-menu-item (click)="selectOrganization(org.id)"> <i nz-icon nzType="crown" class="mr-sm"></i>{{ org.name }} </div>
           }
         } @else {
@@ -47,8 +47,8 @@ import { map } from 'rxjs/operators';
 
         <!-- Joined Organizations -->
         <div class="px-sm text-muted">{{ 'menu.account.organizations.joined' | i18n: 'Joined' }}</div>
-        @if ((joinedOrganizations$ | async)?.length) {
-          @for (org of joinedOrganizations$ | async; track org.id) {
+        @if (joinedOrganizations().length) {
+          @for (org of joinedOrganizations(); track org.id) {
             <div nz-menu-item (click)="selectOrganization(org.id)"> <i nz-icon nzType="team" class="mr-sm"></i>{{ org.name }} </div>
           }
         } @else {
@@ -62,9 +62,9 @@ import { map } from 'rxjs/operators';
           <i nz-icon nzType="plus" class="mr-sm"></i>{{ 'menu.account.organizations.create' | i18n: 'Create organization' }}
         </div>
 
-        @if (selectedOrganizationName) {
-          <div nz-menu-item class="text-muted">{{ selectedOrganizationName }}</div>
-          <div nz-menu-item [nzDisabled]="!isMember(selectedOrganizationId)" (click)="createTeam()">
+        @if (selectedOrganizationName()) {
+          <div nz-menu-item class="text-muted">{{ selectedOrganizationName() }}</div>
+          <div nz-menu-item [nzDisabled]="!isMember(selectedOrganizationId())" (click)="createTeam()">
             <i nz-icon nzType="team" class="mr-sm"></i>{{ 'menu.account.organizations.createTeam' | i18n: 'Create team' }}
           </div>
           <div nz-menu-item (click)="createPartner()">
@@ -86,7 +86,7 @@ import { map } from 'rxjs/operators';
     </nz-dropdown-menu>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, NzDropDownModule, NzMenuModule, NzIconModule, I18nPipe, NzAvatarModule, AsyncPipe, NgFor, NgIf]
+  imports: [RouterLink, NzDropDownModule, NzMenuModule, NzIconModule, I18nPipe, NzAvatarModule]
 })
 export class HeaderUserComponent {
   @Input() layout: 'header' | 'aside' = 'aside';
@@ -97,31 +97,72 @@ export class HeaderUserComponent {
   private readonly workspaceService = inject(WorkspaceService);
   private readonly authBridge = inject(FirebaseAuthBridgeService);
 
-  // Observable streams for owned and joined organizations
-  readonly ownedOrganizations$: Observable<WorkspaceView[]>;
-  readonly joinedOrganizations$: Observable<WorkspaceView[]>;
+  private readonly workspaces$: Observable<WorkspaceView[]> = combineLatest([
+    this.workspaceService.getUserWorkspaces(),
+    this.workspaceService.getUserWorkspacesIncludingMemberships()
+  ]).pipe(
+    map(([owned, member]) => {
+      const organizations = new Map<string, WorkspaceView>();
 
-  selectedOrganizationId: string | null = null;
-  selectedOrganizationName: string | null = null;
+      const processWorkspace = (ws: WorkspaceView): void => {
+        if (ws.workspaceType !== 'organization' || organizations.has(ws.id)) return;
+        organizations.set(ws.id, ws);
+      };
+
+      owned.forEach(processWorkspace);
+      member.forEach(processWorkspace);
+
+      return Array.from(organizations.values());
+    }),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
+
+  private readonly workspaces = toSignal(this.workspaces$, { initialValue: [] as WorkspaceView[] });
+  readonly currentUserId = signal<string | null>(this.authBridge.getCurrentUser()?.uid ?? null);
 
   constructor() {
-    const user = this.authBridge.getCurrentUser();
-    const userId = user?.uid;
-
-    const allWorkspaces$ = this.workspaceService.getUserWorkspaces();
-
-    this.ownedOrganizations$ = allWorkspaces$.pipe(
-      map(workspaces => workspaces.filter(ws => ws.workspaceType === 'organization' && ws.ownerAccountId === userId))
-    );
-
-    this.joinedOrganizations$ = allWorkspaces$.pipe(
-      map(workspaces =>
-        workspaces.filter(
-          ws => ws.workspaceType === 'organization' && ws.ownerAccountId !== userId && ws.members?.some(m => m.accountId === userId)
-        )
-      )
-    );
+    this.authBridge
+      .waitForAuthState()
+      .then(user => this.currentUserId.set(user?.uid ?? null))
+      .catch(() => this.currentUserId.set(null));
   }
+
+  private readonly workspacePartitions = computed(() => {
+    const uid = this.currentUserId();
+    const membership = new Set<string>();
+    const owned: WorkspaceView[] = [];
+    const joined: WorkspaceView[] = [];
+
+    if (!uid) return { owned, joined, membership };
+
+    for (const ws of this.workspaces()) {
+      if (ws.ownerAccountId === uid) {
+        owned.push(ws);
+        membership.add(ws.id);
+        continue;
+      }
+
+      if (ws.members?.some(m => m.accountId === uid)) {
+        joined.push(ws);
+        membership.add(ws.id);
+      }
+    }
+
+    return { owned, joined, membership };
+  });
+
+  readonly ownedOrganizations = computed(() => this.workspacePartitions().owned);
+
+  readonly joinedOrganizations = computed(() => this.workspacePartitions().joined);
+
+  readonly selectedOrganizationId = signal<string | null>(null);
+  readonly selectedOrganizationName = computed(() => {
+    const selectedId = this.selectedOrganizationId();
+    if (!selectedId) return null;
+    return this.workspaces().find(ws => ws.id === selectedId)?.name ?? null;
+  });
+
+  private readonly membershipLookup = computed(() => this.workspacePartitions().membership);
 
   get user(): User {
     return this.settings.user;
@@ -129,12 +170,11 @@ export class HeaderUserComponent {
 
   private isMember(orgId: string | null): boolean {
     if (!orgId) return false;
-    // TODO: Implement proper membership check
-    return true;
+    return this.membershipLookup().has(orgId);
   }
 
   selectOrganization(orgId: string): void {
-    this.selectedOrganizationId = orgId;
+    this.selectedOrganizationId.set(orgId);
     this.router.navigateByUrl(`/organizations/${orgId}`).catch(() => void 0);
   }
 
@@ -143,7 +183,8 @@ export class HeaderUserComponent {
   }
 
   createTeam(): void {
-    if (!this.isMember(this.selectedOrganizationId)) return;
+    const orgId = this.selectedOrganizationId();
+    if (!this.isMember(orgId)) return;
     this.router.navigateByUrl('/workspaces/create/team').catch(() => void 0);
   }
 
@@ -157,6 +198,6 @@ export class HeaderUserComponent {
 
   logout(): void {
     this.tokenService.clear();
-    this.router.navigateByUrl(this.tokenService.login_url!);
+    this.router.navigateByUrl(this.tokenService.login_url!).catch(() => void 0);
   }
 }
