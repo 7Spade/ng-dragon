@@ -3,6 +3,17 @@ import { WorkspaceApplicationService, CreateOrganizationCommand } from '@saas-do
 
 import { WorkspaceRepositoryClient } from './workspace.repository.client';
 
+export type WorkspaceTypeOption = 'organization' | 'project' | 'personal' | 'team' | 'partner';
+
+export interface CreateOrganizationRequest {
+  workspaceId?: string;
+  accountId: string;
+  organizationName: string;
+  ownerUserId: string;
+  actorId?: string;
+  workspaceType?: WorkspaceTypeOption;
+}
+
 const randomWorkspaceId = () => `ws-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
 @Injectable({ providedIn: 'root' })
@@ -10,18 +21,18 @@ export class CreateOrganizationService {
   private readonly repository = inject(WorkspaceRepositoryClient);
   private readonly application = new WorkspaceApplicationService(this.repository);
 
-  async createOrganization(command: CreateOrganizationCommand): Promise<string> {
-    const workspaceId = command.workspaceId ?? randomWorkspaceId();
+  async createOrganization(request: CreateOrganizationRequest): Promise<string> {
+    const workspaceId = request.workspaceId ?? randomWorkspaceId();
 
-    const payload = {
-      ...command,
+    const payload: CreateOrganizationCommand = {
+      ...request,
       workspaceId,
-      actorId: command.actorId ?? command.ownerUserId,
-      workspaceType: command.workspaceType ?? 'organization'
+      actorId: request.actorId ?? request.ownerUserId,
+      workspaceType: request.workspaceType ?? 'organization'
     };
 
     const handlerMap: Record<
-      NonNullable<typeof payload.workspaceType>,
+      WorkspaceTypeOption,
       (p: typeof payload) => Promise<Awaited<ReturnType<WorkspaceApplicationService['createOrganization']>>>
     > = {
       organization: p => this.application.createOrganization(p),
@@ -31,7 +42,8 @@ export class CreateOrganizationService {
       personal: p => this.application.createOrganization(p)
     };
 
-    const event = await (handlerMap[payload.workspaceType] ?? handlerMap.organization)(payload);
+    const workspaceType = payload.workspaceType ?? 'organization';
+    const event = await (handlerMap[workspaceType] ?? handlerMap.organization)(payload);
 
     return event.workspaceId ?? workspaceId;
   }
