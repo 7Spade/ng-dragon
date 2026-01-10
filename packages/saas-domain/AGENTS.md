@@ -1,34 +1,32 @@
-# saas-domain AGENTS.md
+# saas-domain AGENTS
 
-## 目標
+> 邊界源自 [`packages/AGENTS.md`](../AGENTS.md)；規劃工作請先呼叫 **server-sequential-thinking** + **software-planning-mcp**。
 
-建模 SaaS 業務領域（任務、議題、財務、品質、驗收等），基於 `account-domain` 與 `core-engine`，保持純 TypeScript，零 SDK。
+## 角色與依賴
+- 建模 SaaS 業務（task/issue/finance/quality/acceptance 等），僅依賴 `account-domain` 前置狀態。
+- 純 TypeScript，零 SDK / UI 框架。被 `core-engine` / `platform-adapters` / `ui-angular` 間接消費。
 
-## 邊界
-
-- **依賴**：`account-domain`（身份 / 工作區 / 模組啟用）、`core-engine` 抽象。
-- **禁止**：任何 SDK、UI 框架。
-- **輸出**：聚合 / 事件 / VO / Policy，供 adapters 或 UI 間接使用。
-
-## 結構（現況 + 預備）
-
+## 結構（單一入口）
 ```
 saas-domain/
 └── src/
-    ├── aggregates/        # 各模組聚合（task/issue/finance/quality/acceptance 預留）
-    ├── value-objects/     # 模組 VO
-    ├── events/            # 模組事件
-    ├── domain-services/   # 跨聚合的無狀態邏輯
-    ├── repositories/      # 介面定義
-    ├── entities/          # 共享 Entity 型別
-    ├── policies/          # 跨模組 / 依賴檢查（例如模組啟用）
-    └── __tests__/         # 模組測試（待補）
+    ├── aggregates/
+    ├── value-objects/
+    ├── events/
+    ├── domain-services/
+    ├── repositories/
+    ├── entities/
+    ├── policies/
+    └── __tests__/
 ```
+> 新增任務/議題/財務/品質/驗收模組時，直接在上述子資料夾建立聚合與事件，禁止另開平行根目錄。
 
-> 新增任務/議題/財務/品質/驗收模組時，請直接在 `src/` 對應子資料夾建立聚合與事件，避免額外的根資料夾。
+## 禁制
+- ❌ 任何 SDK、UI 框架
+- ❌ 持久層實作或 REST/GraphQL DTO
+- ❌ 未經 account-domain 驗證的操作（必須先檢查 Workspace 與模組啟用）
 
 ## 原則
-
-1. **依賴前置**：所有模組操作需先確認 account-domain 的工作區與模組啟用狀態。
-2. **純業務**：不得引入任何 SDK；資料存取交給 `platform-adapters` 實作 port。
-3. **文件先行**：新增模組前，先更新 README/AGENTS 及 Mermaid 文件的模組樹。
+1. 依賴前置：所有模組操作需先確認 account-domain 的 Workspace / Module 啟用狀態。
+2. 純業務：僅輸出聚合、事件、VO、Policy、Repository 介面；存取交給 adapters。
+3. 文件先行：新增模組前更新 README/AGENTS 與 Mermaid 模組樹。

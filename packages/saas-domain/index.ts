@@ -8,13 +8,14 @@
  *
  * Rules:
  * - Pure TypeScript only
- * - Can depend on @core-engine or @account-domain
+ * - Can depend on @account-domain only
  * - NO framework dependencies (Angular, Firebase, etc.)
  * - NO SDK dependencies
  */
 
+export * from './src/aggregates/workspace.aggregate';
+export * from './src/events/workspace-created.event';
 export * from './src/commands/create-organization-command';
 export * from './src/application/workspace-application-service';
 export * from './src/domain/workspace-factory';
-export * from './src/events/WorkspaceCreatedEvent';
-export * from './src/repositories/WorkspaceRepository';
+export * from './src/repositories/workspace-repository';

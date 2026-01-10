@@ -1,0 +1,83 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+.yarn/
+.yarn-cache/
+
+# Build outputs
+dist/
+build/
+out/
+coverage/
+.angular/
+.next/
+.nuxt/
+
+# Firebase / Cloud
+.firebase/
+.firebaserc
+.emulators/
+
+# Cache / temp
+.cache/
+.tmp/
+temp/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Large generated files
+*.map
+*.lock
+*.md
+*.png
+*.ico
+*.less
+*.svg
+*.spec.*
+
+# Git
+.git/
+.gitignore
+.gitkeep
+
+# Repomix
+_cli-tpl/
+.codacy/
+.github/
+.husky/
+dataconnect/
+dynamic/
+scripts/
+
+LICENSE
+
+
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+.editorconfig
+.gitattributes
+.npmignore
+.npmrc
+.nvmrc
+.prettierignore
+.prettierrc.js
+.repomixignore
+.yarnrc.yml
+apphosting.yaml
+eslint.config.mjs
+firebase.json
+stylelint.config.mjs
+repomix.config.json
+
+tsconfig.base.json
+tsconfig.app.json

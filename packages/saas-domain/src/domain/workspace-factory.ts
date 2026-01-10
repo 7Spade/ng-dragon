@@ -1,34 +1,68 @@
-import { WorkspaceAggregate, WorkspaceSnapshot } from '@account-domain/src/aggregates/workspace.aggregate';
-import { EventContext } from '@account-domain/src/events/domain-event';
-import { WorkspaceType } from '@account-domain/src/value-objects/workspace-type';
-import { createorganizationcommand } from '../commands/create-organization-command';
-import { WorkspaceCreatedEvent } from '../events/WorkspaceCreatedEvent';
+import {
+  DomainEvent,
+  EventContext,
+  ModuleStatus,
+  WorkspaceAggregate,
+  WorkspaceSnapshot,
+  WorkspaceMember
+} from '@account-domain';
 
-export class workspacefactory {
-  createOrganization(command: createorganizationcommand): {
+import { CreateOrganizationCommand } from '../commands/create-organization-command';
+import { WorkspaceCreatedEvent } from '../events/workspace-created.event';
+
+export class WorkspaceFactory {
+  private static readonly DEFAULT_MODULES: ModuleStatus[] = [
+    { moduleKey: 'identity', moduleType: 'core', enabled: true },
+    { moduleKey: 'access-control', moduleType: 'core', enabled: true },
+    { moduleKey: 'settings', moduleType: 'core', enabled: true },
+    { moduleKey: 'audit', moduleType: 'core', enabled: true }
+  ];
+
+  createOrganization(command: CreateOrganizationCommand): {
     snapshot: WorkspaceSnapshot;
     event: WorkspaceCreatedEvent;
   } {
-    const workspaceType: WorkspaceType = 'organization';
+    return this.createWorkspace(command, command.workspaceType ?? 'organization');
+  }
+
+  createWorkspace(
+    command: CreateOrganizationCommand,
+    workspaceType: WorkspaceSnapshot['workspaceType']
+  ): {
+    snapshot: WorkspaceSnapshot;
+    event: WorkspaceCreatedEvent;
+  } {
+    const workspaceId = command.workspaceId ?? `ws-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
     const context: EventContext = {
-      actorId: command.actorId ?? command.accountId,
-      traceId: command.traceId,
-      causedBy: command.causedBy,
-      occurredAt: command.createdAt
+      actorId: command.actorId ?? command.ownerUserId,
+      traceId: command.traceId ?? `trace-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+      causedBy: command.causedBy ?? ['user-action'],
+      occurredAt: command.createdAt ?? new Date().toISOString()
     };
+    const modules = command.modules ?? WorkspaceFactory.DEFAULT_MODULES;
+    const members: WorkspaceMember[] = [
+      { accountId: command.ownerUserId, role: 'owner', accountType: 'user' },
+      ...(command.actorId && command.actorId !== command.ownerUserId
+        ? [{ accountId: command.actorId, role: 'admin' as const, accountType: 'user' as const }]
+        : [])
+    ];
+    const memberIds = members.map(member => member.accountId);
 
     const { aggregate, event } = WorkspaceAggregate.create(
       {
-        workspaceId: command.workspaceId,
+        workspaceId,
         accountId: command.accountId,
         workspaceType,
-        modules: command.modules,
-        createdAt: command.createdAt,
-        name: command.organizationName
+        createdAt: command.createdAt ?? context.occurredAt,
+        modules,
+        name: command.organizationName,
+        members,
+        ownerAccountId: command.ownerUserId,
+        memberIds
       },
       context
     );
 
-    return { snapshot: aggregate.state, event };
+    return { snapshot: aggregate.state, event: event as DomainEvent<WorkspaceSnapshot> };
   }
 }

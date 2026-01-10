@@ -1,6 +1,6 @@
 import { DomainEvent, EventContext, toEventMetadata } from '../events/domain-event';
-import { ModuleStatus, ModuleType } from '../value-objects/module-types';
 import { ModuleKey, WorkspaceId } from '../types/identifiers';
+import { ModuleStatus, ModuleType } from '../value-objects/module-types';
 
 export interface ModuleRegistrySnapshot {
   workspaceId: WorkspaceId;
@@ -14,11 +14,16 @@ export class ModuleRegistryAggregate {
     return new ModuleRegistryAggregate({ workspaceId, modules: [] });
   }
 
-  upsert(moduleKey: ModuleKey, moduleType: ModuleType, enabled: boolean, context: EventContext): {
+  upsert(
+    moduleKey: ModuleKey,
+    moduleType: ModuleType,
+    enabled: boolean,
+    context: EventContext
+  ): {
     aggregate: ModuleRegistryAggregate;
     event: DomainEvent<ModuleStatus>;
   } {
-    const modules = this.snapshot.modules.filter((m) => m.moduleKey !== moduleKey);
+    const modules = this.snapshot.modules.filter(m => m.moduleKey !== moduleKey);
     const nextModule: ModuleStatus = { moduleKey, moduleType, enabled };
     const nextSnapshot: ModuleRegistrySnapshot = { ...this.snapshot, modules: [...modules, nextModule] };
 
@@ -28,7 +33,7 @@ export class ModuleRegistryAggregate {
       workspaceId: this.snapshot.workspaceId,
       moduleKey,
       payload: nextModule,
-      metadata: toEventMetadata(context),
+      metadata: toEventMetadata(context)
     };
 
     return { aggregate: new ModuleRegistryAggregate(nextSnapshot), event };

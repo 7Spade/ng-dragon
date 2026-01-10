@@ -1,30 +1,31 @@
-import { Workspace as WorkspacePort, WorkspaceRepositoryPort } from '../../../core-engine/src/ports/workspace.repository.port';
-import { Workspace } from '../../../saas-domain/src/aggregates/workspace.aggregate';
-import { WorkspaceCreatedEvent } from '../../../saas-domain/src/events/workspace-created.event';
+import { WorkspaceId, WorkspaceSnapshot, DomainEvent } from '@account-domain';
+import { WorkspaceRepository } from '@core-engine';
+
 import { getCollection } from './firestore';
 
 const WORKSPACES_COLLECTION = 'workspaces';
 const EVENTS_COLLECTION = 'workspace-events';
 
-export class WorkspaceRepositoryFirebase implements WorkspaceRepositoryPort {
-  private readonly workspacesCollection = getCollection(WORKSPACES_COLLECTION);
+export class WorkspaceRepositoryFirebase implements WorkspaceRepository<WorkspaceSnapshot, DomainEvent<WorkspaceSnapshot>> {
+  private readonly workspacesCollection = getCollection<WorkspaceSnapshot>(WORKSPACES_COLLECTION);
   private readonly eventsCollection = getCollection(EVENTS_COLLECTION);
 
-  async save(workspaceData: WorkspacePort): Promise<string> {
-    // Create workspace aggregate from data
-    const { workspace, event } = Workspace.createOrganization({
-      workspaceId: workspaceData.workspaceId,
-      accountId: workspaceData.accountId,
-      name: workspaceData.name,
-      ownerUserId: workspaceData.ownerUserId
-    });
-
-    // Save workspace snapshot to Firestore
-    await this.workspacesCollection.doc(workspace.workspaceId).set(workspace.toSnapshot());
-
-    // Save domain event to Firestore
+  async appendWorkspaceEvent(event: DomainEvent<WorkspaceSnapshot>): Promise<void> {
     await this.eventsCollection.doc().set(event);
+  }
 
-    return workspace.workspaceId;
+  async saveWorkspaceSnapshot(snapshot: WorkspaceSnapshot): Promise<void> {
+    await this.workspacesCollection.doc(snapshot.workspaceId).set(snapshot);
+  }
+
+  async getWorkspaceSnapshot(workspaceId: WorkspaceId): Promise<WorkspaceSnapshot | null> {
+    const doc = await this.workspacesCollection.doc(workspaceId).get();
+    if (!doc.exists) return null;
+    return doc.data() as WorkspaceSnapshot;
+  }
+
+  async listWorkspaces(): Promise<WorkspaceSnapshot[]> {
+    const snapshot = await this.workspacesCollection.get();
+    return snapshot.docs.map(doc => doc.data() as WorkspaceSnapshot);
   }
 }

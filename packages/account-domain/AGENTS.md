@@ -1,33 +1,40 @@
-## Mission
+# account-domain AGENTS
 
-守護身份 / 工作區 / 模組啟用的前置條件。此 package 必須保持純 TypeScript，僅可依賴 `@ng-events/core-engine`。
+> 依據 [`packages/AGENTS.md`](../AGENTS.md) 的邊界；規劃工作前請在對話中呼叫 **server-sequential-thinking** + **software-planning-mcp** 產生執行步驟。
 
-## Guardrails
+## 角色與依賴
+- 身份 / 帳號 / 工作區 / 模組啟用的前置條件（Account → Workspace → Module → Entity）。
+- 站在依賴鏈最底層，被 `saas-domain` / `core-engine` 消費，**不向上依賴任何人**。
 
-- 禁止引入 Angular、Firebase 或任何 SDK。
-- 任務 / 付款 / 議題等業務邏輯留在 `saas-domain`；本層只決定哪些工作區與模組被允許。
-- 事件流程遵循 `AccountCreated → WorkspaceCreated → MembershipCreated → ModuleEnabled`，補償事件為暫停/封存/移除/停用。
+## 可以放什麼（全部集中在 `src/`）
+- Aggregates：Account、Workspace、Module Registry 等
+- Entities / Value Objects
+- Domain Services / Policies（如模組啟用檢查）
+- Domain Events（含 metadata helper）
+- Repository Interfaces（介面定義）
 
-## Current + Planned Structure
+## 絕對不能出現
+- Firebase / HTTP / 任何 SDK / Angular
+- 持久層實作、DTO、DB schema
+- 直接 new Date()/uuid（需由 factory 注入）
 
+## 結構（現況 + 預備）
 ```
 account-domain/
 └── src/
-    ├── aggregates/        # account / workspace / module-registry 等聚合
-    ├── value-objects/     # 角色、模組型別、工作區型別
-    ├── events/            # DomainEvent 介面與 metadata 工具
-    ├── policies/          # 跨聚合守則（如模組啟用檢查）
-    ├── domain-services/   # 無狀態的領域服務
-    ├── repositories/      # 介面定義
-    ├── entities/          # Entity 基礎型別
-    ├── types/             # 共用識別符
-    └── __tests__/         # 聚合 / VO 測試（新增實作時補齊）
+    ├── aggregates/
+    ├── value-objects/
+    ├── events/
+    ├── policies/
+    ├── domain-services/
+    ├── repositories/
+    ├── entities/
+    ├── types/
+    └── __tests__/
 ```
+> 新增 membership / invitation / policy 請直接放在上列子資料夾，禁止再開平行根目錄。
 
-> 未來新增的 membership / invitation / policy 請直接放在 `src/` 對應子資料夾，避免再次出現平行根目錄。
-
-## Saga Flow Diagram
-
+## Saga Flow（對齊 Mermaid 架構圖）
 ```mermaid
 graph TD
     A[AccountCreated] -->|CreateAccountProcess| B[WorkspaceCreated]
@@ -47,9 +54,8 @@ graph TD
     style J fill:#FF6347
 ```
 
-## Principles
-
-1. **不可變 + 驗證先行**：VO/Entity 確保型別安全與不變條件。
-2. **單一入口**：所有程式碼集中於 `src/`；新增聚合與事件一律走此路徑。
-3. **清晰依賴**：只依賴 `core-engine`，不上 UI / 平台 SDK。
-4. **文件先行**：新增聚合前，更新 README/AGENTS 以對齊 Mermaid 架構文件。
+## 原則
+1. 單一入口：所有程式碼放在 `src/`，新增前先更新 README/AGENTS。
+2. 不變與驗證：VO/Entity 維持型別安全與不變條件。
+3. 清晰依賴：零跨層依賴，純 TypeScript，禁止 SDK。
+4. 文件先行：修改聚合 / 事件前，先同步 Mermaid 架構文件。

@@ -1,14 +1,14 @@
 import { Injectable, inject } from '@angular/core';
-import { Auth, Unsubscribe, onAuthStateChanged, User } from '@angular/fire/auth';
 import { DA_SERVICE_TOKEN } from '@delon/auth';
+import { FirebaseAuthClient, FirebaseAuthUnsubscribe, FirebaseAuthUser, FirebaseIdTokenResult } from '@platform-adapters';
 import { ReplaySubject, firstValueFrom, take } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class FirebaseAuthBridgeService {
-  private auth = inject(Auth);
+  private authClient = inject(FirebaseAuthClient);
   private tokenService = inject(DA_SERVICE_TOKEN);
-  private authState$ = new ReplaySubject<User | null>(1);
-  private unsubscribeFn?: Unsubscribe;
+  private authState$ = new ReplaySubject<FirebaseAuthUser | null>(1);
+  private unsubscribeFn?: FirebaseAuthUnsubscribe;
 
   /**
    * 初始化 Firebase Auth 狀態監聽
@@ -21,7 +21,7 @@ export class FirebaseAuthBridgeService {
       return;
     }
 
-    this.unsubscribeFn = onAuthStateChanged(this.auth, async (user: User | null) => {
+    this.unsubscribeFn = this.authClient.onAuthStateChanged(async (user: FirebaseAuthUser | null) => {
       await this.syncToken(user);
       this.authState$.next(user);
     });
@@ -30,8 +30,8 @@ export class FirebaseAuthBridgeService {
   /**
    * 獲取 token 過期時間（毫秒時間戳）
    */
-  private async getTokenExpiration(user: User): Promise<number> {
-    const idTokenResult = await user.getIdTokenResult();
+  private async getTokenExpiration(user: FirebaseAuthUser): Promise<number> {
+    const idTokenResult: FirebaseIdTokenResult = await this.authClient.getIdTokenResult(user);
     return new Date(idTokenResult.expirationTime).getTime();
   }
 
@@ -39,31 +39,31 @@ export class FirebaseAuthBridgeService {
    * 強制刷新 token
    */
   async refreshToken(): Promise<string> {
-    const user = this.auth.currentUser;
+    const user = this.authClient.getCurrentUser();
     if (!user) {
       throw new Error('No authenticated user');
     }
-    const token = await user.getIdToken(true); // 強制刷新
+    const token = await this.authClient.getIdToken(user, true);
     return token;
   }
 
   /**
    * 獲取當前用戶
    */
-  getCurrentUser(): User | null {
-    return this.auth.currentUser;
+  getCurrentUser(): FirebaseAuthUser | null {
+    return this.authClient.getCurrentUser();
   }
 
   /**
    * 單一來源的 Auth 狀態 (避免多處監聽)
    */
-  waitForAuthState(): Promise<User | null> {
+  waitForAuthState(): Promise<FirebaseAuthUser | null> {
     return firstValueFrom(this.authState$.pipe(take(1)));
   }
 
-  private async syncToken(user: User | null): Promise<void> {
+  private async syncToken(user: FirebaseAuthUser | null): Promise<void> {
     if (user) {
-      const token = await user.getIdToken();
+      const token = await this.authClient.getIdToken(user);
       const tokenExpiration = await this.getTokenExpiration(user);
 
       this.tokenService.set({

@@ -1,7 +1,7 @@
 /**
  * Core Engine
  *
- * 💎 Pure domain core with ZERO framework dependencies
+ * Pure domain engine with ZERO framework dependencies
  *
  * Core Principles:
  * - NO Angular imports allowed
@@ -9,14 +9,11 @@
  * - Pure TypeScript only
  * - Framework-agnostic domain logic
  *
- * Contains:
- * - Event Store abstractions
- * - Causality tracking
- * - Aggregate Root patterns
- * - Projection (Read Model) definitions
+ * This package intentionally exposes only abstract building blocks.
+ * Domain-specific commands/handlers live in account-domain or saas-domain.
  */
 
-export * from './causality';
-export * from './event-store';
-export * from './aggregates';
-export * from './projection';
+export * from './src/ports';
+export * from './src/queries';
+export * from './src/value-objects';
+export * from './src/mappers';

@@ -1,51 +1,32 @@
-## Overview
+# account-domain
 
-`account-domain` models the existence conditions for the SaaS world: accounts, workspaces, memberships, and enabled modules. It is pure TypeScript that can depend on `@ng-events/core-engine` but must stay free of framework SDKs.
+> 依 [`packages/AGENTS.md`](../AGENTS.md) 為事實來源；新增前請先用 **server-sequential-thinking** + **software-planning-mcp** 拆步驟，再確認檔案是否落在下列路徑。
 
-## Folder Structure
+`account-domain` 建模身份、帳號、工作區與模組啟用的前置條件。站在依賴鏈最底層，被 `saas-domain` 與 `core-engine` 消費，必須保持純 TypeScript、零 SDK。
 
+## Folder Structure（單一入口）
 ```
 account-domain/
 ├── src/
-│   ├── aggregates/        # Account / workspace / module registry aggregates
-│   ├── value-objects/     # Roles, module types, workspace types
+│   ├── aggregates/        # Account / Workspace / Module Registry 聚合
+│   ├── value-objects/     # Roles、Module Types、Workspace Types
 │   ├── events/            # Domain events + metadata helpers
-│   ├── policies/          # Cross-aggregate guards
-│   ├── repositories/      # Interfaces only
-│   ├── entities/          # Base entity helpers
+│   ├── policies/          # 跨聚合守則（模組啟用檢查等）
+│   ├── repositories/      # 介面定義（無實作）
+│   ├── entities/          # Entity helpers
 │   ├── domain-services/   # Stateless domain logic
 │   └── types/             # Shared identifiers
 └── __tests__/             # Domain tests
 ```
+> 所有新檔案直接放在 `src/` 對應子資料夾，避免平行根目錄。
 
-All domain code lives under `src/` to keep a single, predictable entrypoint—no parallel `account/`, `workspace/`, or `module-registry/` folders.
+## Responsibilities
+- Provision/suspend Account，並 gate Workspace 建立。
+- Workspace 背書模組啟用（Module Registry）與 Membership。
+- 提供事件 `AccountCreated → WorkspaceCreated → MembershipCreated → ModuleEnabled` 及補償事件。
 
-## Domain Responsibilities
-
-- **Account**: Provision and suspend the SaaS account; gates workspace creation.
-- **Workspace**: Represents the world where SaaS modules run; ties back to an account.
-- **Membership**: Binds a user to a workspace with a role (`Owner | Admin | Member | Viewer`).
-- **Module Registry**: Lists capabilities (task/issue/payment, etc.) enabled per workspace.
-
-## Event & Time Conventions
-
-- Aggregates record `createdAt` (string) as their creation time.
-- Events use `occurredAt` (string) and may carry `causationId` / `correlationId` for causality tracking.
-
-## Event Flow Alignment
-
-The onboarding flow follows the saga described in `docs/new/✨0 3.md`:
-1) `AccountCreated` → 2) `WorkspaceCreated` → 3) `MemberJoinedWorkspace` → 4) `ModuleEnabled` → SaaS modules become usable.
-Compensation events (`AccountSuspended`, `WorkspaceArchived`, module disablement) protect against partial onboarding.
-
-## Usage Guidelines
-
-- Exported types live under `@ng-events/account-domain`.
-- Consumers (platform adapters, UI) should read projections, not mutate aggregates directly.
-- Keep all new code free from Angular/Firebase SDKs; integrate through adapters instead.
-
-## Planned additions
-
-- Membership / Invitation policies aligned with Workspace onboarding (Mermaid 架構層).
-- Module enablement dependency rules (task/issue/finance/quality/acceptance) kept in `policies/`.
-- Read model / projection contracts stay in core-engine; account-domain 僅定義事件與聚合。
+## Guardrails
+- ❌ 禁止 Angular / Firebase / 任意 SDK / HTTP / DB schema。
+- ❌ 不直接 new Date()/uuid；統一由 factory 注入。
+- ✅ 只輸出 VO/Entity/Policy/Event/Repository 介面給上層；持久化交給 `platform-adapters`。
+- ✅ 修改聚合或事件前，先更新 README/AGENTS 與 Mermaid 架構圖。

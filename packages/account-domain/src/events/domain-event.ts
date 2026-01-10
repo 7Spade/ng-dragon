@@ -23,10 +23,17 @@ export interface DomainEvent<TPayload> {
 }
 
 export function toEventMetadata(context: EventContext): DomainEvent<unknown>['metadata'] {
-  return {
+  const metadata: DomainEvent<unknown>['metadata'] = {
     actorId: context.actorId,
-    traceId: context.traceId,
-    causedBy: context.causedBy,
-    occurredAt: context.occurredAt ?? new Date().toISOString(),
+    occurredAt: context.occurredAt ?? new Date().toISOString()
   };
+
+  if (context.traceId) {
+    metadata.traceId = context.traceId;
+  }
+  if (context.causedBy && context.causedBy.length > 0) {
+    metadata.causedBy = context.causedBy;
+  }
+
+  return metadata;
 }
