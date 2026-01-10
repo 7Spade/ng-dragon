@@ -4,6 +4,9 @@ import { authSimpleCanActivate, authSimpleCanActivateChild } from '@delon/auth';
 
 import { LayoutBasicComponent } from '../layout';
 import { CreateOrganizationFormComponent } from '../workspaces/create-organization-form.component';
+import { CreateTeamFormComponent } from '../workspaces/create-team-form.component';
+import { CreatePartnerFormComponent } from '../workspaces/create-partner-form.component';
+import { CreateProjectFormComponent } from '../workspaces/create-project-form.component';
 import { WorkspaceDetailComponent } from '../workspaces/workspace-detail.component';
 
 export const routes: Routes = [
@@ -25,19 +28,24 @@ export const routes: Routes = [
         data: { workspaceType: 'organization' }
       },
       {
-        path: 'workspaces/create/team',
-        component: CreateOrganizationFormComponent,
+        path: 'projects/create',
+        component: CreateProjectFormComponent,
+        data: { workspaceType: 'project' }
+      },
+      {
+        path: 'organizations/:orgId/projects/create',
+        component: CreateProjectFormComponent,
+        data: { workspaceType: 'project' }
+      },
+      {
+        path: 'organizations/:orgId/teams/create',
+        component: CreateTeamFormComponent,
         data: { workspaceType: 'team' }
       },
       {
-        path: 'workspaces/create/partner',
-        component: CreateOrganizationFormComponent,
+        path: 'organizations/:orgId/partners/create',
+        component: CreatePartnerFormComponent,
         data: { workspaceType: 'partner' }
-      },
-      {
-        path: 'workspaces/create/project',
-        component: CreateOrganizationFormComponent,
-        data: { workspaceType: 'project' }
       },
       {
         path: 'workspaces/:id',

@@ -4,3 +4,6 @@ export * from './account-type';
 export * from './workspace-type';
 export * from './member-role';
 export * from './module-types';
+export * from './context-type';
+export * from './container-scope';
+export * from './actor-identity';

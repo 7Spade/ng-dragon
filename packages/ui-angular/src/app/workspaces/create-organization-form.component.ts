@@ -2,8 +2,16 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject } from '@
 import { FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FirebaseAuthBridgeService } from '@core';
+import { ModuleStatus } from '@account-domain';
 import { CreateOrganizationService, CreateOrganizationRequest, WorkspaceTypeOption } from '@platform-adapters';
 import { SHARED_IMPORTS } from '@shared';
+
+const DEFAULT_MODULES: ModuleStatus[] = [
+  { moduleKey: 'identity', moduleType: 'core', enabled: true },
+  { moduleKey: 'access-control', moduleType: 'core', enabled: true },
+  { moduleKey: 'settings', moduleType: 'core', enabled: true },
+  { moduleKey: 'audit', moduleType: 'core', enabled: true }
+];
 
 @Component({
   selector: 'app-create-organization-form',
@@ -81,24 +89,24 @@ export class CreateOrganizationFormComponent {
         return;
       }
 
-      // Send command to UseCase via service
+      const now = new Date().toISOString();
       const payload: CreateOrganizationRequest = {
         accountId: user.uid,
         organizationName: this.form.value.organizationName ?? '',
         ownerUserId: user.uid,
         actorId: user.uid,
-        workspaceType: this.workspaceType
+        workspaceType: this.workspaceType,
+        modules: DEFAULT_MODULES,
+        traceId: `trace-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+        causedBy: ['user-action'],
+        createdAt: now
       };
 
       await this.createOrgService.createOrganization(payload);
 
       this.successMessage = `${this.workspaceLabel} "${this.form.value.organizationName}" created successfully!`;
+      this.form.reset();
       this.cdr.markForCheck();
-
-      // Navigate after a short delay to show success message
-      setTimeout(() => {
-        this.router.navigate(['/dashboard']);
-      }, 1500);
     } catch (error) {
       this.errorMessage = error instanceof Error ? error.message : 'Failed to create organization';
       console.error('Error creating organization:', error);
