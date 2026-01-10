@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+.yarn/
+.yarn-cache/
+
+# Build outputs
+dist/
+build/
+out/
+coverage/
+.angular/
+.next/
+.nuxt/
+
+# Firebase / Cloud
+.firebase/
+.firebaserc
+.emulators/
+
+# Cache / temp
+.cache/
+.tmp/
+temp/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Large generated files
+*.map
+*.lock
+
+# Git
+.git/
