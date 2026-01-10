@@ -11,7 +11,7 @@ export interface EventMetadataInput {
   containerScope: ContainerScope;
   causality?: CausalityChain;
   occurredAt?: Date;
-  affects?: AffectedEntity[];
+  affects?: ReadonlyArray<AffectedEntity>;
   traceId?: TraceId;
 }
 
@@ -31,7 +31,7 @@ export class EventMetadata {
     this.containerScope = input.containerScope;
     this.causality = input.causality ?? new CausalityChain();
     this.occurredAt = input.occurredAt ?? new Date();
-    this.affects = input.affects ?? [];
+    this.affects = input.affects ? [...input.affects] : [];
   }
 
   withAdditionalCause(eventId: EventId): EventMetadata {

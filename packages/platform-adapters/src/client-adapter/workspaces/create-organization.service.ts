@@ -85,7 +85,15 @@ export class CreateOrganizationService {
 
   private buildPayload(
     workspaceType: WorkspaceTypeOption,
-    request: Required<CreateOrganizationRequest>
+    request: CreateOrganizationRequest & {
+      workspaceId: string;
+      modules: ModuleStatus[];
+      actorId: string;
+      workspaceType: WorkspaceTypeOption;
+      traceId: string;
+      causedBy: string[];
+      createdAt: string;
+    }
   ): CreateOrganizationCommand | CreateTeamCommand | CreatePartnerCommand | CreateProjectCommand {
     switch (workspaceType) {
       case 'team':
