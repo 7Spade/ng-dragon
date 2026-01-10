@@ -104,12 +104,14 @@ import { map, shareReplay } from 'rxjs/operators';
           <i nz-icon nzType="plus" class="mr-sm"></i>{{ 'menu.account.organizations.create' | i18n: 'Create organization' }}
         </div>
 
-        <div nz-menu-item [nzDisabled]="!isMember(activeWorkspaceId())" (click)="createTeam()">
-          <i nz-icon nzType="team" class="mr-sm"></i>{{ 'menu.account.organizations.createTeam' | i18n: 'Create team' }}
-        </div>
-        <div nz-menu-item (click)="createPartner()">
-          <i nz-icon nzType="user-add" class="mr-sm"></i>{{ 'menu.account.organizations.createPartner' | i18n: 'Create partner' }}
-        </div>
+        @if (canManageActiveOrganization()) {
+          <div nz-menu-item (click)="createTeam()">
+            <i nz-icon nzType="team" class="mr-sm"></i>{{ 'menu.account.organizations.createTeam' | i18n: 'Create team' }}
+          </div>
+          <div nz-menu-item (click)="createPartner()">
+            <i nz-icon nzType="user-add" class="mr-sm"></i>{{ 'menu.account.organizations.createPartner' | i18n: 'Create partner' }}
+          </div>
+        }
         <div nz-menu-item (click)="createProject()">
           <i nz-icon nzType="appstore-add" class="mr-sm"></i>{{ 'menu.account.organizations.createProject' | i18n: 'Create project' }}
         </div>
@@ -187,18 +189,23 @@ export class HeaderUserComponent {
 
   private readonly storedWorkspaceId = signal<string | null>(this.loadStoredWorkspaceId());
   readonly activeWorkspaceId = signal<string | null>(this.storedWorkspaceId());
+  private readonly activeWorkspace = computed(() =>
+    this.availableWorkspaces().find(ws => ws.id === this.activeWorkspaceId()) ?? null
+  );
   readonly activeWorkspaceName = computed(() => {
-    const id = this.activeWorkspaceId();
-    if (!id) return null;
-    return this.availableWorkspaces().find(ws => ws.id === id)?.name ?? null;
+    const ws = this.activeWorkspace();
+    if (!ws) return null;
+    if (ws.workspaceType === 'personal') return this.settings.user.name;
+    return ws.name ?? null;
   });
-  readonly activeWorkspaceType = computed(() => {
-    const id = this.activeWorkspaceId();
-    if (!id) return null;
-    return this.availableWorkspaces().find(ws => ws.id === id)?.workspaceType ?? null;
-  });
+  readonly activeWorkspaceType = computed(() => this.activeWorkspace()?.workspaceType ?? null);
   readonly contextDisplayName = computed(() => this.activeWorkspaceName() ?? this.settings.user.name);
-  readonly contextSubline = computed(() => this.activeWorkspaceType() ?? this.settings.user.email);
+  readonly contextSubline = computed(() => {
+    const ws = this.activeWorkspace();
+    if (ws?.workspaceType === 'personal') return this.settings.user.email;
+    const type = ws?.workspaceType;
+    return type ? this.typeLabel(type) : this.settings.user.email;
+  });
   readonly contextAvatar = computed(() => {
     const id = this.activeWorkspaceId();
     if (!id) return this.settings.user.avatar;
@@ -315,17 +322,28 @@ export class HeaderUserComponent {
     this.updateContextMenu(workspace);
 
     const baseEmail = this.settings.user.email;
+    const isPersonal = workspace.workspaceType === 'personal';
     this.settings.setUser({
       ...this.settings.user,
-      name: workspace.name ?? this.settings.user.name,
+      name: isPersonal ? this.settings.user.name : workspace.name ?? this.settings.user.name,
       avatar: this.workspaceAvatarById(workspace.id),
-      email: baseEmail
+      email: isPersonal ? this.settings.user.email : baseEmail
     });
 
     if (persist) {
       this.saveWorkspaceId(workspace.id);
       this.storedWorkspaceId.set(workspace.id);
     }
+  }
+
+  canManageActiveOrganization(): boolean {
+    const ws = this.activeWorkspace();
+    const uid = this.currentUserId();
+    if (!ws || ws.workspaceType !== 'organization' || !uid) return false;
+    if (ws.ownerAccountId === uid) return true;
+    const member = ws.members?.find(m => m.accountId === uid);
+    const role = (member as any)?.role?.toString().toLowerCase?.() ?? '';
+    return ['owner', 'admin', 'manager'].includes(role);
   }
 
   private pickDefaultWorkspace(list: WorkspaceView[]): WorkspaceView | null {
