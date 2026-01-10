@@ -1,6 +1,4 @@
-import { DomainEvent } from '@account-domain';
-
-import { AffectedEntity, CausalityChain, EventId, EventMetadata, createEventMetadata } from '../value-objects';
+import { AffectedEntity, CausalityChain, DomainEvent, EventId, EventMetadata, createEventMetadata } from '@account-domain';
 
 export interface EventEnvelope<TPayload = unknown> {
   id: EventId;

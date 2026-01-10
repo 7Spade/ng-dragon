@@ -1,9 +1,6 @@
-import { ContainerScope } from '@account-domain';
-
 import { AffectedEntity } from './affected-entity';
-import { CausalityChain, EventId } from './causality-chain';
-
-export type TraceId = string & { readonly __brand: 'TraceId' };
+import { CausalityChain, EventId, TraceId } from './causality-chain';
+import { ContainerScope } from './container-scope';
 
 export interface EventMetadataInput {
   eventId: EventId;

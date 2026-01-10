@@ -1,7 +1,6 @@
-import { DomainEvent } from '@account-domain';
+import { DomainEvent, EventId, createEventMetadata } from '@account-domain';
 
 import { EventEnvelope } from '../ports';
-import { EventId, createEventMetadata } from '../value-objects';
 
 const randomId = (): EventId => `evt_${Date.now()}_${Math.random().toString(36).slice(2, 10)}` as EventId;
 

@@ -1,6 +1,5 @@
-import { TraceId } from './event-metadata';
-
 export type EventId = string;
+export type TraceId = string & { readonly __brand: 'TraceId' };
 
 /**
  * CausalityChain captures the chain of events that led to the current one.
