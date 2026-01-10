@@ -1,9 +1,8 @@
-import { WorkspaceType } from '@account-domain';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FirebaseAuthBridgeService } from '@core';
-import { CreateOrganizationService } from '@platform-adapters';
+import { CreateOrganizationService, CreateOrganizationRequest, WorkspaceTypeOption } from '@platform-adapters';
 import { SHARED_IMPORTS } from '@shared';
 
 @Component({
@@ -46,7 +45,7 @@ export class CreateOrganizationFormComponent {
   });
 
   private readonly route = inject(ActivatedRoute);
-  readonly workspaceType: WorkspaceType = (this.route.snapshot.data['workspaceType'] as WorkspaceType | undefined) ?? 'organization';
+  readonly workspaceType: WorkspaceTypeOption = this.toWorkspaceType(this.route.snapshot.data['workspaceType']);
   private readonly workspaceLabel = this.toWorkspaceLabel(this.workspaceType);
 
   readonly pageTitle = `Create ${this.workspaceLabel}`;
@@ -83,13 +82,15 @@ export class CreateOrganizationFormComponent {
       }
 
       // Send command to UseCase via service
-      await this.createOrgService.createOrganization({
+      const payload: CreateOrganizationRequest = {
         accountId: user.uid,
         organizationName: this.form.value.organizationName ?? '',
         ownerUserId: user.uid,
         actorId: user.uid,
         workspaceType: this.workspaceType
-      });
+      };
+
+      await this.createOrgService.createOrganization(payload);
 
       this.successMessage = `${this.workspaceLabel} "${this.form.value.organizationName}" created successfully!`;
       this.cdr.markForCheck();
@@ -108,7 +109,12 @@ export class CreateOrganizationFormComponent {
     }
   }
 
-  private toWorkspaceLabel(type: WorkspaceType): string {
+  private toWorkspaceType(value: unknown): WorkspaceTypeOption {
+    const supported: WorkspaceTypeOption[] = ['organization', 'project', 'personal', 'team', 'partner'];
+    return supported.includes(value as WorkspaceTypeOption) ? (value as WorkspaceTypeOption) : 'organization';
+  }
+
+  private toWorkspaceLabel(type: WorkspaceTypeOption): string {
     switch (type) {
       case 'team':
         return 'Team';
