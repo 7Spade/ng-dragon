@@ -22,7 +22,7 @@ export class WorkspaceService {
         if (!user) return of([]);
 
         const workspacesCol = collection(this.firestore, 'workspaces') as CollectionReference<WorkspaceSnapshot>;
-        const q = query(workspacesCol, where('ownerAccountId', '==', user.uid));
+        const q = query(workspacesCol, where('accountId', '==', user.uid));
 
         return collectionData<WorkspaceSnapshot & { id?: string }>(q, { idField: 'id' }).pipe(
           map(workspaces => workspaces.map(ws => this.mapWorkspace(ws as WorkspaceSnapshot & { id?: string })))

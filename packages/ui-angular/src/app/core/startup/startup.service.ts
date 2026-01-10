@@ -1,4 +1,4 @@
-import { Injectable, inject, APP_INITIALIZER } from '@angular/core';
+import { Injectable, inject, APP_INITIALIZER, effect } from '@angular/core';
 import { Router } from '@angular/router';
 import { ACLService } from '@delon/acl';
 import { MenuService, SettingsService, TitleService, ALAIN_I18N_TOKEN } from '@delon/theme';
@@ -8,6 +8,7 @@ import { catchError } from 'rxjs/operators';
 
 import { FirebaseAuthBridgeService } from '../auth/firebase-auth-bridge.service';
 import { I18NService } from '../i18n/i18n.service';
+import { ContextService } from '../context/context.service';
 
 /**
  * Used for application startup
@@ -35,6 +36,7 @@ export class StartupService {
   private i18n = inject<I18NService>(ALAIN_I18N_TOKEN);
   private authBridge = inject(FirebaseAuthBridgeService);
   private userProfileClient = inject(UserProfileClient);
+  private contextService = inject(ContextService);
 
   load(): Observable<void> {
     return from(this.loadAsync()).pipe(
@@ -75,6 +77,9 @@ export class StartupService {
     // 6. 設定頁面標題
     this.titleService.default = '';
     this.titleService.suffix = 'NG-EVENTS';
+
+    // 7. 將 context 對應的選單與 MenuService 同步
+    this.registerMenuSync();
   }
 
   /**
@@ -92,9 +97,12 @@ export class StartupService {
         email: user.email || ''
       });
 
-      // 載入用戶特定的選單
-      const menu = await this.loadUserMenu(user.uid, userProfile.role);
-      this.menuService.add(menu);
+      // 預設使用個人 context
+      this.contextService.setContext({
+        type: 'personal',
+        id: `personal-${user.uid}`,
+        name: userProfile.name || user.displayName || 'Personal'
+      });
     } catch (error) {
       console.error('Failed to load user data:', error);
       // 載入預設選單作為 fallback
@@ -107,6 +115,7 @@ export class StartupService {
    */
   private async loadAnonymousUserData(): Promise<void> {
     // 未登入時載入預設選單
+    this.contextService.setContext({ type: 'personal', id: null, name: 'Visitor' });
     this.loadDefaultMenu();
   }
 
@@ -117,39 +126,17 @@ export class StartupService {
     return this.userProfileClient.getUserProfile(uid);
   }
 
-  /**
-   * 根據用戶角色載入選單
-   */
-  private async loadUserMenu(uid: string, role?: string): Promise<any[]> {
-    // TODO: 根據用戶角色從 Firestore 或 Remote Config 載入選單
-    // 目前使用預設選單
-    return this.getDefaultMenu();
-  }
-
-  /**
-   * 載入預設選單
-   */
   private loadDefaultMenu(): void {
-    this.menuService.add(this.getDefaultMenu());
+    this.menuService.clear();
+    this.menuService.add(this.contextService.menu());
   }
 
-  /**
-   * 獲取預設選單結構
-   */
-  private getDefaultMenu(): any[] {
-    return [
-      {
-        text: '主選單',
-        group: true,
-        children: [
-          {
-            text: '儀表板',
-            link: '/dashboard',
-            icon: { type: 'icon', value: 'appstore' }
-          }
-        ]
-      }
-    ];
+  private registerMenuSync(): void {
+    effect(() => {
+      const menu = this.contextService.menu();
+      this.menuService.clear();
+      this.menuService.add(menu);
+    });
   }
 }
 

@@ -1,6 +1,6 @@
 import { DomainEvent } from '@account-domain';
 
-import { AffectedEntity, CausalityChain, EventId, EventMetadata } from '../value-objects';
+import { AffectedEntity, CausalityChain, EventId, EventMetadata, createEventMetadata } from '../value-objects';
 
 export interface EventEnvelope<TPayload = unknown> {
   id: EventId;
@@ -8,7 +8,7 @@ export interface EventEnvelope<TPayload = unknown> {
   aggregateType: string;
   sequence: number;
   event: DomainEvent<TPayload>;
-  metadata: EventMetadata;
+  metadata: EventMetadata | ReturnType<typeof createEventMetadata>;
   affectedEntities?: AffectedEntity[];
 }
 

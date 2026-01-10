@@ -8,40 +8,73 @@
     "avatar": "./assets/tmp/img/avatar.jpg",
     "email": "admin@example.com"
   },
-  "menu": [
-    {
-      "text": "主导航",
-      "i18n": "menu.main",
-      "group": true,
-      "hideInBreadcrumb": true,
-      "children": [
-        {
-          "text": "仪表盘",
-          "i18n": "menu.dashboard",
-          "link": "/dashboard/v1",
-          "icon": "anticon-dashboard"
-        },
-        {
-          "text": "個人",
-          "link": "/workspaces/personal",
-          "icon": "anticon-user"
-        },
-        {
-          "text": "組織",
-          "link": "/organizations",
-          "icon": "anticon-apartment"
-        },
-        {
-          "text": "團隊",
-          "link": "/teams",
-          "icon": "anticon-team"
-        },
-        {
-          "text": "合作夥伴",
-          "link": "/partners",
-          "icon": "anticon-user-add"
-        }
-      ]
-    }
-  ]
+  "menus": {
+    "personal": [
+      {
+        "text": "Main",
+        "i18n": "menu.main",
+        "group": true,
+        "hideInBreadcrumb": true,
+        "children": [
+          { "text": "Dashboard", "i18n": "menu.dashboard", "link": "/dashboard", "icon": "anticon-dashboard" },
+          { "text": "My Tasks", "i18n": "menu.tasks.mine", "link": "/tasks/my", "icon": "anticon-check-circle" },
+          { "text": "Create Task", "i18n": "menu.tasks.create", "link": "/tasks/create", "icon": "anticon-plus" },
+          {
+            "text": "Projects",
+            "i18n": "menu.projects",
+            "icon": "anticon-appstore",
+            "children": [
+              { "text": "Create Project", "i18n": "menu.projects.create", "link": "/projects/create", "icon": "anticon-appstore-add" },
+              { "text": "My Projects", "i18n": "menu.projects.mine", "link": "/projects", "icon": "anticon-folder-open" }
+            ]
+          }
+        ]
+      }
+    ],
+    "organization": [
+      {
+        "text": "Organization",
+        "i18n": "menu.organization",
+        "group": true,
+        "children": [
+          { "text": "Dashboard", "i18n": "menu.dashboard", "link": "/dashboard", "icon": "anticon-apartment" },
+          { "text": "Teams", "i18n": "menu.organization.teams", "link": "/teams", "icon": "anticon-team" },
+          { "text": "Members", "i18n": "menu.organization.members", "link": "/members", "icon": "anticon-user" },
+          {
+            "text": "Project Management",
+            "i18n": "menu.projects.manage",
+            "icon": "anticon-project",
+            "children": [
+              { "text": "Create Project", "i18n": "menu.projects.create", "link": "/projects/create", "icon": "anticon-appstore-add" }
+            ]
+          },
+          { "text": "Create Task", "i18n": "menu.tasks.create", "link": "/tasks/create", "icon": "anticon-plus" },
+          { "text": "Task List", "i18n": "menu.tasks.list", "link": "/tasks", "icon": "anticon-unordered-list" }
+        ]
+      }
+    ],
+    "team": [
+      {
+        "text": "Team",
+        "i18n": "menu.team",
+        "group": true,
+        "children": [
+          { "text": "Team Dashboard", "i18n": "menu.dashboard", "link": "/dashboard", "icon": "anticon-team" },
+          { "text": "Team Tasks", "i18n": "menu.tasks.team", "link": "/tasks/team", "icon": "anticon-unordered-list" },
+          { "text": "Create Task", "i18n": "menu.tasks.create", "link": "/tasks/create", "icon": "anticon-plus" }
+        ]
+      }
+    ],
+    "partner": [
+      {
+        "text": "Partner",
+        "i18n": "menu.partner",
+        "group": true,
+        "children": [
+          { "text": "Partner Dashboard", "i18n": "menu.dashboard", "link": "/dashboard", "icon": "anticon-user-add" },
+          { "text": "Collaborations", "i18n": "menu.partner.collaborations", "link": "/collaborations", "icon": "anticon-share-alt" }
+        ]
+      }
+    ]
+  }
 }

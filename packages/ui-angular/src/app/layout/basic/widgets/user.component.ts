@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, Input, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { FirebaseAuthBridgeService } from '@core';
+import { ContextService, ContextType, FirebaseAuthBridgeService } from '@core';
 import { DA_SERVICE_TOKEN } from '@delon/auth';
-import { I18nPipe, MenuService, SettingsService, User } from '@delon/theme';
+import { I18nPipe, SettingsService, User } from '@delon/theme';
 import { WorkspaceService, WorkspaceView } from '@platform-adapters';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
@@ -151,8 +151,8 @@ export class HeaderUserComponent {
   private readonly router = inject(Router);
   private readonly tokenService = inject(DA_SERVICE_TOKEN);
   private readonly workspaceService = inject(WorkspaceService);
-  private readonly menuService = inject(MenuService);
   private readonly authBridge = inject(FirebaseAuthBridgeService);
+  private readonly contextService = inject(ContextService);
 
   private readonly workspaces$: Observable<WorkspaceView[]> = combineLatest([
     this.workspaceService.getUserWorkspaces(),
@@ -304,15 +304,19 @@ export class HeaderUserComponent {
   createTeam(): void {
     const orgId = this.activeWorkspaceId();
     if (!this.isMember(orgId)) return;
-    this.router.navigateByUrl('/workspaces/create/team').catch(() => void 0);
+    this.router.navigateByUrl(`/organizations/${orgId}/teams/create`).catch(() => void 0);
   }
 
   createPartner(): void {
-    this.router.navigateByUrl('/workspaces/create/partner').catch(() => void 0);
+    const orgId = this.activeWorkspaceId();
+    if (!this.isMember(orgId)) return;
+    this.router.navigateByUrl(`/organizations/${orgId}/partners/create`).catch(() => void 0);
   }
 
   createProject(): void {
-    this.router.navigateByUrl('/workspaces/create/project').catch(() => void 0);
+    const orgId = this.activeWorkspace()?.workspaceType === 'organization' ? this.activeWorkspaceId() : null;
+    const route = orgId ? `/organizations/${orgId}/projects/create` : '/projects/create';
+    this.router.navigateByUrl(route).catch(() => void 0);
   }
 
   logout(): void {
@@ -330,7 +334,11 @@ export class HeaderUserComponent {
       name: workspace.name ?? 'NG-EVENTS',
       description: workspace.workspaceType
     });
-    this.updateContextMenu(workspace);
+    this.contextService.setContext({
+      type: this.mapContextType(workspace.workspaceType),
+      id: workspace.id,
+      name: workspace.name ?? workspace.workspaceId
+    });
 
     if (persist) {
       this.saveWorkspaceId(workspace.id);
@@ -383,63 +391,6 @@ export class HeaderUserComponent {
     return this.activeWorkspaceId() === id;
   }
 
-  private routeForWorkspace(workspace: WorkspaceView): string | null {
-    switch (workspace.workspaceType) {
-      case 'organization':
-        return `/organizations/${workspace.id}`;
-      case 'team':
-        return `/teams/${workspace.id}`;
-      case 'partner':
-        return `/partners/${workspace.id}`;
-      case 'personal':
-        return `/workspaces/${workspace.id}`;
-      case 'project':
-        return `/projects/${workspace.id}`;
-      default:
-        return `/workspaces/${workspace.id}`;
-    }
-  }
-
-  private updateContextMenu(workspace: WorkspaceView): void {
-    const route = this.routeForWorkspace(workspace);
-    const icon = this.iconForType(workspace.workspaceType);
-    const menu = [
-      {
-        text: '主選單',
-        group: true,
-        children: [
-          {
-            text: workspace.name ?? 'Workspace',
-            link: route ?? '/dashboard',
-            icon
-          }
-        ]
-      }
-    ];
-
-    this.menuService.clear();
-    this.menuService.add(menu);
-  }
-
-  typeLabel(type: WorkspaceView['workspaceType'] | undefined): string {
-    switch (type) {
-      case 'organization':
-        return 'Org';
-      case 'team':
-        return 'Team';
-      case 'partner':
-        return 'Partner';
-      case 'personal':
-        return 'Personal';
-      default:
-        return 'Workspace';
-    }
-  }
-
-  private workspaceAvatarById(id: string): string {
-    return `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(id)}`;
-  }
-
   private iconForType(type: WorkspaceView['workspaceType'] | undefined): string {
     switch (type) {
       case 'organization':
@@ -450,8 +401,42 @@ export class HeaderUserComponent {
         return 'user-add';
       case 'personal':
         return 'user';
+      case 'project':
+        return 'project';
       default:
         return 'appstore';
+    }
+  }
+
+  private typeLabel(type: WorkspaceView['workspaceType'] | undefined): string {
+    switch (type) {
+      case 'organization':
+        return 'Org';
+      case 'team':
+        return 'Team';
+      case 'partner':
+        return 'Partner';
+      case 'personal':
+        return 'Personal';
+      case 'project':
+        return 'Project';
+      default:
+        return 'Workspace';
+    }
+  }
+
+  private mapContextType(type: WorkspaceView['workspaceType'] | undefined): ContextType {
+    switch (type) {
+      case 'organization':
+        return 'organization';
+      case 'team':
+        return 'team';
+      case 'partner':
+        return 'partner';
+      case 'project':
+        return 'project';
+      default:
+        return 'personal';
     }
   }
 }

@@ -1,7 +1,10 @@
-import { CreateOrganizationCommand } from '../commands/create-organization-command';
+import { WorkspaceRepository } from '../repositories/workspace-repository';
 import { WorkspaceFactory } from '../domain/workspace-factory';
 import { WorkspaceCreatedEvent } from '../events/workspace-created.event';
-import { WorkspaceRepository } from '../repositories/workspace-repository';
+import { CreateOrganizationCommand } from '../commands/create-organization-command';
+import { CreateTeamCommand } from '../commands/create-team-command';
+import { CreatePartnerCommand } from '../commands/create-partner-command';
+import { CreateProjectCommand } from '../commands/create-project-command';
 
 export class WorkspaceApplicationService {
   constructor(
@@ -16,22 +19,22 @@ export class WorkspaceApplicationService {
     return event;
   }
 
-  async createTeam(command: CreateOrganizationCommand): Promise<WorkspaceCreatedEvent> {
-    const { snapshot, event } = this.workspaceFactory.createWorkspace(command, 'team');
+  async createTeam(command: CreateTeamCommand): Promise<WorkspaceCreatedEvent> {
+    const { snapshot, event } = this.workspaceFactory.createTeam(command);
     await this.workspaceRepository.appendWorkspaceEvent(event);
     await this.workspaceRepository.saveWorkspaceSnapshot(snapshot);
     return event;
   }
 
-  async createPartner(command: CreateOrganizationCommand): Promise<WorkspaceCreatedEvent> {
-    const { snapshot, event } = this.workspaceFactory.createWorkspace(command, 'partner');
+  async createPartner(command: CreatePartnerCommand): Promise<WorkspaceCreatedEvent> {
+    const { snapshot, event } = this.workspaceFactory.createPartner(command);
     await this.workspaceRepository.appendWorkspaceEvent(event);
     await this.workspaceRepository.saveWorkspaceSnapshot(snapshot);
     return event;
   }
 
-  async createProject(command: CreateOrganizationCommand): Promise<WorkspaceCreatedEvent> {
-    const { snapshot, event } = this.workspaceFactory.createWorkspace(command, 'project');
+  async createProject(command: CreateProjectCommand): Promise<WorkspaceCreatedEvent> {
+    const { snapshot, event } = this.workspaceFactory.createProject(command);
     await this.workspaceRepository.appendWorkspaceEvent(event);
     await this.workspaceRepository.saveWorkspaceSnapshot(snapshot);
     return event;
