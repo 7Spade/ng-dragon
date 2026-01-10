@@ -401,24 +401,104 @@ export class HeaderUserComponent {
   }
 
   private updateContextMenu(workspace: WorkspaceView): void {
-    const route = this.routeForWorkspace(workspace);
-    const icon = this.iconForType(workspace.workspaceType);
-    const menu = [
+    const menu = this.buildMenuForWorkspace(workspace);
+    this.menuService.clear();
+    this.menuService.add(menu);
+  }
+
+  private buildMenuForWorkspace(workspace: WorkspaceView): any[] {
+    switch (workspace.workspaceType) {
+      case 'organization':
+        return this.organizationMenu(workspace);
+      case 'team':
+        return this.teamMenu(workspace);
+      case 'partner':
+        return this.partnerMenu(workspace);
+      case 'project':
+        return this.personalMenu(workspace);
+      default:
+        return this.personalMenu(workspace);
+    }
+  }
+
+  private personalMenu(workspace?: WorkspaceView): any[] {
+    return [
       {
-        text: '主選單',
+        text: 'menu.main',
+        i18n: 'menu.main',
         group: true,
         children: [
-          {
-            text: workspace.name ?? 'Workspace',
-            link: route ?? '/dashboard',
-            icon
-          }
+          this.menuItem('menu.dashboard', '/dashboard', 'dashboard'),
+          this.menuItem('menu.tasks.my', '/tasks/my', 'profile'),
+          this.menuItem('menu.tasks.create', '/tasks/create', 'form'),
+          this.menuItem('menu.tasks.list', '/tasks/list', 'unordered-list'),
+          this.menuItem('menu.projects.root', '/projects', 'appstore'),
+          this.menuItem('menu.projects.create', '/workspaces/create/project', 'appstore-add'),
+          this.menuItem('menu.projects.mine', '/projects/mine', 'cluster')
         ]
       }
     ];
+  }
 
-    this.menuService.clear();
-    this.menuService.add(menu);
+  private organizationMenu(workspace: WorkspaceView): any[] {
+    const base = `/organizations/${workspace.id}`;
+    return [
+      {
+        text: 'menu.main',
+        i18n: 'menu.main',
+        group: true,
+        children: [
+          this.menuItem('menu.organizations.dashboard', base, 'apartment'),
+          this.menuItem('menu.organizations.teams', `${base}/teams`, 'team'),
+          this.menuItem('menu.organizations.members', `${base}/members`, 'idcard'),
+          this.menuItem('menu.organizations.projects', `${base}/projects`, 'appstore'),
+          this.menuItem('menu.projects.create', '/workspaces/create/project', 'appstore-add'),
+          this.menuItem('menu.tasks.create', `${base}/tasks/create`, 'form'),
+          this.menuItem('menu.tasks.list', `${base}/tasks`, 'unordered-list')
+        ]
+      }
+    ];
+  }
+
+  private teamMenu(workspace: WorkspaceView): any[] {
+    const base = `/teams/${workspace.id}`;
+    return [
+      {
+        text: 'menu.main',
+        i18n: 'menu.main',
+        group: true,
+        children: [
+          this.menuItem('menu.teams.dashboard', base, 'team'),
+          this.menuItem('menu.teams.tasks', `${base}/tasks`, 'profile'),
+          this.menuItem('menu.tasks.create', `${base}/tasks/create`, 'form'),
+          this.menuItem('menu.teams.members', `${base}/members`, 'idcard')
+        ]
+      }
+    ];
+  }
+
+  private partnerMenu(workspace: WorkspaceView): any[] {
+    const base = `/partners/${workspace.id}`;
+    return [
+      {
+        text: 'menu.main',
+        i18n: 'menu.main',
+        group: true,
+        children: [
+          this.menuItem('menu.partners.dashboard', base, 'user-add'),
+          this.menuItem('menu.partners.collaborations', `${base}/collaborations`, 'share-alt')
+        ]
+      }
+    ];
+  }
+
+  private menuItem(i18n: string, link: string, icon: string) {
+    return {
+      text: i18n,
+      i18n,
+      link,
+      icon: { type: 'icon', value: icon }
+    };
   }
 
   typeLabel(type: WorkspaceView['workspaceType'] | undefined): string {
@@ -431,6 +511,8 @@ export class HeaderUserComponent {
         return 'Partner';
       case 'personal':
         return 'Personal';
+      case 'project':
+        return 'Project';
       default:
         return 'Workspace';
     }

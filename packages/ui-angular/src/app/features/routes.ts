@@ -5,6 +5,7 @@ import { authSimpleCanActivate, authSimpleCanActivateChild } from '@delon/auth';
 import { LayoutBasicComponent } from '../layout';
 import { CreateOrganizationFormComponent } from '../workspaces/create-organization-form.component';
 import { WorkspaceDetailComponent } from '../workspaces/workspace-detail.component';
+import { ContextPlaceholderComponent } from './context-placeholder.component';
 
 export const routes: Routes = [
   {
@@ -18,6 +19,31 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         loadChildren: () => import('./dashboard/routes').then(m => m.routes)
+      },
+      {
+        path: 'tasks/create',
+        component: ContextPlaceholderComponent,
+        data: { title: 'Create Task' }
+      },
+      {
+        path: 'tasks/list',
+        component: ContextPlaceholderComponent,
+        data: { title: 'Task List' }
+      },
+      {
+        path: 'tasks/my',
+        component: ContextPlaceholderComponent,
+        data: { title: 'My Tasks' }
+      },
+      {
+        path: 'projects',
+        component: ContextPlaceholderComponent,
+        data: { title: 'Projects' }
+      },
+      {
+        path: 'projects/mine',
+        component: ContextPlaceholderComponent,
+        data: { title: 'My Projects' }
       },
       {
         path: 'workspaces/create',
@@ -44,14 +70,59 @@ export const routes: Routes = [
         component: WorkspaceDetailComponent
       },
       {
+        path: 'organizations/:id/tasks/create',
+        component: ContextPlaceholderComponent,
+        data: { workspaceType: 'organization', title: 'Create Task' }
+      },
+      {
+        path: 'organizations/:id/tasks',
+        component: ContextPlaceholderComponent,
+        data: { workspaceType: 'organization', title: 'Task List' }
+      },
+      {
+        path: 'organizations/:id/projects',
+        component: ContextPlaceholderComponent,
+        data: { workspaceType: 'organization', title: 'Project Management' }
+      },
+      {
+        path: 'organizations/:id/teams',
+        component: ContextPlaceholderComponent,
+        data: { workspaceType: 'organization', title: 'Teams' }
+      },
+      {
+        path: 'organizations/:id/partners',
+        component: ContextPlaceholderComponent,
+        data: { workspaceType: 'organization', title: 'Partners' }
+      },
+      {
         path: 'organizations/:id',
         component: WorkspaceDetailComponent,
         data: { workspaceType: 'organization' }
       },
       {
+        path: 'teams/:id/tasks/create',
+        component: ContextPlaceholderComponent,
+        data: { workspaceType: 'team', title: 'Create Task' }
+      },
+      {
+        path: 'teams/:id/tasks',
+        component: ContextPlaceholderComponent,
+        data: { workspaceType: 'team', title: 'Team Tasks' }
+      },
+      {
+        path: 'teams/:id/members',
+        component: ContextPlaceholderComponent,
+        data: { workspaceType: 'team', title: 'Team Members' }
+      },
+      {
         path: 'teams/:id',
         component: WorkspaceDetailComponent,
         data: { workspaceType: 'team' }
+      },
+      {
+        path: 'partners/:id/collaborations',
+        component: ContextPlaceholderComponent,
+        data: { workspaceType: 'partner', title: 'Collaborations' }
       },
       {
         path: 'partners/:id',

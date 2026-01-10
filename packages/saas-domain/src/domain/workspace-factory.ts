@@ -8,7 +8,12 @@ import {
 } from '@account-domain';
 
 import { CreateOrganizationCommand } from '../commands/create-organization-command';
+import { CreateTeamCommand } from '../commands/create-team-command';
+import { CreatePartnerCommand } from '../commands/create-partner-command';
+import { CreateProjectCommand } from '../commands/create-project-command';
 import { WorkspaceCreatedEvent } from '../events/workspace-created.event';
+
+type CreateWorkspaceCommand = CreateOrganizationCommand | CreateTeamCommand | CreatePartnerCommand | CreateProjectCommand;
 
 export class WorkspaceFactory {
   private static readonly DEFAULT_MODULES: ModuleStatus[] = [
@@ -18,7 +23,7 @@ export class WorkspaceFactory {
     { moduleKey: 'audit', moduleType: 'core', enabled: true }
   ];
 
-  createOrganization(command: CreateOrganizationCommand): {
+  createOrganization(command: CreateWorkspaceCommand): {
     snapshot: WorkspaceSnapshot;
     event: WorkspaceCreatedEvent;
   } {
@@ -26,7 +31,7 @@ export class WorkspaceFactory {
   }
 
   createWorkspace(
-    command: CreateOrganizationCommand,
+    command: CreateWorkspaceCommand,
     workspaceType: WorkspaceSnapshot['workspaceType']
   ): {
     snapshot: WorkspaceSnapshot;

@@ -23,18 +23,25 @@ export class FirebaseEventStore implements EventStore {
 
       request.events.forEach(write => {
         nextSequence += 1;
+        const metadata: EventEnvelope<TPayload>['metadata'] = {
+          actorId: write.event.metadata.actorId,
+          occurredAt: write.event.metadata.occurredAt ?? now
+        };
+
+        if (write.event.metadata.traceId) {
+          metadata.traceId = write.event.metadata.traceId;
+        }
+        if (write.event.metadata.causedBy && write.event.metadata.causedBy.length > 0) {
+          metadata.causedBy = write.event.metadata.causedBy;
+        }
+
         const envelope: EventEnvelope<TPayload> = {
           id: `evt-${request.aggregateId}-${nextSequence}` as EventEnvelope<TPayload>['id'],
           aggregateId: request.aggregateId,
           aggregateType: request.aggregateType ?? write.event.eventType,
           sequence: nextSequence,
           event: write.event,
-          metadata: {
-            actorId: write.event.metadata.actorId,
-            traceId: write.event.metadata.traceId,
-            causedBy: write.event.metadata.causedBy,
-            occurredAt: write.event.metadata.occurredAt ?? now
-          },
+          metadata,
           affectedEntities: write.affectedEntities
         };
 

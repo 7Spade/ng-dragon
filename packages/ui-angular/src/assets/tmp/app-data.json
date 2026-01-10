@@ -22,24 +22,34 @@
           "icon": "anticon-dashboard"
         },
         {
-          "text": "個人",
-          "link": "/workspaces/personal",
-          "icon": "anticon-user"
+          "text": "我的任務",
+          "i18n": "menu.tasks.my",
+          "link": "/tasks/my",
+          "icon": "anticon-profile"
         },
         {
-          "text": "組織",
-          "link": "/organizations",
-          "icon": "anticon-apartment"
+          "text": "建立任務",
+          "i18n": "menu.tasks.create",
+          "link": "/tasks/create",
+          "icon": "anticon-form"
         },
         {
-          "text": "團隊",
-          "link": "/teams",
-          "icon": "anticon-team"
+          "text": "任務清單",
+          "i18n": "menu.tasks.list",
+          "link": "/tasks/list",
+          "icon": "anticon-unordered-list"
         },
         {
-          "text": "合作夥伴",
-          "link": "/partners",
-          "icon": "anticon-user-add"
+          "text": "專案",
+          "i18n": "menu.projects.root",
+          "link": "/projects",
+          "icon": "anticon-appstore"
+        },
+        {
+          "text": "建立專案",
+          "i18n": "menu.projects.create",
+          "link": "/workspaces/create/project",
+          "icon": "anticon-appstore-add"
         }
       ]
     }
