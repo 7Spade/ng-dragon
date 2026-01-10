@@ -15,4 +15,25 @@ export class WorkspaceApplicationService {
     await this.workspaceRepository.saveWorkspaceSnapshot(snapshot);
     return event;
   }
+
+  async createTeam(command: CreateOrganizationCommand): Promise<WorkspaceCreatedEvent> {
+    const { snapshot, event } = this.workspaceFactory.createWorkspace(command, 'team');
+    await this.workspaceRepository.appendWorkspaceEvent(event);
+    await this.workspaceRepository.saveWorkspaceSnapshot(snapshot);
+    return event;
+  }
+
+  async createPartner(command: CreateOrganizationCommand): Promise<WorkspaceCreatedEvent> {
+    const { snapshot, event } = this.workspaceFactory.createWorkspace(command, 'partner');
+    await this.workspaceRepository.appendWorkspaceEvent(event);
+    await this.workspaceRepository.saveWorkspaceSnapshot(snapshot);
+    return event;
+  }
+
+  async createProject(command: CreateOrganizationCommand): Promise<WorkspaceCreatedEvent> {
+    const { snapshot, event } = this.workspaceFactory.createWorkspace(command, 'project');
+    await this.workspaceRepository.appendWorkspaceEvent(event);
+    await this.workspaceRepository.saveWorkspaceSnapshot(snapshot);
+    return event;
+  }
 }

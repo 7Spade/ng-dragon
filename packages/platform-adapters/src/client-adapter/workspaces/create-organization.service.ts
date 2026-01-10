@@ -13,12 +13,25 @@ export class CreateOrganizationService {
   async createOrganization(command: CreateOrganizationCommand): Promise<string> {
     const workspaceId = command.workspaceId ?? randomWorkspaceId();
 
-    const event = await this.application.createOrganization({
+    const payload = {
       ...command,
       workspaceId,
       actorId: command.actorId ?? command.ownerUserId,
       workspaceType: command.workspaceType ?? 'organization'
-    });
+    };
+
+    const handlerMap: Record<
+      NonNullable<typeof payload.workspaceType>,
+      (p: typeof payload) => Promise<Awaited<ReturnType<WorkspaceApplicationService['createOrganization']>>>
+    > = {
+      organization: p => this.application.createOrganization(p),
+      team: p => this.application.createTeam(p),
+      partner: p => this.application.createPartner(p),
+      project: p => this.application.createProject(p),
+      personal: p => this.application.createOrganization(p)
+    };
+
+    const event = await (handlerMap[payload.workspaceType] ?? handlerMap.organization)(payload);
 
     return event.workspaceId ?? workspaceId;
   }
