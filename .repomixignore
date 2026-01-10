@@ -39,9 +39,14 @@ Thumbs.db
 *.md
 *.png
 *.ico
+*.less
+*.svg
+*.spec.*
 
 # Git
 .git/
+.gitignore
+.gitkeep
 
 # Repomix
 _cli-tpl/
@@ -58,3 +63,21 @@ LICENSE
 package-lock.json
 pnpm-lock.yaml
 yarn.lock
+
+.editorconfig
+.gitattributes
+.npmignore
+.npmrc
+.nvmrc
+.prettierignore
+.prettierrc.js
+.repomixignore
+.yarnrc.yml
+apphosting.yaml
+eslint.config.mjs
+firebase.json
+stylelint.config.mjs
+repomix.config.json
+
+tsconfig.base.json
+tsconfig.app.json
