@@ -76,31 +76,57 @@ import { map, shareReplay } from 'rxjs/operators';
 
         <li nz-menu-divider></li>
 
-        <div class="px-sm text-muted">{{ 'menu.account.workspaces.teams' | i18n: 'Teams' }}</div>
-        @if (teamWorkspaces().length) {
-          @for (team of teamWorkspaces(); track team.id) {
-            <div nz-menu-item [nzSelected]="isActiveWorkspace(team.id)" (click)="selectWorkspace(team)">
-              <i nz-icon nzType="apartment" class="mr-sm"></i>{{ team.name }}
+        <div class="px-sm text-muted">Teams & partners by organization</div>
+        @if (organizationGroups().length) {
+          @for (group of organizationGroups(); track group.org.id) {
+            <div class="px-sm text-muted d-flex align-items-center">
+              <i nz-icon nzType="apartment" class="mr-sm"></i>
+              <span>{{ group.org.name ?? 'Organization' }}</span>
             </div>
+            @if (group.teams.length) {
+              @for (team of group.teams; track team.id) {
+                <div nz-menu-item [nzSelected]="isActiveWorkspace(team.id)" (click)="selectWorkspace(team)">
+                  <i nz-icon nzType="apartment" class="mr-sm"></i>{{ team.name }}
+                  <span class="text-muted small ml-sm">(Team)</span>
+                </div>
+              }
+            } @else {
+              <div nz-menu-item class="text-muted">No teams for this organization</div>
+            }
+            @if (group.partners.length) {
+              @for (partner of group.partners; track partner.id) {
+                <div nz-menu-item [nzSelected]="isActiveWorkspace(partner.id)" (click)="selectWorkspace(partner)">
+                  <i nz-icon nzType="user-add" class="mr-sm"></i>{{ partner.name }}
+                  <span class="text-muted small ml-sm">(Partner)</span>
+                </div>
+              }
+            } @else {
+              <div nz-menu-item class="text-muted">No partners for this organization</div>
+            }
+            <li nz-menu-divider></li>
           }
         } @else {
-          <div nz-menu-item class="text-muted">{{ 'menu.account.workspaces.noneTeams' | i18n: 'No teams' }}</div>
+          <div nz-menu-item class="text-muted">No organizations available</div>
         }
 
-        <li nz-menu-divider></li>
-
-        <div class="px-sm text-muted">{{ 'menu.account.workspaces.partners' | i18n: 'Partners' }}</div>
-        @if (partnerWorkspaces().length) {
-          @for (partner of partnerWorkspaces(); track partner.id) {
-            <div nz-menu-item [nzSelected]="isActiveWorkspace(partner.id)" (click)="selectWorkspace(partner)">
-              <i nz-icon nzType="user-add" class="mr-sm"></i>{{ partner.name }}
-            </div>
+        @if (ungroupedTeams().length || ungroupedPartners().length) {
+          <div class="px-sm text-muted">Other teams & partners</div>
+          @if (ungroupedTeams().length) {
+            @for (team of ungroupedTeams(); track team.id) {
+              <div nz-menu-item [nzSelected]="isActiveWorkspace(team.id)" (click)="selectWorkspace(team)">
+                <i nz-icon nzType="apartment" class="mr-sm"></i>{{ team.name }}
+              </div>
+            }
           }
-        } @else {
-          <div nz-menu-item class="text-muted">{{ 'menu.account.workspaces.nonePartners' | i18n: 'No partners' }}</div>
+          @if (ungroupedPartners().length) {
+            @for (partner of ungroupedPartners(); track partner.id) {
+              <div nz-menu-item [nzSelected]="isActiveWorkspace(partner.id)" (click)="selectWorkspace(partner)">
+                <i nz-icon nzType="user-add" class="mr-sm"></i>{{ partner.name }}
+              </div>
+            }
+          }
+          <li nz-menu-divider></li>
         }
-
-        <li nz-menu-divider></li>
 
         <div class="px-sm text-muted">{{ 'menu.account.workspaces.personal' | i18n: 'Personal' }}</div>
         @if (personalWorkspaces().length) {
@@ -276,9 +302,34 @@ export class HeaderUserComponent {
 
   readonly joinedOrganizations = computed(() => this.workspacePartitions().joined);
 
-  readonly teamWorkspaces = computed(() => this.availableWorkspaces().filter(ws => ws.workspaceType === 'team'));
+  private readonly organizations = computed(() => this.availableWorkspaces().filter(ws => ws.workspaceType === 'organization'));
 
-  readonly partnerWorkspaces = computed(() => this.availableWorkspaces().filter(ws => ws.workspaceType === 'partner'));
+  private readonly teams = computed(() => this.availableWorkspaces().filter(ws => ws.workspaceType === 'team'));
+
+  private readonly partners = computed(() => this.availableWorkspaces().filter(ws => ws.workspaceType === 'partner'));
+
+  private readonly organizationGrouping = computed(() => {
+    const groups = this.organizations().map(org => {
+      const orgTeams = this.teams().filter(team => this.belongsToOrganization(team, org));
+      const orgPartners = this.partners().filter(partner => this.belongsToOrganization(partner, org));
+      return { org, teams: orgTeams, partners: orgPartners };
+    });
+
+    const groupedTeamIds = new Set(groups.flatMap(group => group.teams.map(team => team.id)));
+    const groupedPartnerIds = new Set(groups.flatMap(group => group.partners.map(partner => partner.id)));
+
+    return {
+      groups,
+      ungroupedTeams: this.teams().filter(team => !groupedTeamIds.has(team.id)),
+      ungroupedPartners: this.partners().filter(partner => !groupedPartnerIds.has(partner.id))
+    };
+  });
+
+  readonly organizationGroups = computed(() => this.organizationGrouping().groups);
+
+  readonly ungroupedTeams = computed(() => this.organizationGrouping().ungroupedTeams);
+
+  readonly ungroupedPartners = computed(() => this.organizationGrouping().ungroupedPartners);
 
   readonly personalWorkspaces = computed(() => this.availableWorkspaces().filter(ws => ws.workspaceType === 'personal'));
 
@@ -453,5 +504,15 @@ export class HeaderUserComponent {
       default:
         return 'appstore';
     }
+  }
+
+  private belongsToOrganization(workspace: WorkspaceView, organization: WorkspaceView): boolean {
+    const parentWorkspaceId =
+      (workspace as { parentWorkspaceId?: string; organizationId?: string }).parentWorkspaceId ??
+      (workspace as { organizationId?: string }).organizationId;
+    if (parentWorkspaceId && (parentWorkspaceId === organization.id || parentWorkspaceId === organization.workspaceId)) {
+      return true;
+    }
+    return workspace.accountId === organization.workspaceId || workspace.workspaceId === organization.workspaceId;
   }
 }
