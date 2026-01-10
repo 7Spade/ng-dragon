@@ -1,13 +1,14 @@
 import { WorkspaceSnapshot, WorkspaceMember } from '@account-domain';
 import { Injectable, inject } from '@angular/core';
 import { Auth, authState } from '@angular/fire/auth';
-import { Firestore, collection, query, where, collectionData } from '@angular/fire/firestore';
-import { Observable, of } from 'rxjs';
+import { Firestore, CollectionReference, collection, query, where, collectionData } from '@angular/fire/firestore';
+import { Observable, combineLatest, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 
 export interface WorkspaceView extends WorkspaceSnapshot {
   id: string;
   members: WorkspaceMember[];
+  memberIds?: string[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -20,10 +21,10 @@ export class WorkspaceService {
       switchMap(user => {
         if (!user) return of([]);
 
-        const workspacesCol = collection(this.firestore, 'workspaces');
+        const workspacesCol = collection(this.firestore, 'workspaces') as CollectionReference<WorkspaceSnapshot>;
         const q = query(workspacesCol, where('ownerAccountId', '==', user.uid));
 
-        return collectionData(q, { idField: 'id' }).pipe(
+        return collectionData<WorkspaceSnapshot & { id?: string }>(q, { idField: 'id' }).pipe(
           map(workspaces => workspaces.map(ws => this.mapWorkspace(ws as WorkspaceSnapshot & { id?: string })))
         );
       })
@@ -35,14 +36,19 @@ export class WorkspaceService {
       switchMap(user => {
         if (!user) return of([]);
 
-        const workspacesCol = collection(this.firestore, 'workspaces');
-        const memberQuery = query(
+        const workspacesCol = collection(this.firestore, 'workspaces') as CollectionReference<WorkspaceSnapshot>;
+        const memberIdQuery = query(workspacesCol, where('memberIds', 'array-contains', user.uid));
+        const legacyMemberQuery = query(
           workspacesCol,
           where('members', 'array-contains', { accountId: user.uid, role: 'member', accountType: 'user' })
         );
 
-        return collectionData(memberQuery, { idField: 'id' }).pipe(
-          map(workspaces => workspaces.map(ws => this.mapWorkspace(ws as WorkspaceSnapshot & { id?: string })))
+        return combineLatest([
+          collectionData<WorkspaceSnapshot & { id?: string }>(memberIdQuery, { idField: 'id' }),
+          collectionData<WorkspaceSnapshot & { id?: string }>(legacyMemberQuery, { idField: 'id' })
+        ]).pipe(
+          map(([byId, legacy]) => this.mergeWorkspaceResults([...byId, ...legacy])),
+          map(workspaces => workspaces.map(ws => this.mapWorkspace(ws)))
         );
       })
     );
@@ -61,16 +67,32 @@ export class WorkspaceService {
   }
 
   private mapWorkspace(ws: WorkspaceSnapshot & { id?: string; members?: WorkspaceMember[] }): WorkspaceView {
+    const id = ws.id ?? ws.workspaceId;
+    const modules = ws.modules ?? [];
+    const members = ws.members ?? [];
+    const memberIds = ws.memberIds ?? members.map(m => m.accountId);
     return {
-      id: ws.id ?? ws.workspaceId,
+      id,
       workspaceId: ws.workspaceId,
       accountId: ws.accountId,
       workspaceType: ws.workspaceType,
-      modules: ws.modules ?? [],
+      modules,
       createdAt: ws.createdAt,
       name: ws.name,
-      members: ws.members ?? [],
-      ownerAccountId: ws.ownerAccountId ?? ws.accountId
+      members,
+      ownerAccountId: ws.ownerAccountId ?? ws.accountId,
+      memberIds
     };
+  }
+
+  private mergeWorkspaceResults(raw: Array<WorkspaceSnapshot & { id?: string }>): Array<WorkspaceSnapshot & { id?: string }> {
+    const seen = new Map<string, WorkspaceSnapshot & { id?: string }>();
+    raw.forEach(ws => {
+      const id = ws.id ?? ws.workspaceId;
+      if (!id) return;
+      if (seen.has(id)) return;
+      seen.set(id, ws);
+    });
+    return Array.from(seen.values());
   }
 }

@@ -20,6 +20,7 @@ export interface WorkspaceSnapshot {
   name?: string;
   members: WorkspaceMember[];
   ownerAccountId?: AccountId;
+  memberIds?: AccountId[];
 }
 
 export interface ModuleToggledPayload {
@@ -39,6 +40,7 @@ export interface WorkspaceCreationInput {
   members?: WorkspaceMember[];
   ownerAccountId?: AccountId;
   ownerAccountType?: AccountType;
+  memberIds?: AccountId[];
 }
 
 export class WorkspaceAggregate {
@@ -55,6 +57,7 @@ export class WorkspaceAggregate {
     const ownerAccountId = input.ownerAccountId ?? input.accountId;
     const ownerAccountType = input.ownerAccountType ?? 'user';
     const members = input.members ?? (ownerAccountId ? [{ accountId: ownerAccountId, role: 'owner', accountType: ownerAccountType }] : []);
+    const memberIds = members.map(member => member.accountId);
 
     const snapshot: WorkspaceSnapshot = {
       workspaceId: input.workspaceId,
@@ -64,7 +67,8 @@ export class WorkspaceAggregate {
       createdAt,
       name: input.name,
       members,
-      ownerAccountId
+      ownerAccountId,
+      memberIds
     };
 
     const event: DomainEvent<WorkspaceSnapshot> = {

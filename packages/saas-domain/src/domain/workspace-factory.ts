@@ -1,4 +1,11 @@
-import { DomainEvent, EventContext, ModuleStatus, WorkspaceAggregate, WorkspaceSnapshot } from '@account-domain';
+import {
+  DomainEvent,
+  EventContext,
+  ModuleStatus,
+  WorkspaceAggregate,
+  WorkspaceSnapshot,
+  WorkspaceMember
+} from '@account-domain';
 
 import { CreateOrganizationCommand } from '../commands/create-organization-command';
 import { WorkspaceCreatedEvent } from '../events/workspace-created.event';
@@ -33,6 +40,13 @@ export class WorkspaceFactory {
       occurredAt: command.createdAt ?? new Date().toISOString()
     };
     const modules = command.modules ?? WorkspaceFactory.DEFAULT_MODULES;
+    const members: WorkspaceMember[] = [
+      { accountId: command.ownerUserId, role: 'owner', accountType: 'user' },
+      ...(command.actorId && command.actorId !== command.ownerUserId
+        ? [{ accountId: command.actorId, role: 'admin' as const, accountType: 'user' as const }]
+        : [])
+    ];
+    const memberIds = members.map(member => member.accountId);
 
     const { aggregate, event } = WorkspaceAggregate.create(
       {
@@ -42,8 +56,9 @@ export class WorkspaceFactory {
         createdAt: command.createdAt ?? context.occurredAt,
         modules,
         name: command.organizationName,
-        members: [{ accountId: command.ownerUserId, role: 'owner', accountType: 'user' }],
-        ownerAccountId: command.ownerUserId
+        members,
+        ownerAccountId: command.ownerUserId,
+        memberIds
       },
       context
     );
