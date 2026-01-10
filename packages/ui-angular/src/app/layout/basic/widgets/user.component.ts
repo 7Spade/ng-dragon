@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { FirebaseAuthBridgeService } from '@core';
@@ -31,13 +31,14 @@ import { map, shareReplay } from 'rxjs/operators';
     }
     <nz-dropdown-menu #userMenu="nzDropdownMenu">
       <div nz-menu class="width-lg">
-        <div class="px-sm py-sm text-muted">{{ 'menu.account.organizations' | i18n: 'Organizations' }}</div>
+        <div class="px-sm py-sm text-muted">{{ 'menu.account.workspaces' | i18n: 'Workspaces' }}</div>
 
-        <!-- Owned Organizations -->
         <div class="px-sm text-muted">{{ 'menu.account.organizations.owned' | i18n: 'Owned' }}</div>
         @if (ownedOrganizations().length) {
           @for (org of ownedOrganizations(); track org.id) {
-            <div nz-menu-item (click)="selectOrganization(org.id)"> <i nz-icon nzType="crown" class="mr-sm"></i>{{ org.name }} </div>
+            <div nz-menu-item [nzSelected]="isActiveWorkspace(org.id)" (click)="selectWorkspace(org)">
+              <i nz-icon nzType="crown" class="mr-sm"></i>{{ org.name }}
+            </div>
           }
         } @else {
           <div nz-menu-item class="text-muted">{{ 'menu.account.organizations.noneOwned' | i18n: 'No owned organizations' }}</div>
@@ -45,11 +46,12 @@ import { map, shareReplay } from 'rxjs/operators';
 
         <li nz-menu-divider></li>
 
-        <!-- Joined Organizations -->
         <div class="px-sm text-muted">{{ 'menu.account.organizations.joined' | i18n: 'Joined' }}</div>
         @if (joinedOrganizations().length) {
           @for (org of joinedOrganizations(); track org.id) {
-            <div nz-menu-item (click)="selectOrganization(org.id)"> <i nz-icon nzType="team" class="mr-sm"></i>{{ org.name }} </div>
+            <div nz-menu-item [nzSelected]="isActiveWorkspace(org.id)" (click)="selectWorkspace(org)">
+              <i nz-icon nzType="team" class="mr-sm"></i>{{ org.name }}
+            </div>
           }
         } @else {
           <div nz-menu-item class="text-muted">{{ 'menu.account.organizations.noneJoined' | i18n: 'No joined organizations' }}</div>
@@ -57,14 +59,54 @@ import { map, shareReplay } from 'rxjs/operators';
 
         <li nz-menu-divider></li>
 
-        <!-- Create Organization -->
+        <div class="px-sm text-muted">{{ 'menu.account.workspaces.teams' | i18n: 'Teams' }}</div>
+        @if (teamWorkspaces().length) {
+          @for (team of teamWorkspaces(); track team.id) {
+            <div nz-menu-item [nzSelected]="isActiveWorkspace(team.id)" (click)="selectWorkspace(team)">
+              <i nz-icon nzType="apartment" class="mr-sm"></i>{{ team.name }}
+            </div>
+          }
+        } @else {
+          <div nz-menu-item class="text-muted">{{ 'menu.account.workspaces.noneTeams' | i18n: 'No teams' }}</div>
+        }
+
+        <li nz-menu-divider></li>
+
+        <div class="px-sm text-muted">{{ 'menu.account.workspaces.partners' | i18n: 'Partners' }}</div>
+        @if (partnerWorkspaces().length) {
+          @for (partner of partnerWorkspaces(); track partner.id) {
+            <div nz-menu-item [nzSelected]="isActiveWorkspace(partner.id)" (click)="selectWorkspace(partner)">
+              <i nz-icon nzType="user-add" class="mr-sm"></i>{{ partner.name }}
+            </div>
+          }
+        } @else {
+          <div nz-menu-item class="text-muted">{{ 'menu.account.workspaces.nonePartners' | i18n: 'No partners' }}</div>
+        }
+
+        <li nz-menu-divider></li>
+
+        <div class="px-sm text-muted">{{ 'menu.account.workspaces.personal' | i18n: 'Personal' }}</div>
+        @if (personalWorkspaces().length) {
+          @for (personal of personalWorkspaces(); track personal.id) {
+            <div nz-menu-item [nzSelected]="isActiveWorkspace(personal.id)" (click)="selectWorkspace(personal)">
+              <i nz-icon nzType="user" class="mr-sm"></i>{{ personal.name }}
+            </div>
+          }
+        } @else {
+          <div nz-menu-item class="text-muted">{{ 'menu.account.workspaces.nonePersonal' | i18n: 'No personal workspace' }}</div>
+        }
+
+        <li nz-menu-divider></li>
+
         <div nz-menu-item (click)="createOrganization()">
           <i nz-icon nzType="plus" class="mr-sm"></i>{{ 'menu.account.organizations.create' | i18n: 'Create organization' }}
         </div>
 
-        @if (selectedOrganizationName()) {
-          <div nz-menu-item class="text-muted">{{ selectedOrganizationName() }}</div>
-          <div nz-menu-item [nzDisabled]="!isMember(selectedOrganizationId())" (click)="createTeam()">
+        @if (activeWorkspaceName()) {
+          <div nz-menu-item class="text-muted">
+            {{ 'menu.account.workspaces.current' | i18n: 'Current context' }}: {{ activeWorkspaceName() }}
+          </div>
+          <div nz-menu-item [nzDisabled]="!isMember(activeWorkspaceId())" (click)="createTeam()">
             <i nz-icon nzType="team" class="mr-sm"></i>{{ 'menu.account.organizations.createTeam' | i18n: 'Create team' }}
           </div>
           <div nz-menu-item (click)="createPartner()">
@@ -105,7 +147,7 @@ export class HeaderUserComponent {
       const organizations = new Map<string, WorkspaceView>();
 
       const processWorkspace = (ws: WorkspaceView): void => {
-        if (ws.workspaceType !== 'organization' || organizations.has(ws.id)) return;
+        if (organizations.has(ws.id)) return;
         organizations.set(ws.id, ws);
       };
 
@@ -120,11 +162,40 @@ export class HeaderUserComponent {
   private readonly workspaces = toSignal(this.workspaces$, { initialValue: [] as WorkspaceView[] });
   readonly currentUserId = signal<string | null>(this.authBridge.getCurrentUser()?.uid ?? null);
 
+  private readonly storedWorkspaceId = signal<string | null>(this.loadStoredWorkspaceId());
+  readonly activeWorkspaceId = signal<string | null>(this.storedWorkspaceId());
+  readonly activeWorkspaceName = computed(() => {
+    const id = this.activeWorkspaceId();
+    if (!id) return null;
+    return this.workspaces().find(ws => ws.id === id)?.name ?? null;
+  });
+  readonly activeWorkspaceType = computed(() => {
+    const id = this.activeWorkspaceId();
+    if (!id) return null;
+    return this.workspaces().find(ws => ws.id === id)?.workspaceType ?? null;
+  });
+
   constructor() {
     this.authBridge
       .waitForAuthState()
       .then(user => this.currentUserId.set(user?.uid ?? null))
       .catch(() => this.currentUserId.set(null));
+
+    effect(() => {
+      const list = this.workspaces();
+      if (!list.length) return;
+
+      const storedId = this.storedWorkspaceId();
+      const stored = storedId ? list.find(ws => ws.id === storedId) : null;
+      const fallback = stored ?? this.pickDefaultWorkspace(list);
+
+      if (!fallback) return;
+      if (this.activeWorkspaceId() !== fallback.id) {
+        this.setActiveWorkspace(fallback, false);
+      } else {
+        this.applyWorkspaceContext(fallback, false);
+      }
+    });
   }
 
   private readonly workspacePartitions = computed(() => {
@@ -155,12 +226,11 @@ export class HeaderUserComponent {
 
   readonly joinedOrganizations = computed(() => this.workspacePartitions().joined);
 
-  readonly selectedOrganizationId = signal<string | null>(null);
-  readonly selectedOrganizationName = computed(() => {
-    const selectedId = this.selectedOrganizationId();
-    if (!selectedId) return null;
-    return this.workspaces().find(ws => ws.id === selectedId)?.name ?? null;
-  });
+  readonly teamWorkspaces = computed(() => this.workspaces().filter(ws => ws.workspaceType === 'team'));
+
+  readonly partnerWorkspaces = computed(() => this.workspaces().filter(ws => ws.workspaceType === 'partner'));
+
+  readonly personalWorkspaces = computed(() => this.workspaces().filter(ws => ws.workspaceType === 'personal'));
 
   private readonly membershipLookup = computed(() => this.workspacePartitions().membership);
 
@@ -173,9 +243,12 @@ export class HeaderUserComponent {
     return this.membershipLookup().has(orgId);
   }
 
-  selectOrganization(orgId: string): void {
-    this.selectedOrganizationId.set(orgId);
-    this.router.navigateByUrl(`/organizations/${orgId}`).catch(() => void 0);
+  selectWorkspace(workspace: WorkspaceView): void {
+    this.setActiveWorkspace(workspace, true);
+    const route = this.routeForWorkspace(workspace);
+    if (route) {
+      this.router.navigateByUrl(route).catch(() => void 0);
+    }
   }
 
   createOrganization(): void {
@@ -183,7 +256,7 @@ export class HeaderUserComponent {
   }
 
   createTeam(): void {
-    const orgId = this.selectedOrganizationId();
+    const orgId = this.activeWorkspaceId();
     if (!this.isMember(orgId)) return;
     this.router.navigateByUrl('/workspaces/create/team').catch(() => void 0);
   }
@@ -199,5 +272,72 @@ export class HeaderUserComponent {
   logout(): void {
     this.tokenService.clear();
     this.router.navigateByUrl(this.tokenService.login_url!).catch(() => void 0);
+  }
+
+  private setActiveWorkspace(workspace: WorkspaceView, persist: boolean): void {
+    this.activeWorkspaceId.set(workspace.id);
+    this.applyWorkspaceContext(workspace, persist);
+  }
+
+  private applyWorkspaceContext(workspace: WorkspaceView, persist: boolean): void {
+    this.settings.setApp({
+      name: workspace.name ?? 'NG-EVENTS',
+      description: workspace.workspaceType
+    });
+
+    if (persist) {
+      this.saveWorkspaceId(workspace.id);
+      this.storedWorkspaceId.set(workspace.id);
+    }
+  }
+
+  private pickDefaultWorkspace(list: WorkspaceView[]): WorkspaceView | null {
+    const uid = this.currentUserId();
+    if (!list.length) return null;
+
+    const ownedOrg = list.find(ws => ws.workspaceType === 'organization' && ws.ownerAccountId === uid);
+    if (ownedOrg) return ownedOrg;
+
+    const joinedOrg = list.find(ws => ws.workspaceType === 'organization');
+    if (joinedOrg) return joinedOrg;
+
+    return list[0] ?? null;
+  }
+
+  private loadStoredWorkspaceId(): string | null {
+    if (typeof localStorage === 'undefined') return null;
+    try {
+      return localStorage.getItem('workspace.active') || null;
+    } catch {
+      return null;
+    }
+  }
+
+  private saveWorkspaceId(id: string): void {
+    if (typeof localStorage === 'undefined') return;
+    try {
+      localStorage.setItem('workspace.active', id);
+    } catch {
+      // ignore storage errors
+    }
+  }
+
+  isActiveWorkspace(id: string): boolean {
+    return this.activeWorkspaceId() === id;
+  }
+
+  private routeForWorkspace(workspace: WorkspaceView): string | null {
+    switch (workspace.workspaceType) {
+      case 'organization':
+        return `/organizations/${workspace.id}`;
+      case 'team':
+        return `/teams/${workspace.id}`;
+      case 'partner':
+        return `/partners/${workspace.id}`;
+      case 'project':
+        return `/projects/${workspace.id}`;
+      default:
+        return `/workspaces/${workspace.id}`;
+    }
   }
 }
