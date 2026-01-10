@@ -4,7 +4,7 @@ import { Firestore, doc, getDoc } from '@angular/fire/firestore';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { ACLService } from '@delon/acl';
-import { MenuService, SettingsService, TitleService, ALAIN_I18N_TOKEN } from '@delon/theme';
+import { Menu, MenuService, SettingsService, TitleService, ALAIN_I18N_TOKEN } from '@delon/theme';
 import { Observable, from, of, firstValueFrom, Subscription } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
@@ -180,8 +180,8 @@ export class StartupService {
     projectGroup.children = [...baseChildren, ...dynamicChildren];
   }
 
-  private buildProjectMenuItems(projects: Workspace[]): any[] {
-    const items = projects.slice(0, 10).map(project => ({
+  private buildProjectMenuItems(projects: Workspace[]): Menu[] {
+    const items: Menu[] = projects.slice(0, 10).map(project => ({
       text: project.name || project.id,
       link: `/projects/${project.id}`,
       icon: 'anticon-folder-open'
