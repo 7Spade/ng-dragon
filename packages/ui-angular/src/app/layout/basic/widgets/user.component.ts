@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, Input, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { FirebaseAuthBridgeService } from '@core';
 import { DA_SERVICE_TOKEN } from '@delon/auth';
-import { I18nPipe, SettingsService, User } from '@delon/theme';
+import { I18nPipe, MenuService, SettingsService, User } from '@delon/theme';
 import { WorkspaceService, WorkspaceView } from '@platform-adapters';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
@@ -38,6 +38,7 @@ import { map, shareReplay } from 'rxjs/operators';
           @for (org of ownedOrganizations(); track org.id) {
             <div nz-menu-item [nzSelected]="isActiveWorkspace(org.id)" (click)="selectWorkspace(org)">
               <i nz-icon nzType="crown" class="mr-sm"></i>{{ org.name }}
+              <span class="text-muted small ml-sm">({{ typeLabel(org.workspaceType) }})</span>
             </div>
           }
         } @else {
@@ -51,6 +52,7 @@ import { map, shareReplay } from 'rxjs/operators';
           @for (org of joinedOrganizations(); track org.id) {
             <div nz-menu-item [nzSelected]="isActiveWorkspace(org.id)" (click)="selectWorkspace(org)">
               <i nz-icon nzType="team" class="mr-sm"></i>{{ org.name }}
+              <span class="text-muted small ml-sm">({{ typeLabel(org.workspaceType) }})</span>
             </div>
           }
         } @else {
@@ -123,7 +125,7 @@ import { map, shareReplay } from 'rxjs/operators';
     </nz-dropdown-menu>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, NzDropDownModule, NzMenuModule, NzIconModule, I18nPipe, NzAvatarModule]
+  imports: [NzDropDownModule, NzMenuModule, NzIconModule, I18nPipe, NzAvatarModule]
 })
 export class HeaderUserComponent {
   @Input() layout: 'header' | 'aside' = 'aside';
@@ -132,6 +134,7 @@ export class HeaderUserComponent {
   private readonly router = inject(Router);
   private readonly tokenService = inject(DA_SERVICE_TOKEN);
   private readonly workspaceService = inject(WorkspaceService);
+  private readonly menuService = inject(MenuService);
   private readonly authBridge = inject(FirebaseAuthBridgeService);
 
   private readonly workspaces$: Observable<WorkspaceView[]> = combineLatest([
@@ -155,6 +158,31 @@ export class HeaderUserComponent {
   );
 
   private readonly workspaces = toSignal(this.workspaces$, { initialValue: [] as WorkspaceView[] });
+  private readonly personalFallback = computed<WorkspaceView | null>(() => {
+    const personals = this.workspaces().filter(ws => ws.workspaceType === 'personal');
+    if (personals.length) return null;
+    const uid = this.currentUserId();
+    if (!uid) return null;
+    return {
+      id: `personal-${uid}`,
+      workspaceId: `personal-${uid}`,
+      accountId: uid,
+      ownerAccountId: uid,
+      workspaceType: 'personal',
+      modules: [],
+      createdAt: new Date().toISOString(),
+      name: 'Personal',
+      members: []
+    };
+  });
+  private readonly availableWorkspaces = computed<WorkspaceView[]>(() => {
+    const list = [...this.workspaces()];
+    const fallback = this.personalFallback();
+    if (fallback && !list.find(ws => ws.id === fallback.id)) {
+      list.push(fallback);
+    }
+    return list;
+  });
   readonly currentUserId = signal<string | null>(this.authBridge.getCurrentUser()?.uid ?? null);
 
   private readonly storedWorkspaceId = signal<string | null>(this.loadStoredWorkspaceId());
@@ -162,12 +190,12 @@ export class HeaderUserComponent {
   readonly activeWorkspaceName = computed(() => {
     const id = this.activeWorkspaceId();
     if (!id) return null;
-    return this.workspaces().find(ws => ws.id === id)?.name ?? null;
+    return this.availableWorkspaces().find(ws => ws.id === id)?.name ?? null;
   });
   readonly activeWorkspaceType = computed(() => {
     const id = this.activeWorkspaceId();
     if (!id) return null;
-    return this.workspaces().find(ws => ws.id === id)?.workspaceType ?? null;
+    return this.availableWorkspaces().find(ws => ws.id === id)?.workspaceType ?? null;
   });
   readonly contextDisplayName = computed(() => this.activeWorkspaceName() ?? this.settings.user.name);
   readonly contextSubline = computed(() => this.activeWorkspaceType() ?? this.settings.user.email);
@@ -184,8 +212,8 @@ export class HeaderUserComponent {
       .catch(() => this.currentUserId.set(null));
 
     effect(() => {
-      const list = this.workspaces();
-      if (!list.length) return;
+       const list = this.availableWorkspaces();
+       if (!list.length) return;
 
       const storedId = this.storedWorkspaceId();
       const stored = storedId ? list.find(ws => ws.id === storedId) : null;
@@ -208,7 +236,7 @@ export class HeaderUserComponent {
 
     if (!uid) return { owned, joined, membership };
 
-    for (const ws of this.workspaces()) {
+    for (const ws of this.availableWorkspaces()) {
       if (ws.ownerAccountId === uid) {
         owned.push(ws);
         membership.add(ws.id);
@@ -228,29 +256,13 @@ export class HeaderUserComponent {
 
   readonly joinedOrganizations = computed(() => this.workspacePartitions().joined);
 
-  readonly teamWorkspaces = computed(() => this.workspaces().filter(ws => ws.workspaceType === 'team'));
+  readonly teamWorkspaces = computed(() => this.availableWorkspaces().filter(ws => ws.workspaceType === 'team'));
 
-  readonly partnerWorkspaces = computed(() => this.workspaces().filter(ws => ws.workspaceType === 'partner'));
+  readonly partnerWorkspaces = computed(() => this.availableWorkspaces().filter(ws => ws.workspaceType === 'partner'));
 
-  readonly personalWorkspaces = computed(() => {
-    const personals = this.workspaces().filter(ws => ws.workspaceType === 'personal');
-    if (personals.length) return personals;
-    const uid = this.currentUserId();
-    if (!uid) return personals;
-    return [
-      {
-        id: `personal-${uid}`,
-        workspaceId: `personal-${uid}`,
-        accountId: uid,
-        ownerAccountId: uid,
-        workspaceType: 'personal',
-        modules: [],
-        createdAt: new Date().toISOString(),
-        name: 'Personal',
-        members: []
-      }
-    ];
-  });
+  readonly personalWorkspaces = computed(() =>
+    this.availableWorkspaces().filter(ws => ws.workspaceType === 'personal')
+  );
 
   private readonly membershipLookup = computed(() => this.workspacePartitions().membership);
 
@@ -258,7 +270,7 @@ export class HeaderUserComponent {
     return this.settings.user;
   }
 
-  private isMember(orgId: string | null): boolean {
+  isMember(orgId: string | null): boolean {
     if (!orgId) return false;
     return this.membershipLookup().has(orgId);
   }
@@ -300,6 +312,7 @@ export class HeaderUserComponent {
       name: workspace.name ?? 'NG-EVENTS',
       description: workspace.workspaceType
     });
+    this.updateContextMenu(workspace);
 
     const baseEmail = this.settings.user.email;
     this.settings.setUser({
@@ -358,10 +371,54 @@ export class HeaderUserComponent {
         return `/teams/${workspace.id}`;
       case 'partner':
         return `/partners/${workspace.id}`;
+      case 'personal':
+        return `/workspaces/${workspace.id}`;
       case 'project':
         return `/projects/${workspace.id}`;
       default:
         return `/workspaces/${workspace.id}`;
+    }
+  }
+
+  private updateContextMenu(workspace: WorkspaceView): void {
+    const route = this.routeForWorkspace(workspace);
+    const iconByType: Record<string, string> = {
+      organization: 'apartment',
+      team: 'team',
+      partner: 'user-add',
+      personal: 'user'
+    };
+    const icon = iconByType[workspace.workspaceType] ?? 'appstore';
+    const menu = [
+      {
+        text: '主選單',
+        group: true,
+        children: [
+          {
+            text: workspace.name ?? 'Workspace',
+            link: route ?? '/dashboard',
+            icon
+          }
+        ]
+      }
+    ];
+
+    this.menuService.clear();
+    this.menuService.add(menu);
+  }
+
+  typeLabel(type: WorkspaceView['workspaceType'] | undefined): string {
+    switch (type) {
+      case 'organization':
+        return 'Org';
+      case 'team':
+        return 'Team';
+      case 'partner':
+        return 'Partner';
+      case 'personal':
+        return 'Personal';
+      default:
+        return 'Workspace';
     }
   }
 
