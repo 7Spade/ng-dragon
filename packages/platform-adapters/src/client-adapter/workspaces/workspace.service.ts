@@ -1,9 +1,18 @@
 import { WorkspaceSnapshot, WorkspaceMember } from '@account-domain';
 import { Injectable, inject } from '@angular/core';
 import { Auth, authState } from '@angular/fire/auth';
-import { Firestore, CollectionReference, collection, query, where, collectionData } from '@angular/fire/firestore';
+import {
+  Firestore,
+  CollectionReference,
+  collection,
+  query,
+  where,
+  collectionData,
+  doc,
+  docData
+} from '@angular/fire/firestore';
 import { Observable, combineLatest, of } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { catchError, map, switchMap } from 'rxjs/operators';
 
 export interface WorkspaceView extends WorkspaceSnapshot {
   id: string;
@@ -22,7 +31,7 @@ export class WorkspaceService {
         if (!user) return of([]);
 
         const workspacesCol = collection(this.firestore, 'workspaces') as CollectionReference<WorkspaceSnapshot>;
-        const q = query(workspacesCol, where('ownerAccountId', '==', user.uid));
+        const q = query(workspacesCol, where('accountId', '==', user.uid));
 
         return collectionData<WorkspaceSnapshot & { id?: string }>(q, { idField: 'id' }).pipe(
           map(workspaces => workspaces.map(ws => this.mapWorkspace(ws as WorkspaceSnapshot & { id?: string })))
@@ -56,18 +65,17 @@ export class WorkspaceService {
 
   getWorkspaceById(workspaceId: string): Observable<WorkspaceView | null> {
     const workspacesCol = collection(this.firestore, 'workspaces');
-    const q = query(workspacesCol, where('workspaceId', '==', workspaceId));
+    const workspaceDoc = doc(workspacesCol, workspaceId);
 
-    return collectionData(q, { idField: 'id' }).pipe(
-      map(workspaces => {
-        if (workspaces.length === 0) return null;
-        return this.mapWorkspace(workspaces[0] as WorkspaceSnapshot & { id?: string });
-      })
+    return docData<WorkspaceSnapshot & { id?: string }>(workspaceDoc, { idField: 'id' }).pipe(
+      map(ws => (ws ? this.mapWorkspace(ws) : null)),
+      catchError(() => of(null))
     );
   }
 
   private mapWorkspace(ws: WorkspaceSnapshot & { id?: string; members?: WorkspaceMember[] }): WorkspaceView {
     const id = ws.id ?? ws.workspaceId;
+    const workspaceType = (ws.workspaceType ?? (ws as any).type ?? 'organization') as WorkspaceSnapshot['workspaceType'];
     const modules = ws.modules ?? [];
     const members = ws.members ?? [];
     const memberIds = ws.memberIds ?? members.map(m => m.accountId);
@@ -75,7 +83,7 @@ export class WorkspaceService {
       id,
       workspaceId: ws.workspaceId,
       accountId: ws.accountId,
-      workspaceType: ws.workspaceType,
+      workspaceType,
       modules,
       createdAt: ws.createdAt,
       name: ws.name,

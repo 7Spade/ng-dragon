@@ -93,12 +93,8 @@ export class CreateOrganizationFormComponent {
       await this.createOrgService.createOrganization(payload);
 
       this.successMessage = `${this.workspaceLabel} "${this.form.value.organizationName}" created successfully!`;
+      this.form.reset({ organizationName: '' });
       this.cdr.markForCheck();
-
-      // Navigate after a short delay to show success message
-      setTimeout(() => {
-        this.router.navigate(['/dashboard']);
-      }, 1500);
     } catch (error) {
       this.errorMessage = error instanceof Error ? error.message : 'Failed to create organization';
       console.error('Error creating organization:', error);
