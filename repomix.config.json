@@ -32,9 +32,7 @@
     "useGitignore": true,
     "useDotIgnore": true,
     "useDefaultPatterns": true,
-    "customPatterns": [
-      "**/*.md"
-    ]
+    "customPatterns": []
   },
   "security": {
     "enableSecurityCheck": true

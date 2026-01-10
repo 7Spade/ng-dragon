@@ -36,6 +36,25 @@ Thumbs.db
 # Large generated files
 *.map
 *.lock
+*.md
+*.png
+*.ico
 
 # Git
 .git/
+
+# Repomix
+_cli-tpl/
+.codacy/
+.github/
+.husky/
+dataconnect/
+dynamic/
+scripts/
+
+LICENSE
+
+
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
