@@ -245,10 +245,6 @@ export class HeaderUserComponent {
 
   selectWorkspace(workspace: WorkspaceView): void {
     this.setActiveWorkspace(workspace, true);
-    const route = this.routeForWorkspace(workspace);
-    if (route) {
-      this.router.navigateByUrl(route).catch(() => void 0);
-    }
   }
 
   createOrganization(): void {
