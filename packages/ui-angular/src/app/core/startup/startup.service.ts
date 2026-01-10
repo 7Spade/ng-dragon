@@ -4,14 +4,15 @@ import { Firestore, doc, getDoc } from '@angular/fire/firestore';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { ACLService } from '@delon/acl';
-import { MenuService, SettingsService, TitleService, ALAIN_I18N_TOKEN } from '@delon/theme';
-import { Observable, from, of, firstValueFrom } from 'rxjs';
+import { Menu, MenuService, SettingsService, TitleService, ALAIN_I18N_TOKEN } from '@delon/theme';
+import { Observable, from, of, firstValueFrom, Subscription } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 import { I18NService } from '../i18n/i18n.service';
 import { FirebaseAuthBridgeService } from '../auth/firebase-auth-bridge.service';
 import { ContextService } from '../context/context.service';
 import type { ContextType } from '@account-domain';
+import { Workspace, WorkspaceService } from '../../workspaces/workspace.service';
 
 interface UserProfile {
   name?: string;
@@ -59,8 +60,10 @@ export class StartupService {
   private i18n = inject<I18NService>(ALAIN_I18N_TOKEN);
   private authBridge = inject(FirebaseAuthBridgeService);
   private contextService = inject(ContextService);
+  private workspaceService = inject(WorkspaceService);
 
   private appData: AppData | null = null;
+  private projectsSub?: Subscription;
 
   constructor() {
     // React to context changes and reload menu
@@ -111,6 +114,7 @@ export class StartupService {
     // 5. Load data based on authentication state
     if (user) {
       await this.loadAuthenticatedUserData(user);
+      this.subscribeProjectsMenu();
     } else {
       await this.loadAnonymousUserData();
     }
@@ -137,6 +141,64 @@ export class StartupService {
     this.menuService.clear();
     this.menuService.add(menu);
     console.log(`Menu loaded for context: ${contextType}`, menu);
+  }
+
+  /**
+   * Subscribe to the user's projects and update the menu dynamically.
+   */
+  private subscribeProjectsMenu(): void {
+    if (this.projectsSub) {
+      this.projectsSub.unsubscribe();
+    }
+
+    this.projectsSub = this.workspaceService.getUserWorkspaces('project').subscribe(projects => {
+      this.updateProjectsMenu(projects);
+      const context = this.contextService.currentContext();
+      this.loadMenuForContext(context.type);
+    });
+  }
+
+  private updateProjectsMenu(projects: Workspace[]): void {
+    if (!this.appData?.menus?.user) return;
+
+    const projectGroup = this.appData.menus.user.find(
+      item => item.i18n === 'menu.projects' || item.text === '项目'
+    );
+
+    if (!projectGroup) return;
+
+    const baseChildren =
+      projectGroup.children?.filter(
+        (child: any) =>
+          child.i18n === 'menu.projects.create' ||
+          child.i18n === 'menu.projects.my' ||
+          child.link === '/projects/create' ||
+          child.link === '/projects'
+      ) ?? [];
+
+    const dynamicChildren = this.buildProjectMenuItems(projects);
+    projectGroup.children = [...baseChildren, ...dynamicChildren];
+  }
+
+  private buildProjectMenuItems(projects: Workspace[]): Menu[] {
+    const items: Menu[] = projects.slice(0, 10).map(project => ({
+      text: project.name || project.id,
+      link: `/projects/${project.id}`,
+      icon: 'anticon-folder-open'
+    }));
+
+    if (projects.length > 10) {
+      items.push({
+        text: 'More',
+        children: projects.slice(10).map(project => ({
+          text: project.name || project.id,
+          link: `/projects/${project.id}`,
+          icon: 'anticon-folder'
+        }))
+      });
+    }
+
+    return items;
   }
 
   /**

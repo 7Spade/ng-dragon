@@ -1,4 +1,4 @@
-import { WorkspaceSnapshot } from '@account-domain';
+import { WorkspaceSnapshot, WorkspaceType } from '@account-domain';
 import { WorkspaceRepository, WorkspaceCreatedEvent } from '@saas-domain';
 import { getCollection } from './firestore';
 
@@ -32,8 +32,18 @@ export class WorkspaceRepositoryFirebase implements WorkspaceRepository {
     return doc.data() as WorkspaceSnapshot;
   }
 
-  async listWorkspaces(): Promise<WorkspaceSnapshot[]> {
-    const snapshot = await this.workspacesCollection.get();
+  async listWorkspaces(filter?: { workspaceType?: WorkspaceType; accountId?: string }): Promise<WorkspaceSnapshot[]> {
+    let query: FirebaseFirestore.Query<WorkspaceSnapshot> = this.workspacesCollection;
+
+    if (filter?.workspaceType) {
+      query = query.where('workspaceType', '==', filter.workspaceType);
+    }
+
+    if (filter?.accountId) {
+      query = query.where('accountId', '==', filter.accountId);
+    }
+
+    const snapshot = await query.get();
     return snapshot.docs.map(doc => doc.data() as WorkspaceSnapshot);
   }
 }

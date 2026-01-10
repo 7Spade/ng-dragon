@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Firestore, collection, query, where, or, collectionData } from '@angular/fire/firestore';
+import { Firestore, collection, query, where, collectionData } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { FirebaseAuthBridgeService } from '@core';
@@ -18,6 +18,8 @@ export interface Workspace {
   accountId?: string;
   createdAt?: string;
   modules?: any[];
+  description?: string;
+  organizationId?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -34,7 +36,7 @@ export class WorkspaceService {
    * WorkspaceSnapshot uses: workspaceId, accountId, workspaceType
    * UI Workspace uses: id, ownerUserId, type
    */
-  getUserWorkspaces(): Observable<Workspace[]> {
+  getUserWorkspaces(workspaceType?: Workspace['type']): Observable<Workspace[]> {
     const user = this.authBridge.getCurrentUser();
     
     if (!user) {
@@ -49,10 +51,12 @@ export class WorkspaceService {
     
     // Query for workspaces where user is owner (accountId field in Firestore)
     // WorkspaceSnapshot stores owner as 'accountId', not 'ownerUserId'
-    const q = query(
-      workspacesCol,
-      where('accountId', '==', user.uid)
-    );
+    const constraints = [where('accountId', '==', user.uid)];
+    if (workspaceType) {
+      constraints.push(where('workspaceType', '==', workspaceType));
+    }
+
+    const q = query(workspacesCol, ...constraints);
 
     return collectionData(q, { idField: 'id' }).pipe(
       map((workspaces: any[]) => {
@@ -68,7 +72,9 @@ export class WorkspaceService {
           members: ws.members || [],
           accountId: ws.accountId,
           createdAt: ws.createdAt,
-          modules: ws.modules || []
+          modules: ws.modules || [],
+          description: ws.description,
+          organizationId: ws.organizationId
         } as Workspace));
       })
     );
@@ -137,7 +143,9 @@ export class WorkspaceService {
           members: ws.members || [],
           accountId: ws.accountId,
           createdAt: ws.createdAt,
-          modules: ws.modules || []
+          modules: ws.modules || [],
+          description: ws.description,
+          organizationId: ws.organizationId
         } as Workspace;
       })
     );
