@@ -67,3 +67,6 @@ export {
   WorkspaceValidationResult,
   PermissionCheckResult
 } from './src/services/workspace-logic-container';
+
+// Modules
+export * from './src/modules';
