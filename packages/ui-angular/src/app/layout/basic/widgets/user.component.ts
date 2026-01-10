@@ -18,7 +18,10 @@ import { map, shareReplay } from 'rxjs/operators';
     @if (layout === 'header') {
       <div class="alain-default__nav-item d-flex align-items-center px-sm">
         <nz-avatar [nzSrc]="contextAvatar()" nzSize="small" class="mr-sm" />
-        {{ contextDisplayName() }}
+        <div class="d-flex flex-column line-height-sm">
+          <span>{{ contextDisplayName() }}</span>
+          <small class="text-muted">{{ workspaceSummary() }}</small>
+        </div>
       </div>
     } @else {
       <div class="alain-default__aside-user" nz-dropdown [nzDropdownMenu]="userMenu" nzTrigger="click" nzPlacement="bottomLeft">
@@ -26,11 +29,23 @@ import { map, shareReplay } from 'rxjs/operators';
         <div class="alain-default__aside-user-info">
           <strong>{{ contextDisplayName() }}</strong>
           <p class="mb0">{{ contextSubline() }}</p>
+          <p class="mb0 text-muted small">{{ workspaceSummary() }}</p>
         </div>
       </div>
     }
     <nz-dropdown-menu #userMenu="nzDropdownMenu">
       <div nz-menu class="width-lg">
+        <div class="px-sm text-muted">{{ 'menu.account.workspaces.current' | i18n: 'Current workspace' }}</div>
+        <div nz-menu-item class="d-flex align-items-center" [nzSelected]="true">
+          <i nz-icon [nzType]="activeWorkspaceIcon()" class="mr-sm"></i>
+          <div class="d-flex flex-column line-height-sm">
+            <span>{{ activeWorkspaceName() ?? contextDisplayName() }}</span>
+            <small class="text-muted">{{ workspaceSummary() }}</small>
+          </div>
+        </div>
+
+        <li nz-menu-divider></li>
+
         <div class="px-sm py-sm text-muted">{{ 'menu.account.workspaces' | i18n: 'Workspaces' }}</div>
 
         <div class="px-sm text-muted">{{ 'menu.account.organizations.owned' | i18n: 'Owned' }}</div>
@@ -192,22 +207,21 @@ export class HeaderUserComponent {
   private readonly activeWorkspace = computed(() => this.availableWorkspaces().find(ws => ws.id === this.activeWorkspaceId()) ?? null);
   readonly activeWorkspaceName = computed(() => {
     const ws = this.activeWorkspace();
-    if (!ws) return null;
+    if (!ws) return this.settings.user.name;
     if (ws.workspaceType === 'personal') return this.settings.user.name;
-    return ws.name ?? null;
+    return ws.name ?? this.settings.user.name;
   });
   readonly activeWorkspaceType = computed(() => this.activeWorkspace()?.workspaceType ?? null);
-  readonly contextDisplayName = computed(() => this.activeWorkspaceName() ?? this.settings.user.name);
-  readonly contextSubline = computed(() => {
+  readonly contextDisplayName = computed(() => this.settings.user.name);
+  readonly contextSubline = computed(() => this.settings.user.email);
+  readonly contextAvatar = computed(() => this.settings.user.avatar);
+  readonly activeWorkspaceIcon = computed(() => this.iconForType(this.activeWorkspace()?.workspaceType));
+  readonly workspaceSummary = computed(() => {
     const ws = this.activeWorkspace();
-    if (ws?.workspaceType === 'personal') return this.settings.user.email;
-    const type = ws?.workspaceType;
-    return type ? this.typeLabel(type) : this.settings.user.email;
-  });
-  readonly contextAvatar = computed(() => {
-    const id = this.activeWorkspaceId();
-    if (!id) return this.settings.user.avatar;
-    return this.workspaceAvatarById(id);
+    if (!ws) return 'Personal workspace';
+    const label = this.typeLabel(ws.workspaceType);
+    const name = ws.name ?? (ws.workspaceType === 'personal' ? 'Personal' : 'Workspace');
+    return `${name} - ${label}`;
   });
 
   constructor() {
@@ -317,15 +331,6 @@ export class HeaderUserComponent {
     });
     this.updateContextMenu(workspace);
 
-    const baseEmail = this.settings.user.email;
-    const isPersonal = workspace.workspaceType === 'personal';
-    this.settings.setUser({
-      ...this.settings.user,
-      name: isPersonal ? this.settings.user.name : (workspace.name ?? this.settings.user.name),
-      avatar: this.workspaceAvatarById(workspace.id),
-      email: isPersonal ? this.settings.user.email : baseEmail
-    });
-
     if (persist) {
       this.saveWorkspaceId(workspace.id);
       this.storedWorkspaceId.set(workspace.id);
@@ -396,13 +401,7 @@ export class HeaderUserComponent {
 
   private updateContextMenu(workspace: WorkspaceView): void {
     const route = this.routeForWorkspace(workspace);
-    const iconByType: Record<string, string> = {
-      organization: 'apartment',
-      team: 'team',
-      partner: 'user-add',
-      personal: 'user'
-    };
-    const icon = iconByType[workspace.workspaceType] ?? 'appstore';
+    const icon = this.iconForType(workspace.workspaceType);
     const menu = [
       {
         text: '主選單',
@@ -438,5 +437,20 @@ export class HeaderUserComponent {
 
   private workspaceAvatarById(id: string): string {
     return `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(id)}`;
+  }
+
+  private iconForType(type: WorkspaceView['workspaceType'] | undefined): string {
+    switch (type) {
+      case 'organization':
+        return 'apartment';
+      case 'team':
+        return 'team';
+      case 'partner':
+        return 'user-add';
+      case 'personal':
+        return 'user';
+      default:
+        return 'appstore';
+    }
   }
 }
