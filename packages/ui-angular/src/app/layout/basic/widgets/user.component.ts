@@ -213,9 +213,19 @@ export class HeaderUserComponent {
     return ws.name ?? this.settings.user.name;
   });
   readonly activeWorkspaceType = computed(() => this.activeWorkspace()?.workspaceType ?? null);
-  readonly contextDisplayName = computed(() => this.settings.user.name);
-  readonly contextSubline = computed(() => this.settings.user.email);
-  readonly contextAvatar = computed(() => this.settings.user.avatar);
+  readonly contextDisplayName = computed(() => this.activeWorkspaceName() ?? this.settings.user.name);
+  readonly contextSubline = computed(() => {
+    const ws = this.activeWorkspace();
+    if (!ws) return this.settings.user.email;
+    const type = ws.workspaceType;
+    if (type === 'personal') return this.settings.user.email;
+    return this.typeLabel(type);
+  });
+  readonly contextAvatar = computed(() => {
+    const id = this.activeWorkspaceId();
+    if (!id) return this.settings.user.avatar;
+    return this.workspaceAvatarById(id);
+  });
   readonly activeWorkspaceIcon = computed(() => this.iconForType(this.activeWorkspace()?.workspaceType));
   readonly workspaceSummary = computed(() => {
     const ws = this.activeWorkspace();
@@ -257,13 +267,16 @@ export class HeaderUserComponent {
     if (!uid) return { owned, joined, membership };
 
     for (const ws of this.availableWorkspaces()) {
-      if (ws.ownerAccountId === uid) {
+      const isOwner = ws.ownerAccountId === uid;
+      const isMember = ws.members?.some(m => m.accountId === uid) || ws.memberIds?.includes(uid);
+
+      if (isOwner) {
         owned.push(ws);
         membership.add(ws.id);
         continue;
       }
 
-      if (ws.members?.some(m => m.accountId === uid)) {
+      if (isMember) {
         joined.push(ws);
         membership.add(ws.id);
       }
@@ -331,10 +344,22 @@ export class HeaderUserComponent {
       description: workspace.workspaceType
     });
     this.updateContextMenu(workspace);
+    const route = this.routeForWorkspace(workspace);
+    const baseEmail = this.settings.user.email;
+    const isPersonal = workspace.workspaceType === 'personal';
+    this.settings.setUser({
+      ...this.settings.user,
+      name: isPersonal ? this.settings.user.name : (workspace.name ?? this.settings.user.name),
+      avatar: this.workspaceAvatarById(workspace.id),
+      email: isPersonal ? this.settings.user.email : baseEmail
+    });
 
     if (persist) {
       this.saveWorkspaceId(workspace.id);
       this.storedWorkspaceId.set(workspace.id);
+      if (route) {
+        this.router.navigateByUrl(route).catch(() => void 0);
+      }
     }
   }
 
