@@ -1,31 +1,101 @@
 # ui-angular AGENTS.md
 
-## 目標
+> **AI Code Generation Guidelines for Angular Frontend**
 
-提供 Angular 前端應用，透過 adapters 使用後端能力，保持與 domain/engine 隔離。
+## Mission
 
-## 邊界
+Provide Angular frontend using facades to access backend. Never directly use `core-engine`, `firebase-admin`, or domain packages.
 
-- **依賴**：`@platform-adapters`（client 介面）、`@angular/fire`。
-- **禁止**：直接引用 `core-engine` / `saas-domain` / `account-domain`，禁止 `firebase-admin`。
-- **位置**：前端程式碼位於專案根目錄 `src/app`（packages/ui-angular 本身僅承載說明）。
+## Guardrails
 
-## 結構（現況 + 預備）
+### ✅ ALLOWED
+- @angular/* packages
+- @angular/fire (client SDK)
+- platform-adapters facades
+- DTOs for data display
+- Angular Material, NG-ZORRO
 
+### ❌ FORBIDDEN
+- firebase-admin (server SDK)
+- Direct @core-engine imports
+- Direct @account-domain imports
+- Direct @saas-domain imports
+- Business logic in components
+
+## Code Generation Rules
+
+### Component Pattern
+
+```typescript
+// ✅ CORRECT - Using facade
+@Component({
+  selector: 'app-tasks-page',
+  template: `
+    <div *ngFor="let task of tasks$ | async">
+      {{ task.title }}
+    </div>
+    <button (click)="createTask()">New Task</button>
+  `
+})
+export class TasksPageComponent implements OnInit {
+  private facade = inject(TasksFacade);
+  
+  tasks$!: Observable<TaskDTO[]>;
+
+  ngOnInit() {
+    this.tasks$ = this.facade.getTasks(this.workspaceId);
+  }
+
+  createTask() {
+    this.facade.createTask('New Task', 'Description');
+  }
+}
+
+// ❌ INCORRECT - Direct Firestore
+@Component({...})
+export class TasksPageComponent {
+  private firestore = inject(Firestore);
+  
+  ngOnInit() {
+    // NO! Use facade
+    this.tasks$ = collectionData(
+      collection(this.firestore, 'tasks')
+    );
+  }
+}
 ```
-src/app/
-├── adapters/         # Facade / service，封裝對 adapters 的呼叫
-├── features/         # domain 對齊的功能 (task/issue/finance/quality/acceptance 預留)
-├── core/             # i18n、startup、net、guards 等基礎設施
-├── routes/           # 路由設定
-├── shared/           # 共用 UI 元件
-└── layout/           # 版面
+
+### Facade Pattern
+
+```typescript
+// ✅ CORRECT - Facade in adapters/
+@Injectable({ providedIn: 'root' })
+export class TasksFacade {
+  constructor(
+    private taskService: TaskService, // From platform-adapters
+    private commandBus: CommandBus // From platform-adapters
+  ) {}
+
+  getTasks(workspaceId: string): Observable<TaskDTO[]> {
+    return this.taskService.getTasks(workspaceId);
+  }
+
+  createTask(title: string, description: string): Promise<void> {
+    const command = new CreateTaskCommand(title, description);
+    return this.commandBus.execute(command);
+  }
+}
 ```
 
-> 新增 feature 時請放在 `features/` 並走 Facade；禁止在元件中直接呼叫 SDK。
+## Summary Checklist
 
-## 原則
+- [ ] Components use facades, not direct SDK
+- [ ] Only DTOs in templates, not domain objects
+- [ ] @angular/fire allowed for auth only
+- [ ] No firebase-admin imports
+- [ ] No direct core-engine/domain imports
+- [ ] Tests mock facades
 
-1. **Facade-first**：UI 僅透過 adapters/facade 呼叫後端或 domain 功能。
-2. **SDK 最小化**：僅允許 `@angular/fire`；其他 SDK 一律封裝在 `platform-adapters`。
-3. **單一入口**：所有 UI 代碼集中於 `src/app`，新增前先更新 README/AGENTS 對齊 Mermaid 圖。
+---
+
+**UI accesses backend through facades—clean separation, zero domain coupling.**

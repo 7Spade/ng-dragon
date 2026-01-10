@@ -1,40 +1,320 @@
-# Platform Adapters
+# platform-adapters
 
-🔧 **唯一允許觸碰外部 SDK 的層** — 將 Firebase、DB、訊息、AI 等實作封裝成 `core-engine` 的 port 實作，供上層安全使用。
+> 🔌 **Infrastructure Implementation Layer** — The ONLY package allowed to use external SDKs
 
-## 結構（現況 + 預備）
+## Mission
+
+Implement infrastructure ports defined in `core-engine` using external SDKs (Firebase, Google AI, databases, messaging). This is the **exclusive SDK entry point** for the entire application.
+
+## Overview
+
+`platform-adapters` bridges pure domain/core logic with real-world infrastructure:
+- **Firebase**: Authentication, Firestore, Storage, Messaging, Pub/Sub
+- **Google AI**: GenAI, Vertex AI integration
+- **Persistence**: EventStore, Projection, Repository implementations
+- **External APIs**: Third-party service integrations
+
+## Folder Structure
 
 ```
 platform-adapters/
 └── src/
-    ├── firebase-platform/     # firebase-admin 基礎層（app/auth/app-check/firestore/storage/observability/remote-config/messaging/pubsub）
-    ├── auth/                  # admin/client 身分橋接（現已重用 firebase-platform auth）
-    ├── messaging/             # 推播/事件 publish（重用 firebase-platform messaging & pubsub）
-    ├── ai/                    # AI/LLM 抽象或共用 helper
+    ├── firebase-platform/      # firebase-admin base layer
+    │   ├── app/               # Firebase app initialization
+    │   ├── auth/              # Authentication
+    │   ├── app-check/         # App Check
+    │   ├── firestore/         # Firestore admin
+    │   ├── storage/           # Cloud Storage
+    │   ├── observability/     # Logging, monitoring
+    │   ├── remote-config/     # Remote Config
+    │   ├── messaging/         # Cloud Messaging
+    │   └── pubsub/            # Pub/Sub
+    │
+    ├── auth/                  # Auth bridging (admin/client)
+    │   ├── firebase-auth.adapter.ts
+    │   └── auth-token.service.ts
+    │
+    ├── messaging/             # Push notifications, event publishing
+    │   ├── fcm.adapter.ts
+    │   └── pubsub.adapter.ts
+    │
+    ├── ai/                    # AI/LLM abstractions
+    │   ├── llm.adapter.ts
+    │   └── prompt.service.ts
+    │
     ├── external-apis/
-    │   └── google/genai/      # Google GenAI / Vertex AI 介接（placeholder src/）
-    ├── persistence/           # EventStore / Projection / DB adapter 實作（含 Workspace Firestore repository）
-    └── __tests__/             # Adapter 測試（待補）
+    │   └── google/
+    │       └── genai/         # Google GenAI / Vertex AI
+    │           ├── gemini.adapter.ts
+    │           └── vertex-ai.adapter.ts
+    │
+    ├── persistence/           # Data persistence implementations
+    │   ├── firestore-event-store.ts
+    │   ├── firestore-account.repository.ts
+    │   ├── firestore-workspace.repository.ts
+    │   └── account-projection.ts
+    │
+    └── __tests__/             # Integration tests
+        ├── firestore-event-store.spec.ts
+        └── firestore-account-repository.spec.ts
 ```
 
-> 未來的 Firebase / DB / Queue / AI 實作一律放在 `src/` 對應子資料夾；禁止再建立平行的 `@google` 根路徑。
+## The Golden Rule: SDK Isolation
 
-## SDK 分層規則
+**Only this package may import external SDKs. All other packages must use ports/interfaces.**
 
-| 位置 | 可用 | 禁止 | 適用場景 |
-| --- | --- | --- | --- |
-| `src/firebase-platform` | firebase-admin（app/auth/app-check/firestore/storage/remote-config/messaging/pubsub） | @angular/fire | 伺服端 SDK 基礎層（唯一 admin 入口） |
-| `src/persistence` | firebase-admin / DB SDK | @angular/fire | 伺服端 EventStore / Projection 實作 |
-| `src/external-apis/google/genai` | Google GenAI / Vertex AI SDK | 其他層直連 | AI / LLM 封裝 |
+| SDK Category | Allowed Here | Forbidden Elsewhere |
+|-------------|-------------|-------------------|
+| firebase-admin | ✅ Yes | ❌ No (domain, core, UI) |
+| @google-cloud/* | ✅ Yes | ❌ No |
+| Database drivers | ✅ Yes | ❌ No |
+| HTTP clients | ✅ Yes | ❌ No |
+| @angular/fire | ❌ No (UI only) | UI: ✅ Yes |
 
-## Workspace persistence（Firestore）
+## Port Implementation Examples
 
-- `FirestoreWorkspaceRepository`：依 `WorkspaceRepository` port 實作，事件寫入 `workspace-events`，快照寫入 `workspaces`，`list()` 直接讀取快照集合。
-- `createWorkspaceApplicationService()`：返回注入 Firestore repository 的 `WorkspaceApplicationService`，可直接在 Cloud Functions / Worker 中接受 `CreateOrganizationCommand`。
+### EventStore Implementation
 
-## 一句話規則
+```typescript
+// Port defined in core-engine
+export interface EventStore {
+  append(
+    aggregateId: string,
+    aggregateType: string,
+    events: DomainEvent[]
+  ): Promise<void>;
+  loadEvents(
+    aggregateId: string,
+    aggregateType: string
+  ): Promise<DomainEvent[]>;
+}
 
-> **SDK 只在這裡，其他層只拿抽象或 Facade，不直連外部服務。**
+// Implementation in platform-adapters
+import { Firestore } from 'firebase-admin/firestore';
+import { EventStore } from '@core-engine/ports/event-store.port';
+
+export class FirestoreEventStore implements EventStore {
+  constructor(private firestore: Firestore) {}
+
+  async append(
+    aggregateId: string,
+    aggregateType: string,
+    events: DomainEvent[]
+  ): Promise<void> {
+    const batch = this.firestore.batch();
+    
+    events.forEach(event => {
+      const eventDoc = this.firestore
+        .collection('events')
+        .doc(event.eventId);
+      
+      batch.set(eventDoc, {
+        ...event,
+        aggregateId,
+        aggregateType,
+        savedAt: new Date().toISOString()
+      });
+    });
+    
+    await batch.commit();
+  }
+
+  async loadEvents(
+    aggregateId: string,
+    aggregateType: string
+  ): Promise<DomainEvent[]> {
+    const snapshot = await this.firestore
+      .collection('events')
+      .where('aggregateId', '==', aggregateId)
+      .where('aggregateType', '==', aggregateType)
+      .orderBy('occurredAt', 'asc')
+      .get();
+    
+    return snapshot.docs.map(doc => this.mapToDomainEvent(doc.data()));
+  }
+
+  private mapToDomainEvent(data: any): DomainEvent {
+    // Map Firestore document to domain event
+    return {
+      eventId: data.eventId,
+      eventType: data.eventType,
+      aggregateId: data.aggregateId,
+      occurredAt: data.occurredAt,
+      causationId: data.causationId,
+      correlationId: data.correlationId,
+      ...data.payload
+    };
+  }
+}
+```
+
+### Repository Implementation
+
+```typescript
+// Repository interface in domain
+export interface AccountRepository {
+  save(account: Account): Promise<void>;
+  findById(id: AccountId): Promise<Account | null>;
+  findByEmail(email: Email): Promise<Account | null>;
+}
+
+// Implementation in platform-adapters
+import { Firestore } from 'firebase-admin/firestore';
+import { AccountRepository } from '@account-domain/repositories/account.repository';
+
+export class FirestoreAccountRepository implements AccountRepository {
+  private collection = 'accounts';
+
+  constructor(private firestore: Firestore) {}
+
+  async save(account: Account): Promise<void> {
+    const doc = this.mapToFirestoreDoc(account);
+    await this.firestore
+      .collection(this.collection)
+      .doc(account.id.value)
+      .set(doc, { merge: true });
+  }
+
+  async findById(id: AccountId): Promise<Account | null> {
+    const doc = await this.firestore
+      .collection(this.collection)
+      .doc(id.value)
+      .get();
+    
+    if (!doc.exists) {
+      return null;
+    }
+    
+    return this.mapToDomain(doc.data()!);
+  }
+
+  async findByEmail(email: Email): Promise<Account | null> {
+    const snapshot = await this.firestore
+      .collection(this.collection)
+      .where('email', '==', email.value)
+      .limit(1)
+      .get();
+    
+    if (snapshot.empty) {
+      return null;
+    }
+    
+    return this.mapToDomain(snapshot.docs[0].data());
+  }
+
+  private mapToFirestoreDoc(account: Account): any {
+    return {
+      id: account.id.value,
+      email: account.email.value,
+      status: account.status,
+      createdAt: account.createdAt,
+      updatedAt: new Date().toISOString()
+    };
+  }
+
+  private mapToDomain(data: any): Account {
+    return Account.reconstitute(
+      AccountId.create(data.id),
+      Email.create(data.email),
+      data.status,
+      data.createdAt
+    );
+  }
+}
+```
+
+## Anti-Patterns
+
+### ❌ DO NOT
+
+```typescript
+// ❌ BAD - Business logic in adapter
+export class FirestoreAccountRepository {
+  async save(account: Account): Promise<void> {
+    // NO! Business validation belongs in domain
+    if (account.email.value.endsWith('@competitor.com')) {
+      throw new Error('Competitor emails not allowed');
+    }
+    
+    await this.firestore.collection('accounts').doc(account.id).set({...});
+  }
+}
+
+// ❌ BAD - Returning infrastructure types
+export class FirestoreAccountRepository {
+  async findById(id: string): Promise<DocumentSnapshot> { // NO! Return domain object
+    return await this.firestore.collection('accounts').doc(id).get();
+  }
+}
+```
+
+### ✅ DO
+
+```typescript
+// ✅ GOOD - Pure implementation without business logic
+export class FirestoreAccountRepository implements AccountRepository {
+  async save(account: Account): Promise<void> {
+    // Just map and save, no business logic
+    const doc = this.mapToFirestoreDoc(account);
+    await this.firestore.collection('accounts').doc(account.id.value).set(doc);
+  }
+}
+
+// ✅ GOOD - Always return domain objects
+export class FirestoreAccountRepository {
+  async findById(id: AccountId): Promise<Account | null> {
+    const doc = await this.firestore.collection('accounts').doc(id.value).get();
+    return doc.exists ? this.mapToDomain(doc.data()!) : null;
+  }
+}
+```
+
+## Testing Guidelines
+
+```typescript
+// Integration test with real Firebase (using emulator)
+describe('FirestoreEventStore', () => {
+  let eventStore: FirestoreEventStore;
+  let firestore: Firestore;
+
+  beforeEach(() => {
+    firestore = getFirestore(); // Firebase emulator
+    eventStore = new FirestoreEventStore(firestore);
+  });
+
+  afterEach(async () => {
+    await clearFirestoreData(firestore);
+  });
+
+  it('should append and load events', async () => {
+    const event = new AccountCreated(
+      AccountId.create('acc-123'),
+      Email.create('test@example.com'),
+      '2024-01-01T00:00:00Z'
+    );
+
+    await eventStore.append('acc-123', 'Account', [event]);
+    
+    const loadedEvents = await eventStore.loadEvents('acc-123', 'Account');
+    
+    expect(loadedEvents).toHaveLength(1);
+    expect(loadedEvents[0].eventType).toBe('AccountCreated');
+  });
+});
+```
+
+## Principles
+
+1. **單一出口**: 所有 SDK 呼叫集中於 adapters，不向上暴露 SDK 型別
+2. **遵守抽象**: 依 `core-engine` 的 port 介面實作
+3. **純轉換**: 只做資料轉換，不含業務邏輯
+4. **文件先行**: 新增 adapter 時，先更新 README/AGENTS
+
+## Related Documentation
+
+- [packages/AGENTS.md](../AGENTS.md) - Package boundaries
+- [core-engine/README.md](../core-engine/README.md) - Port definitions
+- [AGENTS.md](AGENTS.md) - AI generation guidelines
 
 ## License
 

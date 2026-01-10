@@ -1,34 +1,92 @@
 # saas-domain AGENTS.md
 
-## 目標
+> **AI Code Generation Guidelines for SaaS Business Domain**
 
-建模 SaaS 業務領域（任務、議題、財務、品質、驗收等），僅依賴 `account-domain`，保持純 TypeScript，零 SDK。
+## Mission
 
-## 邊界
+Model SaaS business modules (Task, Issue, Finance, Quality, Acceptance) as pure TypeScript, depending only on `account-domain`.
 
-- **依賴**：`account-domain`（身份 / 工作區 / 模組啟用）。
-- **禁止**：任何 SDK、UI 框架。
-- **輸出**：聚合 / 事件 / VO / Policy，供 adapters 或 UI 間接使用。
+## Guardrails
 
-## 結構（現況 + 預備）
+### ✅ ALLOWED
+- Pure TypeScript (ES2022+)
+- DDD patterns (Aggregates, Entities, VOs)
+- account-domain types
+- Module dependency policies
+- Repository interfaces
 
+### ❌ FORBIDDEN
+- Any SDK (Firebase, Angular, HTTP, etc.)
+- Workspace creation (belongs to account-domain)
+- Direct cross-module references (use events)
+- Infrastructure code
+
+## Code Generation Rules
+
+### Module Aggregate Pattern
+
+```typescript
+// ✅ CORRECT
+export class Task extends AggregateRoot {
+  private constructor(
+    public readonly id: TaskId,
+    public readonly workspaceId: WorkspaceId,
+    private status: TaskStatus,
+    private assigneeId?: UserId
+  ) {
+    super();
+  }
+
+  static create(/* params */): Task {
+    const task = new Task(/* params */);
+    task.addDomainEvent(new TaskCreated(/* params */));
+    return task;
+  }
+
+  assign(userId: UserId): void {
+    // Business rule validation
+    this.assigneeId = userId;
+    this.addDomainEvent(new TaskAssigned(this.id, userId));
+  }
+}
+
+// ❌ INCORRECT - Creating workspace
+export class Task {
+  createWorkspace() { // NO! Belongs to account-domain
+    return new Workspace(...);
+  }
+}
 ```
-saas-domain/
-└── src/
-    ├── aggregates/        # 各模組聚合（task/issue/finance/quality/acceptance 預留）
-    ├── value-objects/     # 模組 VO
-    ├── events/            # 模組事件
-    ├── domain-services/   # 跨聚合的無狀態邏輯
-    ├── repositories/      # 介面定義
-    ├── entities/          # 共享 Entity 型別
-    ├── policies/          # 跨模組 / 依賴檢查（例如模組啟用）
-    └── __tests__/         # 模組測試（待補）
+
+## Module Dependency Policy
+
+```typescript
+// ✅ CORRECT - Define dependencies
+export class ModuleDependencyPolicy {
+  private static dependencies = new Map<ModuleType, ModuleType[]>([
+    [ModuleType.Finance, [ModuleType.Task]],
+    [ModuleType.Quality, [ModuleType.Issue]],
+  ]);
+
+  static canEnableModule(
+    moduleType: ModuleType,
+    enabledModules: Set<ModuleType>
+  ): boolean {
+    const required = this.dependencies.get(moduleType) || [];
+    return required.every(dep => enabledModules.has(dep));
+  }
+}
 ```
 
-> 新增任務/議題/財務/品質/驗收模組時，請直接在 `src/` 對應子資料夾建立聚合與事件，避免額外的根資料夾。
+## Summary Checklist
 
-## 原則
+- [ ] No SDK imports
+- [ ] Only depends on account-domain
+- [ ] No workspace creation
+- [ ] Cross-module communication via events only
+- [ ] Module dependency policies defined
+- [ ] All aggregates emit domain events
 
-1. **依賴前置**：所有模組操作需先確認 account-domain 的工作區與模組啟用狀態。
-2. **純業務**：不得引入任何 SDK；資料存取交給 `platform-adapters` 實作 port。
-3. **文件先行**：新增模組前，先更新 README/AGENTS 及 Mermaid 文件的模組樹。
+---
+
+**SaaS business logic stays pure, workspace management stays in account-domain.**

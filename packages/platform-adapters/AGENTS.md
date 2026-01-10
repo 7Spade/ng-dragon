@@ -1,43 +1,78 @@
 # platform-adapters AGENTS.md
 
-## 目標
+> **AI Code Generation Guidelines for Infrastructure Adapters**
 
-唯一允許使用外部 SDK 的層，負責資料庫 / 外部 API / 身分 / 訊息 / AI 介接，並將實作封裝成介面供上層使用。
+## Mission
 
-## 邊界
+Implement infrastructure ports using external SDKs. **The only package allowed to import SDKs.**
 
-- **依賴**：`core-engine` 抽象介面、型別；可使用外部 SDK。
-- **不包含**：任何業務規則（交給 domain 層），也不直接暴露 SDK 給 UI。
-- **SDK 隔離**：所有 SDK 實作集中在 `src/`，包含 `external-apis/google/genai`，禁止另起平行根目錄。
+## Guardrails
 
-## 結構（現況 + 預備）
+### ✅ ALLOWED
+- All external SDKs (firebase-admin, @google-cloud/*, etc.)
+- Port implementations from core-engine
+- Data mapping and transformation
+- Technical error handling
 
+### ❌ FORBIDDEN
+- Business logic (leave to domain)
+- Domain validation rules
+- Returning SDK-specific types to callers
+- Cross-module business decisions
+
+## Code Generation Rules
+
+### Repository Implementation Pattern
+
+```typescript
+// ✅ CORRECT - Pure implementation
+export class FirestoreAccountRepository implements AccountRepository {
+  constructor(private firestore: Firestore) {}
+
+  async save(account: Account): Promise<void> {
+    const doc = this.mapToFirestoreDoc(account);
+    await this.firestore.collection('accounts').doc(account.id.value).set(doc);
+  }
+
+  private mapToFirestoreDoc(account: Account): any {
+    return {
+      id: account.id.value,
+      email: account.email.value,
+      status: account.status,
+      createdAt: account.createdAt
+    };
+  }
+
+  private mapToDomain(data: any): Account {
+    return Account.reconstitute(
+      AccountId.create(data.id),
+      Email.create(data.email),
+      data.status,
+      data.createdAt
+    );
+  }
+}
+
+// ❌ INCORRECT - Business logic in adapter
+export class FirestoreAccountRepository {
+  async save(account: Account): Promise<void> {
+    if (account.email.value.endsWith('@competitor.com')) { // NO!
+      throw new Error('Competitor emails not allowed');
+    }
+    await this.firestore.collection('accounts').add({...});
+  }
+}
 ```
-platform-adapters/
-└── src/
-    ├── firebase-platform/     # firebase-admin 基礎層 (app/auth/app-check/firestore/storage/observability/remote-config/messaging/pubsub)
-    ├── auth/                  # 登入 / 權杖 / claims（已重用 firebase-platform auth）
-    ├── messaging/             # 推播、事件 publish（重用 firebase-platform messaging/pubsub）
-    ├── ai/                    # AI/LLM 抽象 or common helpers
-    ├── external-apis/
-    │   └── google/
-    │       └── genai/         # Google GenAI / Vertex AI 介接（placeholder src/）
-    ├── persistence/           # EventStore / Projection / DB adapter 實作（Workspace Firestore repository 已落地）
-    └── __tests__/             # 介面實作的對應測試（待補）
-```
 
-> Firebase、GA、外部 HTTP、第三方 SDK 均集中於上述子資料夾，避免再出現 `@google` 平行路徑。
+## Summary Checklist
 
-## SDK 規則
+- [ ] Implements port interface from core-engine
+- [ ] No business logic in adapters
+- [ ] Maps between infrastructure and domain types
+- [ ] Returns domain objects, not SDK types
+- [ ] Handles technical errors (network, DB, etc.)
+- [ ] Integration tests with real/fake SDKs
 
-| 位置 | 可以用 | 禁止 | 說明 |
-| --- | --- | --- | --- |
-| `src/firebase-platform` | firebase-admin（app/auth/app-check/firestore/storage/remote-config/messaging/pubsub）、@google-cloud/pubsub | @angular/fire | firebase-admin 基礎層（唯一 admin 入口） |
-| `src/persistence` | firebase-admin / DB SDK | @angular/fire | 伺服端實作（含 Workspace Firestore repository） |
-| `src/external-apis/google/genai` | Google GenAI / Vertex AI SDK | 其他層直連 | AI 封裝 |
+---
 
-## 原則
-
-1. **單一出口**：所有 SDK 呼叫集中於 adapters，不向上暴露 SDK 型別。
-2. **遵守抽象**：依 `core-engine` 的 port 介面實作；如需新 port，先在 core 定義抽象再於此層實作。
-3. **文件先行**：新增 adapter 時，先更新 README/AGENTS 與對應的 Mermaid 文件節點。
+**Adapters bridge infrastructure with domain—pure transformation, zero business logic.**
