@@ -1,0 +1,32 @@
+{
+  "name": "@ng-events/workspace-domain",
+  "version": "1.0.0",
+  "description": "Workspace domain models and business logic for workspace switching and container management (pure TypeScript, frontend & backend safe)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b",
+    "lint": "eslint . --ext .ts"
+  },
+  "keywords": [
+    "ddd",
+    "workspace",
+    "workspace-switcher",
+    "logic-container",
+    "domain"
+  ],
+  "author": "ng-events team",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "copilot": {
+    "notes": [
+      "workspace-domain is pure TypeScript domain layer",
+      "Safe for frontend & backend",
+      "Contains workspace switcher and logic container abstractions",
+      "All features must be accessed through index.ts",
+      "Direct imports from internal files are not allowed"
+    ]
+  }
+}

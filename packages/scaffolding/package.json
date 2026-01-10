@@ -1,0 +1,30 @@
+{
+  "name": "@ng-events/scaffolding",
+  "version": "1.0.0",
+  "description": "Scaffolding utilities to bootstrap workspace-domain package",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b",
+    "lint": "eslint . --ext .ts"
+  },
+  "keywords": [
+    "scaffolding",
+    "bootstrap",
+    "workspace-domain"
+  ],
+  "author": "ng-events team",
+  "license": "MIT",
+  "dependencies": {
+    "@ng-events/workspace-domain": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "copilot": {
+    "notes": [
+      "scaffolding provides utilities to bootstrap workspace-domain",
+      "Pure TypeScript, minimal dependencies"
+    ]
+  }
+}
