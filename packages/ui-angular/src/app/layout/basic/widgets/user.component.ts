@@ -17,15 +17,15 @@ import { map, shareReplay } from 'rxjs/operators';
   template: `
     @if (layout === 'header') {
       <div class="alain-default__nav-item d-flex align-items-center px-sm">
-        <nz-avatar [nzSrc]="user.avatar" nzSize="small" class="mr-sm" />
-        {{ user.name }}
+        <nz-avatar [nzSrc]="contextAvatar()" nzSize="small" class="mr-sm" />
+        {{ contextDisplayName() }}
       </div>
     } @else {
       <div class="alain-default__aside-user" nz-dropdown [nzDropdownMenu]="userMenu" nzTrigger="click" nzPlacement="bottomLeft">
-        <nz-avatar class="alain-default__aside-user-avatar" [nzSrc]="user.avatar" />
+        <nz-avatar class="alain-default__aside-user-avatar" [nzSrc]="contextAvatar()" />
         <div class="alain-default__aside-user-info">
-          <strong>{{ user.name }}</strong>
-          <p class="mb0">{{ user.email }}</p>
+          <strong>{{ contextDisplayName() }}</strong>
+          <p class="mb0">{{ contextSubline() }}</p>
         </div>
       </div>
     }
@@ -174,6 +174,13 @@ export class HeaderUserComponent {
     if (!id) return null;
     return this.workspaces().find(ws => ws.id === id)?.workspaceType ?? null;
   });
+  readonly contextDisplayName = computed(() => this.activeWorkspaceName() ?? this.settings.user.name);
+  readonly contextSubline = computed(() => this.activeWorkspaceType() ?? this.settings.user.email);
+  readonly contextAvatar = computed(() => {
+    const id = this.activeWorkspaceId();
+    if (!id) return this.settings.user.avatar;
+    return this.workspaceAvatarById(id);
+  });
 
   constructor() {
     this.authBridge
@@ -281,6 +288,14 @@ export class HeaderUserComponent {
       description: workspace.workspaceType
     });
 
+    const baseEmail = this.settings.user.email;
+    this.settings.setUser({
+      ...this.settings.user,
+      name: workspace.name ?? this.settings.user.name,
+      avatar: this.workspaceAvatarById(workspace.id),
+      email: baseEmail
+    });
+
     if (persist) {
       this.saveWorkspaceId(workspace.id);
       this.storedWorkspaceId.set(workspace.id);
@@ -335,5 +350,9 @@ export class HeaderUserComponent {
       default:
         return `/workspaces/${workspace.id}`;
     }
+  }
+
+  private workspaceAvatarById(id: string): string {
+    return `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(id)}`;
   }
 }
