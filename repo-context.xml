@@ -6634,69 +6634,6 @@ Readme(讀我).md.old
 .github\instructions\codacy.instructions.md
 </file>
 
-<file path=".repomixignore">
-# Dependencies
-node_modules/
-.pnpm-store/
-.yarn/
-.yarn-cache/
-
-# Build outputs
-dist/
-build/
-out/
-coverage/
-.angular/
-.next/
-.nuxt/
-
-# Firebase / Cloud
-.firebase/
-.firebaserc
-.emulators/
-
-# Cache / temp
-.cache/
-.tmp/
-temp/
-*.log
-
-# IDE
-.vscode/
-.idea/
-*.swp
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Large generated files
-*.map
-*.lock
-*.md
-*.png
-*.ico
-
-# Git
-.git/
-
-# Repomix
-_cli-tpl/
-.codacy/
-.github/
-.husky/
-dataconnect/
-dynamic/
-scripts/
-
-LICENSE
-
-
-package-lock.json
-pnpm-lock.yaml
-yarn.lock
-</file>
-
 <file path="eslint.config.mjs">
 // @ts-check
 import eslint from '@eslint/js';
@@ -7953,6 +7890,69 @@ export class UserRegisterComponent {
 }
 </file>
 
+<file path=".repomixignore">
+# Dependencies
+node_modules/
+.pnpm-store/
+.yarn/
+.yarn-cache/
+
+# Build outputs
+dist/
+build/
+out/
+coverage/
+.angular/
+.next/
+.nuxt/
+
+# Firebase / Cloud
+.firebase/
+.firebaserc
+.emulators/
+
+# Cache / temp
+.cache/
+.tmp/
+temp/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Large generated files
+*.map
+*.lock
+*.md
+*.png
+*.ico
+
+# Git
+.git/
+
+# Repomix
+_cli-tpl/
+.codacy/
+.github/
+.husky/
+dataconnect/
+dynamic/
+scripts/
+
+LICENSE
+
+
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+</file>
+
 <file path="packages/account-domain/package.json">
 {
   "name": "@ng-events/account-domain",
@@ -8925,52 +8925,6 @@ export class StartupService {
 }
 </file>
 
-<file path="repomix.config.json">
-{
-  "$schema": "https://repomix.com/schemas/latest/schema.json",
-  "input": {
-    "maxFileSize": 52428800
-  },
-  "output": {
-    "filePath": "repo-context.xml",
-    "style": "xml",
-    "parsableStyle": false,
-    "fileSummary": true,
-    "directoryStructure": true,
-    "files": true,
-    "removeComments": false,
-    "removeEmptyLines": false,
-    "compress": false,
-    "topFilesLength": 5,
-    "showLineNumbers": false,
-    "truncateBase64": false,
-    "copyToClipboard": false,
-    "includeFullDirectoryStructure": false,
-    "tokenCountTree": false,
-    "git": {
-      "sortByChanges": true,
-      "sortByChangesMaxCommits": 100,
-      "includeDiffs": false,
-      "includeLogs": false,
-      "includeLogsCount": 50
-    }
-  },
-  "include": [],
-  "ignore": {
-    "useGitignore": true,
-    "useDotIgnore": true,
-    "useDefaultPatterns": true,
-    "customPatterns": []
-  },
-  "security": {
-    "enableSecurityCheck": true
-  },
-  "tokenCount": {
-    "encoding": "o200k_base"
-  }
-}
-</file>
-
 <file path="packages/account-domain/src/value-objects/workspace-type.ts">
 // WorkspaceType distinguishes workspace containers for modules and entities.
 // organization aligns to company-level, project for single product, personal for individual scope.
@@ -9363,6 +9317,52 @@ export const routes: Routes = [
   { path: 'exception', loadChildren: () => import('./exception/routes').then(m => m.routes) },
   { path: '**', redirectTo: 'exception/404' }
 ];
+</file>
+
+<file path="repomix.config.json">
+{
+  "$schema": "https://repomix.com/schemas/latest/schema.json",
+  "input": {
+    "maxFileSize": 52428800
+  },
+  "output": {
+    "filePath": "repo-context.xml",
+    "style": "xml",
+    "parsableStyle": false,
+    "fileSummary": true,
+    "directoryStructure": true,
+    "files": true,
+    "removeComments": false,
+    "removeEmptyLines": false,
+    "compress": false,
+    "topFilesLength": 5,
+    "showLineNumbers": false,
+    "truncateBase64": false,
+    "copyToClipboard": false,
+    "includeFullDirectoryStructure": false,
+    "tokenCountTree": false,
+    "git": {
+      "sortByChanges": true,
+      "sortByChangesMaxCommits": 100,
+      "includeDiffs": false,
+      "includeLogs": false,
+      "includeLogsCount": 50
+    }
+  },
+  "include": [],
+  "ignore": {
+    "useGitignore": true,
+    "useDotIgnore": true,
+    "useDefaultPatterns": true,
+    "customPatterns": []
+  },
+  "security": {
+    "enableSecurityCheck": true
+  },
+  "tokenCount": {
+    "encoding": "o200k_base"
+  }
+}
 </file>
 
 <file path="packages/core-engine/src/ports/workspace.repository.ts">
