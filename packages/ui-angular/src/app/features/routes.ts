@@ -4,6 +4,7 @@ import { authSimpleCanActivate, authSimpleCanActivateChild } from '@delon/auth';
 
 import { LayoutBasicComponent } from '../layout';
 import { CreateOrganizationFormComponent } from '../workspaces/create-organization-form.component';
+import { WorkspaceDetailComponent } from '../workspaces/workspace-detail.component';
 
 export const routes: Routes = [
   {
@@ -36,6 +37,30 @@ export const routes: Routes = [
       {
         path: 'workspaces/create/project',
         component: CreateOrganizationFormComponent,
+        data: { workspaceType: 'project' }
+      },
+      {
+        path: 'workspaces/:id',
+        component: WorkspaceDetailComponent
+      },
+      {
+        path: 'organizations/:id',
+        component: WorkspaceDetailComponent,
+        data: { workspaceType: 'organization' }
+      },
+      {
+        path: 'teams/:id',
+        component: WorkspaceDetailComponent,
+        data: { workspaceType: 'team' }
+      },
+      {
+        path: 'partners/:id',
+        component: WorkspaceDetailComponent,
+        data: { workspaceType: 'partner' }
+      },
+      {
+        path: 'projects/:id',
+        component: WorkspaceDetailComponent,
         data: { workspaceType: 'project' }
       }
     ]

@@ -31,6 +31,7 @@ export interface WorkspaceSnapshotBase {
   name?: string;
   members?: unknown[];
   ownerAccountId?: AccountId;
+  memberIds?: AccountId[];
 }
 
 /**

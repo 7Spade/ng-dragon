@@ -170,6 +170,7 @@ export class HeaderUserComponent {
       workspaceId: `personal-${uid}`,
       accountId: uid,
       ownerAccountId: uid,
+      memberIds: [uid],
       workspaceType: 'personal',
       modules: [],
       createdAt: new Date().toISOString(),
