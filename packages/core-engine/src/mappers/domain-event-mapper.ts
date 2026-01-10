@@ -40,10 +40,10 @@ export function mapToEventMetadata(
   eventId: string
 ): EventMetadata {
   // Create container scope from event context
-  const containerScope = new ContainerScope(
-    event.workspaceId ?? null,
-    event.moduleKey ?? null
-  );
+  // Default to workspace scope if workspaceId exists
+  const scopeId = event.workspaceId ?? event.aggregateId;
+  const scopeType: 'workspace' | 'organization' | 'team' | 'project' = 'workspace';
+  const containerScope = new ContainerScope(scopeId, scopeType);
 
   // Create causality chain from causedBy array
   const causality = new CausalityChain(event.metadata.causedBy ?? []);
@@ -51,11 +51,19 @@ export function mapToEventMetadata(
   // Extract affected entities (can be enhanced)
   const affects: AffectedEntity[] = [];
   if (event.aggregateId) {
+    // Determine change type from event type
+    let changeType: 'created' | 'updated' | 'deleted' | 'referenced' = 'updated';
+    if (event.eventType.indexOf('Created') !== -1 || event.eventType.indexOf('Added') !== -1) {
+      changeType = 'created';
+    } else if (event.eventType.indexOf('Deleted') !== -1 || event.eventType.indexOf('Removed') !== -1) {
+      changeType = 'deleted';
+    }
+
     affects.push(
       new AffectedEntity(
-        event.aggregateId,
         event.eventType,
-        'modified'
+        event.aggregateId,
+        changeType
       )
     );
   }
@@ -82,10 +90,9 @@ export function createEventMetadata(
   causedBy?: string[],
   traceId?: string
 ): EventMetadata {
-  const containerScope = new ContainerScope(
-    workspaceId ?? null,
-    moduleKey ?? null
-  );
+  const scopeId = workspaceId ?? 'default';
+  const scopeType: 'workspace' | 'organization' | 'team' | 'project' = 'workspace';
+  const containerScope = new ContainerScope(scopeId, scopeType);
 
   const causality = new CausalityChain(causedBy ?? []);
 

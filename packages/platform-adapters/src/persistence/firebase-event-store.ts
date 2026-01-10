@@ -268,8 +268,8 @@ export class FirebaseEventStore implements IEventStore {
       traceId: metadata.traceId,
       actorAccountId: metadata.actorAccountId,
       containerScope: {
-        workspaceId: metadata.containerScope.workspaceId,
-        moduleKey: metadata.containerScope.moduleKey,
+        scopeId: metadata.containerScope.scopeId,
+        scopeType: metadata.containerScope.scopeType,
       },
       causality: {
         causes: metadata.causality.getCauses(),

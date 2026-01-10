@@ -78,13 +78,15 @@ export class MembershipAggregate {
     aggregate: MembershipAggregate;
     event: DomainEvent<MemberAddedPayload>;
   } {
-    // Check if already a member
-    if (this.snapshot.members.some((m) => m.accountId === accountId)) {
-      throw new Error(`Account ${accountId} is already a member of workspace ${this.snapshot.workspaceId}`);
+    // Check if already a member (avoid Array.some)
+    for (let i = 0; i < this.snapshot.members.length; i++) {
+      if (this.snapshot.members[i].accountId === accountId) {
+        throw new Error(`Account ${accountId} is already a member of workspace ${this.snapshot.workspaceId}`);
+      }
     }
 
-    const memberId = new MemberId(`member-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
-    const membership = Membership.create();
+    const memberId = MemberId.generate();
+    const membership = new Membership('active', new Date());
     const newMember = new Member(
       memberId,
       this.snapshot.workspaceId,
@@ -132,14 +134,30 @@ export class MembershipAggregate {
     aggregate: MembershipAggregate;
     event: DomainEvent<MemberRemovedPayload>;
   } {
-    const member = this.snapshot.members.find((m) => m.accountId === accountId);
+    // Find member without Array.find
+    let member: Member | undefined;
+    for (let i = 0; i < this.snapshot.members.length; i++) {
+      if (this.snapshot.members[i].accountId === accountId) {
+        member = this.snapshot.members[i];
+        break;
+      }
+    }
+    
     if (!member) {
       throw new Error(`Account ${accountId} is not a member of workspace ${this.snapshot.workspaceId}`);
     }
 
+    // Filter members without Array.filter
+    const nextMembers: Member[] = [];
+    for (let i = 0; i < this.snapshot.members.length; i++) {
+      if (this.snapshot.members[i].accountId !== accountId) {
+        nextMembers.push(this.snapshot.members[i]);
+      }
+    }
+
     const nextSnapshot: MembershipSnapshot = {
       ...this.snapshot,
-      members: this.snapshot.members.filter((m) => m.accountId !== accountId),
+      members: nextMembers,
       version: this.snapshot.version + 1,
     };
 
@@ -176,17 +194,34 @@ export class MembershipAggregate {
     aggregate: MembershipAggregate;
     event: DomainEvent<MemberRoleChangedPayload>;
   } {
-    const member = this.snapshot.members.find((m) => m.accountId === accountId);
+    // Find member without Array.find
+    let member: Member | undefined;
+    for (let i = 0; i < this.snapshot.members.length; i++) {
+      if (this.snapshot.members[i].accountId === accountId) {
+        member = this.snapshot.members[i];
+        break;
+      }
+    }
+    
     if (!member) {
       throw new Error(`Account ${accountId} is not a member of workspace ${this.snapshot.workspaceId}`);
     }
 
     const updatedMember = member.changeRole(newRole);
+    
+    // Map members without Array.map
+    const nextMembers: Member[] = [];
+    for (let i = 0; i < this.snapshot.members.length; i++) {
+      if (this.snapshot.members[i].accountId === accountId) {
+        nextMembers.push(updatedMember);
+      } else {
+        nextMembers.push(this.snapshot.members[i]);
+      }
+    }
+    
     const nextSnapshot: MembershipSnapshot = {
       ...this.snapshot,
-      members: this.snapshot.members.map((m) =>
-        m.accountId === accountId ? updatedMember : m
-      ),
+      members: nextMembers,
       version: this.snapshot.version + 1,
     };
 
@@ -224,21 +259,37 @@ export class MembershipAggregate {
    * Get member by account ID
    */
   getMemberByAccountId(accountId: string): Member | undefined {
-    return this.snapshot.members.find((m) => m.accountId === accountId);
+    for (let i = 0; i < this.snapshot.members.length; i++) {
+      if (this.snapshot.members[i].accountId === accountId) {
+        return this.snapshot.members[i];
+      }
+    }
+    return undefined;
   }
 
   /**
    * Check if account is a member
    */
   isMember(accountId: string): boolean {
-    return this.snapshot.members.some((m) => m.accountId === accountId);
+    for (let i = 0; i < this.snapshot.members.length; i++) {
+      if (this.snapshot.members[i].accountId === accountId) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
    * Get all active members
    */
   getActiveMembers(): Member[] {
-    return this.snapshot.members.filter((m) => m.isActive());
+    const activeMembers: Member[] = [];
+    for (let i = 0; i < this.snapshot.members.length; i++) {
+      if (this.snapshot.members[i].isActive()) {
+        activeMembers.push(this.snapshot.members[i]);
+      }
+    }
+    return activeMembers;
   }
 
   /**
