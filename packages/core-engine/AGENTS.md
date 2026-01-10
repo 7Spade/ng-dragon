@@ -1,3 +1,4 @@
+
 # core-engine AGENTS
 
 > 邊界以 [`packages/AGENTS.md`](../AGENTS.md) 為準；開工前請用 **server-sequential-thinking** + **software-planning-mcp** 拆解步驟。
@@ -138,99 +139,85 @@ core-engine 必須完整涵蓋下列事件系統抽象能力：
 4. 事件完整性：必須完整覆蓋 Event Flow / Store / Bus / Type / Payload / Metadata / Lifecycle / Semantics / Sourcing / Causality。
 5. 流程穩定性：Saga 僅負責流程協調，不承載業務決策。
 
-diff --git a/packages/core-engine/AGENTS.md b/packages/core-engine/AGENTS.md
-index 0000000..1111111 100644
---- a/packages/core-engine/AGENTS.md
-+++ b/packages/core-engine/AGENTS.md
-@@
- ## Testing 規範
- - 所有測試必須為純單元測試。
- - 不允許依賴任何實際 infrastructure。
- - 必須可 mock：
-   - Event Bus
-   - Event Store
-   - Saga Orchestrator
-   - Scheduler
+## Copilot Coding Conventions
+本區段為 Copilot 與人類開發者的強制一致性規範，所有新增檔案必須遵守。
 
-+## Copilot Coding Conventions
-+本區段為 Copilot 與人類開發者的強制一致性規範，所有新增檔案必須遵守。
-+
-+### 檔名規範
-+- 檔名一律使用 kebab-case。
-+- Interface 檔案必須以 `.interface.ts` 結尾。
-+- Type / DTO 檔案必須以 `.types.ts` 或 `.dto.ts` 結尾。
-+- 抽象類別必須以 `.abstract.ts` 結尾。
-+- 測試檔案必須以 `.spec.ts` 結尾。
-+
-+範例：
-+- event-bus.interface.ts
-+- event-store.interface.ts
-+- causality-tracker.interface.ts
-+- billing-saga.orchestrator.ts
-+- publish-event.use-case.ts
-+
-+### Interface 命名規範
-+- Interface 必須使用 PascalCase。
-+- Interface 必須為名詞或名詞片語，不得為動詞。
-+- Interface 必須以語意角色結尾：
-+  - Bus / Store / Flow / Tracker / Orchestrator / Scheduler / Mapper
-+
-+範例：
-+- EventBus
-+- EventStore
-+- EventFlow
-+- CausalityTracker
-+- BillingSagaOrchestrator
-+- JobScheduler
-+
-+### Class 命名規範
-+- Class 必須使用 PascalCase。
-+- 抽象類別必須以 Abstract 開頭。
-+- 不得出現 Impl、Concrete、Default 等實作語意名稱。
-+
-+範例：
-+- AbstractSagaOrchestrator
-+- AbstractEventFlow
-+
-+### Function 命名規範
-+- Function 必須使用 camelCase。
-+- 命名必須表達動作與意圖。
-+- 不得包含 infrastructure 語意（例如 http、firebase、redis）。
-+
-+範例：
-+- publishEvent
-+- appendToStream
-+- correlateEvent
-+
-+### 資料夾約束
-+- 每個資料夾只允許單一職責。
-+- 不允許跨資料夾 import 實作。
-+- 僅允許依賴：
-+  - 同層或更高層抽象
-+  - ports / adapters 定義的 interface
-+- 禁止出現循環依賴。
-+
-+### Import 約束
-+- 不允許使用相對路徑穿越三層以上（`../../../`）。
-+- 不允許 import platform-adapters 或任何 SDK。
-+- 不允許 dynamic import。
-+
-+## Diff-Only 強約束模式
-+本文件屬於 CONTRACT 等級文件。
-+
-+所有修改必須遵守：
-+- 只允許新增（append）。
-+- 不允許修改既有文字、標點、段落順序。
-+- 不允許刪除任何內容。
-+- 不允許重新格式化。
-+
-+任何建議修改必須以 diff 形式輸出，例如：
-+
-+```diff
+### 檔名規範
+- 檔名一律使用 kebab-case。
+- Interface 檔案必須以 `.interface.ts` 結尾。
+- Type / DTO 檔案必須以 `.types.ts` 或 `.dto.ts` 結尾。
+- 抽象類別必須以 `.abstract.ts` 結尾。
+- 測試檔案必須以 `.spec.ts` 結尾。
+
+範例：
+- event-bus.interface.ts
+- event-store.interface.ts
+- causality-tracker.interface.ts
+- billing-saga.orchestrator.ts
+- publish-event.use-case.ts
+
+### Interface 命名規範
+- Interface 必須使用 PascalCase。
+- Interface 必須為名詞或名詞片語，不得為動詞。
+- Interface 必須以語意角色結尾：
+  - Bus / Store / Flow / Tracker / Orchestrator / Scheduler / Mapper
+
+範例：
+- EventBus
+- EventStore
+- EventFlow
+- CausalityTracker
+- BillingSagaOrchestrator
+- JobScheduler
+
+### Class 命名規範
+- Class 必須使用 PascalCase。
+- 抽象類別必須以 Abstract 開頭。
+- 不得出現 Impl、Concrete、Default 等實作語意名稱。
+
+範例：
+- AbstractSagaOrchestrator
+- AbstractEventFlow
+
+### Function 命名規範
+- Function 必須使用 camelCase。
+- 命名必須表達動作與意圖。
+- 不得包含 infrastructure 語意（例如 http、firebase、redis）。
+
+範例：
+- publishEvent
+- appendToStream
+- correlateEvent
+
+### 資料夾約束
+- 每個資料夾只允許單一職責。
+- 不允許跨資料夾 import 實作。
+- 僅允許依賴：
+  - 同層或更高層抽象
+  - ports / adapters 定義的 interface
+- 禁止出現循環依賴。
+
+### Import 約束
+- 不允許使用相對路徑穿越三層以上（`../../../`）。
+- 不允許 import platform-adapters 或任何 SDK。
+- 不允許 dynamic import。
+
+## Diff-Only 強約束模式
+本文件屬於 CONTRACT 等級文件。
+
+所有修改必須遵守：
+- 只允許新增（append）。
+- 不允許修改既有文字、標點、段落順序。
+- 不允許刪除任何內容。
+- 不允許重新格式化。
+
+任何建議修改必須以 diff 形式輸出，例如：
+
+```diff
 ++ ## 新增區段
 ++ - 新規範條目
-+```
-+
-+若需重構或調整既有內容，必須：
-+- 明確標示變更意圖。
-+- 經人工 review 確認後才可套用。
+```
+
+若需重構或調整既有內容，必須：
+- 明確標示變更意圖。
+- 經人工 review 確認後才可套用。
