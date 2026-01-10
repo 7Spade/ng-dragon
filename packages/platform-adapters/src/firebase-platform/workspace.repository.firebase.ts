@@ -1,5 +1,4 @@
-import { WorkspaceId, WorkspaceSnapshot, DomainEvent } from '@account-domain';
-import { WorkspaceRepository } from '@core-engine';
+import { DomainEvent, WorkspaceId, WorkspaceRepository, WorkspaceSnapshot } from '@account-domain';
 
 import { getCollection } from './firestore';
 

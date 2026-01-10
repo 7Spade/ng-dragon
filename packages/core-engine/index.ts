@@ -15,5 +15,4 @@
 
 export * from './src/ports';
 export * from './src/queries';
-export * from './src/value-objects';
 export * from './src/mappers';

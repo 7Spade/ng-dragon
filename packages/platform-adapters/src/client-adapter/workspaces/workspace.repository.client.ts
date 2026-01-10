@@ -1,7 +1,6 @@
-import { DomainEvent, WorkspaceId, WorkspaceSnapshot } from '@account-domain';
+import { DomainEvent, WorkspaceId, WorkspaceRepository, WorkspaceSnapshot } from '@account-domain';
 import { Injectable, inject } from '@angular/core';
 import { Firestore, collection, doc, getDoc, getDocs, setDoc } from '@angular/fire/firestore';
-import { WorkspaceRepository } from '@core-engine';
 
 @Injectable({ providedIn: 'root' })
 export class WorkspaceRepositoryClient implements WorkspaceRepository<WorkspaceSnapshot, DomainEvent<WorkspaceSnapshot>> {
