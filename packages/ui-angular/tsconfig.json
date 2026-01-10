@@ -32,26 +32,11 @@
       "@account-domain": [
         "../account-domain/index.ts"
       ],
-      "@account-domain/*": [
-        "../account-domain/*"
-      ],
-      "@core-engine": [
-        "../core-engine/index.ts"
-      ],
-      "@core-engine/*": [
-        "../core-engine/*"
-      ],
       "@saas-domain": [
         "../saas-domain/index.ts"
       ],
-      "@saas-domain/*": [
-        "../saas-domain/*"
-      ],
       "@platform-adapters": [
         "../platform-adapters/index.ts"
-      ],
-      "@platform-adapters/*": [
-        "../platform-adapters/*"
       ]
     }
   },

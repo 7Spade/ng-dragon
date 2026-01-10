@@ -78,11 +78,20 @@ export class CreateOrganizationFormComponent {
         return;
       }
 
-      // Send command to UseCase via service
-      const workspaceId = await this.createOrgService.createOrganization({
+      // Generate workspace ID and traceId
+      const workspaceId = `ws-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+      const traceId = `trace-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+      
+      // Send command to application service
+      const resultWorkspaceId = await this.createOrgService.createOrganization({
+        workspaceId,
         accountId: user.uid,
-        name: this.form.value.organizationName ?? '',
-        ownerUserId: user.uid
+        organizationName: this.form.value.organizationName ?? '',
+        actorId: user.uid,
+        traceId,
+        causedBy: ['user-action'],
+        modules: [],
+        createdAt: new Date().toISOString()
       });
 
       this.successMessage = `Organization "${this.form.value.organizationName}" created successfully!`;

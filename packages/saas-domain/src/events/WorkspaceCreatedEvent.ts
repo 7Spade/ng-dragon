@@ -1,4 +1,7 @@
-import { WorkspaceSnapshot } from '@account-domain/src/aggregates/workspace.aggregate';
-import { DomainEvent } from '@account-domain/src/events/domain-event';
+import { WorkspaceSnapshot, DomainEvent } from '@account-domain';
 
+/**
+ * Type alias for WorkspaceCreated event
+ * Uses the DomainEvent pattern from account-domain
+ */
 export type WorkspaceCreatedEvent = DomainEvent<WorkspaceSnapshot>;

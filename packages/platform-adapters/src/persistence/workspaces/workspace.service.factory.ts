@@ -1,5 +1,4 @@
-import { WorkspaceApplicationService } from '@saas-domain/src/application/WorkspaceApplicationService';
-
+import { WorkspaceApplicationService } from '@saas-domain';
 import { FirestoreWorkspaceRepository } from './firestore-workspace.repository';
 
 export const createWorkspaceApplicationService = (): WorkspaceApplicationService =>

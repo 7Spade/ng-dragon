@@ -1,19 +1,23 @@
 import { Injectable, inject } from '@angular/core';
-import { CreateOrganizationUseCase } from '../../../../core-engine/src/use-cases/create-organization.usecase';
+import { CreateOrganizationCommand, WorkspaceApplicationService } from '@saas-domain';
 import { WorkspaceRepositoryClient } from './workspace.repository.client';
-import { CreateOrganizationCommand } from '../../../../core-engine/src/commands/create-organization.command';
 
+/**
+ * Angular service for creating organizations
+ * Uses WorkspaceApplicationService from saas-domain with client-side repository
+ */
 @Injectable({ providedIn: 'root' })
 export class CreateOrganizationService {
   private readonly repository = inject(WorkspaceRepositoryClient);
-  private readonly useCase: CreateOrganizationUseCase;
+  private readonly applicationService: WorkspaceApplicationService;
 
   constructor() {
-    // Wire up dependencies: UseCase -> Repository (@angular/fire - client SDK)
-    this.useCase = new CreateOrganizationUseCase(this.repository);
+    // Wire up dependencies: ApplicationService -> Repository (@angular/fire - client SDK)
+    this.applicationService = new WorkspaceApplicationService(this.repository);
   }
 
   async createOrganization(command: CreateOrganizationCommand): Promise<string> {
-    return await this.useCase.execute(command);
+    const event = await this.applicationService.createOrganization(command);
+    return event.aggregateId;
   }
 }

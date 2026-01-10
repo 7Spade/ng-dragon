@@ -4,6 +4,7 @@
   "description": "Angular UI layer - Uses platform-adapters for backend integration (frontend only, no firebase-admin)",
   "private": true,
   "scripts": {
+    "ng-high-memory": "node --max_old_space_size=8000 ../../node_modules/@angular/cli/bin/ng",
     "lint": "eslint src/app --ext .ts",
     "ng": "ng",
     "start": "ng s -o",
@@ -54,12 +55,16 @@
     "@types/node": "^20.19.27",
     "typescript": "~5.9.2"
   },
-    "tsconfig": {
+  "tsconfig": {
     "compilerOptions": {
       "baseUrl": ".",
       "paths": {
-        "firebase-admin": ["__forbidden__"],
-        "@ng-events/platform-adapters/*": ["packages/platform-adapters/src/client-adapter/*"]
+        "firebase-admin": [
+          "__forbidden__"
+        ],
+        "@ng-events/platform-adapters/*": [
+          "packages/platform-adapters/src/client-adapter/*"
+        ]
       }
     }
   },

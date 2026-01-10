@@ -1,3 +1,7 @@
 // WorkspaceType distinguishes workspace containers for modules and entities.
-// organization aligns to company-level, project for single product, personal for individual scope.
-export type WorkspaceType = 'organization' | 'project' | 'personal';
+// organization: company-level workspace
+// team: sub-workspace within an organization
+// partner: external collaborator workspace
+// project: single product workspace
+// personal: individual user workspace
+export type WorkspaceType = 'organization' | 'team' | 'partner' | 'project' | 'personal';

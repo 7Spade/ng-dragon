@@ -26,8 +26,12 @@
     "compilerOptions": {
       "baseUrl": ".",
       "paths": {
-        "firebase-admin": ["__forbidden__"],
-        "@ng-events/platform-adapters/*": ["__forbidden__"]
+        "firebase-admin": [
+          "__forbidden__"
+        ],
+        "@ng-events/platform-adapters/*": [
+          "__forbidden__"
+        ]
       }
     }
   },

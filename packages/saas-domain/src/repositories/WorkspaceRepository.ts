@@ -1,9 +1,10 @@
-import { WorkspaceSnapshot } from '@account-domain/src/aggregates/workspace.aggregate';
+import { WorkspaceSnapshot } from '@account-domain';
 import { WorkspaceCreatedEvent } from '../events/WorkspaceCreatedEvent';
+import { WorkspaceType } from '@account-domain';
 
 export interface WorkspaceRepository {
   appendWorkspaceEvent(event: WorkspaceCreatedEvent): Promise<void>;
   saveWorkspaceSnapshot(snapshot: WorkspaceSnapshot): Promise<void>;
   getWorkspaceSnapshot(workspaceId: string): Promise<WorkspaceSnapshot | null>;
-  listWorkspaces(): Promise<WorkspaceSnapshot[]>;
+  listWorkspaces(filter?: { workspaceType?: WorkspaceType; accountId?: string }): Promise<WorkspaceSnapshot[]>;
 }

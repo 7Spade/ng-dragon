@@ -15,17 +15,26 @@
 ```
 saas-domain/
 └── src/
-    ├── aggregates/        # 各模組聚合（task/issue/finance/quality/acceptance 預留）
-    ├── value-objects/     # 模組 VO
-    ├── events/            # 模組事件
-    ├── domain-services/   # 跨聚合的無狀態邏輯
-    ├── repositories/      # 介面定義
+    ├── aggregates/        # 各模組聚合（team, project-collaboration 等）
+    ├── application/       # Application Services (協調 domain 層的純 TS 服務)
+    ├── commands/          # 業務命令定義 (SaaS 特定命令)
+    ├── domain-services/   # 跨聚合的無狀態邏輯與 Factories
     ├── entities/          # 共享 Entity 型別
-    ├── policies/          # 跨模組 / 依賴檢查（例如模組啟用）
-    └── __tests__/         # 模組測試（待補）
+    ├── events/            # 模組事件
+    ├── modules/           # 子模組組織 (identity, access-control, settings, audit)
+    │   ├── identity/      # - aggregates, entities, events, value-objects, application, projections
+    │   ├── access-control/# - aggregates, entities, events, value-objects, services
+    │   ├── settings/      # - aggregates, entities, events, value-objects
+    │   └── audit/         # - aggregates, entities, events, value-objects
+    ├── repositories/      # Repository 介面定義（實作在 platform-adapters）
+    └── value-objects/     # 模組 VO
 ```
 
-> 新增任務/議題/財務/品質/驗收模組時，請直接在 `src/` 對應子資料夾建立聚合與事件，避免額外的根資料夾。
+> **組織原則：**
+> - 簡單模型：使用扁平化結構（aggregates/, events/, value-objects/ 等）
+> - 複雜模型：可使用 modules/ 子目錄組織 bounded context（如 4 個基礎模組）
+> - Application Services 可存在於 domain package（協調純 TS domain 邏輯，無框架依賴）
+> - Commands 可存在於 domain package（業務命令定義屬於 domain 概念）
 
 ## 原則
 
