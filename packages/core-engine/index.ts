@@ -23,3 +23,4 @@ export * from './aggregates';
 export * from './projection';
 export * from './src/value-objects';
 export * from './src/ports';
+export * from './src/mappers';

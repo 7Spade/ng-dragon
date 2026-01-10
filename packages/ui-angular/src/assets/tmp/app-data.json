@@ -21,32 +21,6 @@
             "i18n": "menu.dashboard",
             "link": "/dashboard/v1",
             "icon": "anticon-dashboard"
-          },
-          {
-            "text": "我的任务",
-            "i18n": "menu.myTasks",
-            "link": "/tasks/my",
-            "icon": "anticon-check-circle"
-          }
-        ]
-      },
-      {
-        "text": "任务",
-        "i18n": "menu.tasks",
-        "group": true,
-        "hideInBreadcrumb": true,
-        "children": [
-          {
-            "text": "创建任务",
-            "i18n": "menu.tasks.create",
-            "link": "/tasks/create",
-            "icon": "anticon-plus-circle"
-          },
-          {
-            "text": "任务列表",
-            "i18n": "menu.tasks.list",
-            "link": "/tasks/list",
-            "icon": "anticon-unordered-list"
           }
         ]
       },
@@ -97,44 +71,10 @@
             "icon": "anticon-user"
           },
           {
-            "text": "项目",
-            "i18n": "menu.projects",
-            "link": "/projects",
-            "icon": "anticon-project"
-          }
-        ]
-      },
-      {
-        "text": "任务",
-        "i18n": "menu.tasks",
-        "group": true,
-        "hideInBreadcrumb": true,
-        "children": [
-          {
-            "text": "创建任务",
-            "i18n": "menu.tasks.create",
-            "link": "/tasks/create",
-            "icon": "anticon-plus-circle"
-          },
-          {
-            "text": "任务列表",
-            "i18n": "menu.tasks.list",
-            "link": "/tasks/list",
-            "icon": "anticon-unordered-list"
-          }
-        ]
-      },
-      {
-        "text": "项目管理",
-        "i18n": "menu.projects.management",
-        "group": true,
-        "hideInBreadcrumb": true,
-        "children": [
-          {
-            "text": "创建项目",
-            "i18n": "menu.projects.create",
-            "link": "/organizations/:orgId/projects/create",
-            "icon": "anticon-folder-add"
+            "text": "合作伙伴",
+            "i18n": "menu.partners",
+            "link": "/partners",
+            "icon": "anticon-solution"
           }
         ]
       }
@@ -153,36 +93,10 @@
             "icon": "anticon-dashboard"
           },
           {
-            "text": "团队任务",
-            "i18n": "menu.teamTasks",
-            "link": "/tasks/team",
-            "icon": "anticon-check-circle"
-          },
-          {
             "text": "团队成员",
             "i18n": "menu.teamMembers",
             "link": "/team/members",
             "icon": "anticon-user"
-          }
-        ]
-      },
-      {
-        "text": "任务",
-        "i18n": "menu.tasks",
-        "group": true,
-        "hideInBreadcrumb": true,
-        "children": [
-          {
-            "text": "创建任务",
-            "i18n": "menu.tasks.create",
-            "link": "/tasks/create",
-            "icon": "anticon-plus-circle"
-          },
-          {
-            "text": "团队任务",
-            "i18n": "menu.tasks.team",
-            "link": "/tasks/team",
-            "icon": "anticon-unordered-list"
           }
         ]
       }

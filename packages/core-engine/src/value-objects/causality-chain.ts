@@ -58,7 +58,7 @@ export class CausalityChain {
    * Check if this event was caused by a specific event
    */
   wasCausedBy(eventId: string): boolean {
-    return this.causes.includes(eventId);
+    return this.causes.indexOf(eventId) !== -1;
   }
 
   /**
