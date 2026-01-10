@@ -237,7 +237,25 @@ export class HeaderUserComponent {
 
   readonly partnerWorkspaces = computed(() => this.workspaces().filter(ws => ws.workspaceType === 'partner'));
 
-  readonly personalWorkspaces = computed(() => this.workspaces().filter(ws => ws.workspaceType === 'personal'));
+  readonly personalWorkspaces = computed(() => {
+    const personals = this.workspaces().filter(ws => ws.workspaceType === 'personal');
+    if (personals.length) return personals;
+    const uid = this.currentUserId();
+    if (!uid) return personals;
+    return [
+      {
+        id: `personal-${uid}`,
+        workspaceId: `personal-${uid}`,
+        accountId: uid,
+        ownerAccountId: uid,
+        workspaceType: 'personal',
+        modules: [],
+        createdAt: new Date().toISOString(),
+        name: 'Personal',
+        members: []
+      }
+    ];
+  });
 
   private readonly membershipLookup = computed(() => this.workspacePartitions().membership);
 
