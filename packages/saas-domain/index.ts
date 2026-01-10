@@ -25,7 +25,7 @@ export * from './src/commands/create-project-command';
 export * from './src/application/workspace-application-service';
 
 // Domain Services & Factories
-export * from './src/domain/workspace-factory';
+export * from './src/domain-services/workspace-factory';
 
 // Events
 export * from './src/events/WorkspaceCreatedEvent';
