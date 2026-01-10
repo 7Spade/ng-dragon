@@ -41,3 +41,23 @@ Purpose: document what the comparison branch already provides that is absent on 
 2) Bring back Identity/Access-Control/Audit/Settings modules with stricter invariants and hook them into workspace factory/application service.  
 3) Restore workspace UI flows (create/list/detail/search) with accessibility and signal-based state, plus i18n updates.  
 4) Re-enable automation (Copilot/MCP + Playwright) with locked dependencies and minimal permissions.
+
+## Superior implementation blueprint (to surpass `copilot/fix-structure-boundary-issues`)
+- **Core engine (CQRS + ES contracts)**
+  - Reintroduce event-store/projector/replayer ports with branded IDs and sealed metadata (eventId, aggregateId, causality links, occurredAt) to prevent cross-stream drift.
+  - Validate `appendEvents` payloads (schema + max batch size) and expose replay options with backpressure (page size, stop tokens) so long-running rebuilds do not starve live traffic.
+  - Provide a mapper that normalizes event envelopes and guarantees immutable payload snapshots before adapters persist them.
+- **Platform adapters (Firebase/Firestore)**
+  - Implement `FirebaseEventStore` using per-aggregate collections, transaction-based optimistic concurrency, and retry/backoff policy; store causality chain + affected entities for cross-module debugging.
+  - Add `FirestoreSearchRepository` that writes queryable projections with composite-index hints; keep Firestore types inside adapters and surface DTOs only.
+  - Register AngularFire with tree-shakeable providers (`provideFirebaseApp`, `provideFirestore`) inside `platform-adapters`; inject via tokens so UI never sees SDK types.
+- **Domain (workspace base modules)**
+  - Rebuild Identity/Access-Control/Audit/Settings modules with stricter invariants (role/membership matrices, single source of truth for status transitions) and emit bootstrap events when a workspace is created.
+  - Keep domain pure TypeScript: no SDK, no Angular, no date/uuid construction without injected factories. Surface repository interfaces that the Firebase adapters implement.
+- **UI (Angular)**
+  - Restore workspace CRUD and global search as standalone, lazy-loaded components that use `signal()/computed()/effect()` for state and `toSignal()` only at the adapter boundary.
+  - Use route-level providers for feature slices, OnPush change detection, accessible focus order, and ARIA landmarks for forms/lists/search results.
+  - Keep all I/O in adapter facades; templates bind to readonly signals to minimize re-render churn and reduce bundle size.
+- **Automation/tooling**
+  - Re-enable MCP/Playwright/GitHub Actions with pinned SHAs, least-privilege permissions, and pnpm caching. Add emulator-based adapter tests (no live Firebase in CI).
+  - Gate merges on lint + focused Playwright smoke for restored flows; publish artifacts (coverage, accessibility snapshots) for triage.
