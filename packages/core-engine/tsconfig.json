@@ -7,5 +7,7 @@
   },
   "include": ["**/*.ts"],
   "exclude": ["node_modules", "dist", "**/*.spec.ts"],
-  "references": []
+  "references": [
+    { "path": "../account-domain" }
+  ]
 }

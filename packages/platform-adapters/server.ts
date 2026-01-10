@@ -3,3 +3,4 @@
 
 export * from './src/firebase-platform';
 export * from './src/persistence';
+export * from './src/search';
