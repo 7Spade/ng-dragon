@@ -184,7 +184,7 @@ Example:
    → 顯示載入指示器 (mat-progress-spinner, 在按鈕內)
    → 執行切換邏輯:
       - GlobalShell.switchAccount(accountId)
-      - WorkspaceListStore.reset()
+      - WorkspaceStore.reset()
       - WorkspaceStore.reset()
       - 重新載入工作區列表
    → 更新觸發按鈕顯示
@@ -969,7 +969,7 @@ export const GlobalShell = signalStore(
 );
 ```
 
-#### WorkspaceListStore (工作區列表)
+#### WorkspaceStore (工作區列表)
 ```typescript
 // Store 結構
 interface WorkspaceListState {
@@ -997,7 +997,7 @@ interface WorkspaceListState {
 }
 
 // Store 定義
-export const WorkspaceListStore = signalStore(
+export const WorkspaceStore = signalStore(
   { providedIn: 'root' },
   
   withState<WorkspaceListState>({
@@ -1511,7 +1511,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { WorkspaceListStore } from '@/stores/workspace-list.store';
+import { WorkspaceStore } from '@/stores/workspace-list.store';
 import { FormsModule } from '@angular/forms';
 
 @Component({
@@ -1854,7 +1854,7 @@ import { FormsModule } from '@angular/forms';
   `]
 })
 export class WorkspaceSwitcherComponent {
-  workspaceList = inject(WorkspaceListStore);
+  workspaceList = inject(WorkspaceStore);
   snackBar = inject(MatSnackBar);
   
   searchQuery = signal('');
@@ -1995,7 +1995,7 @@ export class KeyboardShortcutsService {
 import { Routes } from '@angular/router';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { WorkspaceListStore } from '@/stores/workspace-list.store';
+import { WorkspaceStore } from '@/stores/workspace-list.store';
 
 export const routes: Routes = [
   {
@@ -2006,7 +2006,7 @@ export const routes: Routes = [
   {
     path: 'workspace',
     canActivate: [() => {
-      const workspaceList = inject(WorkspaceListStore);
+      const workspaceList = inject(WorkspaceStore);
       const router = inject(Router);
       
       // 如果沒有選擇工作區，重定向到工作區選擇頁

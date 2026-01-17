@@ -7,24 +7,23 @@
 ```
 src/
 ├── app/
-│   ├── application/           # 應用層:用例與應用服務
-│   │   ├── use-cases/        # 業務用例
-│   │   ├── services/         # 應用服務
-│   │   └── dto/              # 數據傳輸對象
+│   ├── application/           # 應用層:Stores 與應用服務
+│   │   ├── store/           # NgRx Signals Stores
+│   │   ├── services/        # 應用服務
+│   │   └── guards/          # 路由守衛
 │   │
-│   ├── domain/               # 領域層:核心業務邏輯
-│   │   ├── entities/         # 領域實體
-│   │   ├── value-objects/    # 值對象
-│   │   ├── repositories/     # 倉儲介面
-│   │   ├── services/         # 領域服務
-│   │   └── events/           # 領域事件
+│   ├── domain/              # 領域層:核心業務邏輯
+│   │   ├── {entity}/        # 各領域實體 (account, workspace, etc.)
+│   │   │   └── entities/    # 領域實體定義
+│   │   ├── repositories/    # 倉儲介面
+│   │   └── services/        # 領域服務介面
 │   │
-│   ├── infrastructure/       # 基礎設施層:技術實現
-│   │   ├── firebase/         # Firebase 整合
-│   │   ├── repositories/     # 倉儲實現
-│   │   ├── guards/           # 路由守衛
-│   │   ├── interceptors/     # HTTP 攔截器
-│   │   └── state/            # ngrx/signals 狀態管理
+│   ├── infrastructure/      # 基礎設施層:技術實現
+│   │   ├── {entity}/        # 各領域服務實作
+│   │   │   └── services/    # 服務實作
+│   │   ├── firebase/        # Firebase 整合
+│   │   ├── auth/            # 認證服務
+│   │   └── interceptors/    # HTTP 攔截器
 │   │
 │   ├── presentation/         # 展示層:UI 組件
 │   │   ├── layouts/          # 布局組件

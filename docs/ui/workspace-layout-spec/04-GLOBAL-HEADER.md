@@ -71,9 +71,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatBadgeModule } from '@angular/material/badge';
 
 // Stores
-import { AccountStore } from '@/infrastructure/state/account/account.store';
-import { WorkspaceStore } from '@/infrastructure/state/workspace/workspace.store';
-import { NotificationStore } from '@/infrastructure/state/ui/notification.store';
+import { AccountStore } from '@/application/store/account/account.store';
+import { WorkspaceStore } from '@/application/store/workspace/workspace.store';
+import { NotificationStore } from '@/application/store/ui/notification.store';
 
 // Child Components
 import { WorkspaceSwitcherComponent } from './components/workspace-switcher/workspace-switcher.component';
@@ -324,7 +324,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 
 // Stores
-import { WorkspaceStore } from '@/infrastructure/state/workspace/workspace.store';
+import { WorkspaceStore } from '@/application/store/workspace/workspace.store';
 
 /**
  * 工作區切換器組件
@@ -557,7 +557,7 @@ import { MatDividerModule } from '@angular/material/divider';
 
 // Services & Stores
 import { AuthService } from '@/infrastructure/firebase/services/auth.service';
-import { AccountStore } from '@/infrastructure/state/account/account.store';
+import { AccountStore } from '@/application/store/account/account.store';
 
 /**
  * 帳戶選單組件
