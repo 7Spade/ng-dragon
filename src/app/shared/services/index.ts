@@ -15,6 +15,8 @@ export * from './bottom-sheet';
 export * from './clipboard';
 export * from './breakpoint';
 export * from './platform';
+export * from './overlay';
+export * from './media-query';
 
 // UI Services
 export * from './theme';
@@ -22,6 +24,7 @@ export * from './scroll';
 
 // Storage Services
 export * from './storage';
+export * from './indexed-db';
 
 // File Services
 export * from './file';
