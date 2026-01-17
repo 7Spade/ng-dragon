@@ -1,0 +1,283 @@
+---
+language: en
+type: explanation
+audience: developers
+status: current
+---
+
+# NgRx Dragon Start
+
+> **For AI Code Generation**: See [AGENTS.md](./AGENTS.md) for explicit coding rules and constraints.
+
+## Zone-less Angular Application (Clean Architecture)
+
+A modern **Angular 20** application built with **zone-less change detection**, **@ngrx/signals**, and a **Clean Architecture–aligned structure** designed for long-term scalability, strict boundaries, and AI-assisted development (Copilot-friendly).
+
+---
+
+## ✨ Core Philosophy
+
+This project is built around a **business-first architecture**, not a framework-first one.
+
+```
+domain        → Defines the World
+application   → Orchestrates the World
+infrastructure→ Connects to the World
+ui            → Views the World
+```
+
+Each layer has **clear responsibility**, **strict dependency rules**, and **explicit intent**.
+
+---
+
+## 🚀 Key Features
+
+* ✅ **Zone-less Angular** (no Zone.js, smaller bundle, explicit updates)
+* ✅ **Angular 20** (stable APIs, esbuild)
+* ✅ **@ngrx/signals** (state as first-class signals)
+* ✅ **Clean Architecture** (ui / application / domain / infrastructure)
+* ✅ **Firebase Integration** via adapters
+* ✅ **Copilot-friendly structure** (low ambiguity, low hallucination)
+* ✅ **Production-ready mental model**
+
+---
+
+## 🧱 Architecture Overview
+
+### Layer Responsibilities
+
+```
+src/app/
+├─ ui/               # Presentation only (components, pages, layouts)
+├─ application/      # Use cases, orchestration, signal stores
+├─ domain/           # Pure business rules (no Angular, no Firebase)
+└─ infrastructure/   # External systems (Firebase, API, storage)
+```
+
+### Dependency Direction (Golden Rule)
+
+```
+ui → application → domain
+ui → application → infrastructure
+
+❌ domain → application
+❌ domain → infrastructure
+❌ ui → infrastructure (direct)
+```
+
+Dependencies **must always point inward**.
+
+---
+
+## 🧠 Layer Semantics (for Humans & Copilot)
+
+### 🧬 domain — Defines the World (What the system *is*)
+
+* Entities, Value Objects, Domain Events
+* Business rules and invariants
+* No Angular, no Signals, no Firebase, no I/O
+
+> If this code describes **truth**, it belongs here.
+
+---
+
+### ⚙️ application — Orchestrates the World (What the system *does*)
+
+* Use cases and orchestration
+* Signal Stores (`@ngrx/signals`)
+* Facades exposed to UI
+* Guards, policies, workflows
+
+> If this code decides **how things happen**, it lives here.
+
+---
+
+### 🔌 infrastructure — Connects to the World (How the system talks to the outside)
+
+* Firebase adapters
+* API clients
+* Persistence implementations
+* Environment bindings
+
+> All external systems are isolated here.
+
+---
+
+### 👀 ui — Views the World (How the system is presented)
+
+* Pages, components, layouts
+* Routing
+* ViewModels / Presenters
+* Zero business rules
+
+> UI renders state and emits intent — nothing more.
+
+---
+
+## 🗂️ Project Structure
+
+```
+src/
+├─ app/
+│  ├─ ui/
+│  │  ├─ pages/
+│  │  ├─ components/
+│  │  ├─ layouts/
+│  │  └─ presenters/
+│  │
+│  ├─ application/
+│  │  ├─ auth/
+│  │  │  ├─ auth.store.ts
+│  │  │  ├─ auth.facade.ts
+│  │  │  └─ auth.use-cases.ts
+│  │  ├─ workspace/
+│  │  └─ bootstrap/
+│  │
+│  ├─ domain/
+│  │  ├─ account/
+│  │  │  ├─ account.entity.ts
+│  │  │  ├─ account.types.ts
+│  │  │  └─ account.policy.ts
+│  │  ├─ workspace/
+│  │  └─ shared/
+│  │
+│  ├─ infrastructure/
+│  │  ├─ firebase/
+│  │  │  ├─ auth.adapter.ts
+│  │  │  ├─ firestore.adapter.ts
+│  │  │  └─ index.ts
+│  │  ├─ storage/
+│  │  └─ env/
+│  │
+│  ├─ app.config.ts      # zone-less configuration
+│  ├─ app.routes.ts
+│  └─ app.component.ts
+│
+├─ environments/
+├─ main.ts
+└─ ...
+```
+
+---
+
+## ⚡ Zone-less Change Detection
+
+The app uses Angular’s **stable zone-less mode**.
+
+```ts
+// app.config.ts
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideZonelessChangeDetection(),
+  ],
+};
+```
+
+### Why zone-less?
+
+* Smaller bundle (~40 KB saved)
+* Explicit state-driven updates
+* Perfect fit for signal-based architecture
+* Predictable performance
+
+---
+
+## 📦 Tech Stack
+
+* **Framework**: Angular 20
+* **State**: @ngrx/signals
+* **Backend**: Firebase via @angular/fire
+* **Language**: TypeScript 5.8+
+* **Build**: Angular CLI + esbuild
+
+---
+
+## 🔄 State Flow (Signals)
+
+```
+User Intent
+  → UI Event
+    → Application Facade
+      → Signal Store Method
+        → patchState()
+          → Signal Update
+            → UI Re-render
+```
+
+No Zone.js.
+No implicit magic.
+Only explicit state changes.
+
+---
+
+## 🚦 Getting Started
+
+### Prerequisites
+
+* Node.js 18+
+* npm or pnpm
+* Firebase project (optional but recommended)
+
+### Install
+
+```bash
+npm install --legacy-peer-deps
+# or
+pnpm install
+```
+
+### Run
+
+```bash
+npm run start
+```
+
+Open `http://localhost:4200`
+
+---
+
+## 🔐 Firebase Configuration
+
+Set credentials in:
+
+```
+src/environments/environment.ts
+```
+
+Infrastructure code **must not leak** into application or domain layers.
+
+---
+
+## 🧭 Architectural Guardrails
+
+When adding new code:
+
+* Business meaning → `domain`
+* State / orchestration → `application`
+* External systems → `infrastructure`
+* Rendering / interaction → `ui`
+
+If unsure → **do not put it in UI**.
+
+---
+
+## 🤖 Copilot Guidance
+
+This structure is intentionally designed to:
+
+* Reduce ambiguous file placement
+* Prevent cross-layer imports
+* Encourage correct abstractions
+* Make AI-assisted coding predictable and safe
+
+---
+
+## 📄 License
+
+MIT License
+
+---
+
+**Built with ❤️, discipline, and zero Zone.js**
+
+---
