@@ -89,10 +89,10 @@ export const AccountStore = signalStore(
               name: user.displayName || user.email || 'User',
               email: user.email || '',
               displayName: user.displayName || user.email || '',
-              photoURL: user.photoURL ?? undefined,
               memberCount: 1,
               createdAt: new Date(),
               updatedAt: new Date(),
+              ...(user.photoURL ? { photoURL: user.photoURL } : {}),
             },
             ...available.organizations.map((org) => ({
               id: org.organizationId,

@@ -17,6 +17,7 @@ import {
   WorkspaceStatus,
   WorkspaceType,
 } from '@domain/workspace/entities/workspace.entity';
+import { AppContext } from '@domain/context/entities/context.entity';
 import { EventBusStore } from '@application/store/event-bus/stores/event-bus.store';
 import { WorkspaceService } from '@infrastructure/workspace/services/workspace.service';
 import { PersistenceService } from '@shared/services/persistence.service';
@@ -36,7 +37,11 @@ export const WorkspaceStore = signalStore(
   { providedIn: 'root' },
   withState(initialWorkspaceState),
   withComputed(({ workspaces, currentWorkspaceId, favorites, recents, searchQuery }) => ({
+    activeWorkspaceId: computed(() => currentWorkspaceId()),
     currentWorkspace: computed(() =>
+      workspaces().find((w) => w.id === currentWorkspaceId()) || null
+    ),
+    activeWorkspace: computed(() =>
       workspaces().find((w) => w.id === currentWorkspaceId()) || null
     ),
     filteredWorkspaces: computed(() => {
@@ -94,6 +99,20 @@ export const WorkspaceStore = signalStore(
       return groups;
     }),
     hasMultiple: computed(() => workspaces().length > 1),
+    byScope: computed(() => {
+      const grouped: Record<WorkspaceScope, Workspace[]> = {
+        user: [],
+        organization: [],
+        team: [],
+        partner: [],
+      };
+      workspaces().forEach((workspace) => {
+        if (workspace.scope) {
+          grouped[workspace.scope].push(workspace);
+        }
+      });
+      return grouped;
+    }),
   })),
   withMethods(
     (
@@ -188,24 +207,21 @@ export const WorkspaceStore = signalStore(
             ),
           ];
 
-          const resolveContextId = () => {
-            if (!current) return null;
-            switch (current.type as WorkspaceScope) {
+          const resolveContextId = (context: AppContext) => {
+            switch (context.type) {
               case 'user':
-                return current.userId;
+                return context.userId;
               case 'organization':
-                return current.organizationId;
+                return context.organizationId;
               case 'team':
-                return current.teamId;
+                return context.teamId;
               case 'partner':
-                return current.partnerId;
-              default:
-                return null;
+                return context.partnerId;
             }
           };
 
           const persistedId = persistence.loadCurrentWorkspace();
-          const resolvedContextId = resolveContextId();
+          const resolvedContextId = current ? resolveContextId(current) : null;
           const persistedMatch = persistedId
             ? seeds.find((workspace) => workspace.id === persistedId)?.id
             : null;
@@ -276,6 +292,9 @@ export const WorkspaceStore = signalStore(
             producer: 'WorkspaceStore',
             timestamp: Date.now(),
           });
+        },
+        switchWorkspace(workspace: Workspace): void {
+          void this.setCurrentWorkspace(workspace.id);
         },
         setSearchQuery(query: string): void {
           patchState(store, { searchQuery: query });

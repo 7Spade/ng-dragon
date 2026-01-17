@@ -1,31 +1,60 @@
-<button
-  mat-button
-  class="workspace-trigger"
-  [matMenuTriggerFor]="workspaceMenu"
-  [matMenuTriggerDisabled]="isMobile()"
-  (menuOpened)="onMenuOpened()"
-  (menuClosed)="onMenuClosed()"
-  (click)="onTriggerClick()"
-  aria-label="切換工作區"
-  aria-haspopup="true"
-  [attr.aria-expanded]="isMenuOpen()"
->
-  @if (currentWorkspace(); as workspace) {
-    <div class="workspace-icon" [style.background]="getWorkspaceGradient(workspace.type)">
-      @if (workspace.avatar) {
-        <img [src]="workspace.avatar" [alt]="workspace.name" />
-      } @else {
-        <span class="workspace-letter">{{ workspace.name.charAt(0).toUpperCase() }}</span>
-      }
-    </div>
+@if (isMobile()) {
+  <button
+    mat-button
+    class="workspace-trigger"
+    (click)="onTriggerClick()"
+    aria-label="切換工作區"
+    aria-haspopup="true"
+    [attr.aria-expanded]="false"
+  >
+    @if (currentWorkspace(); as workspace) {
+      <ng-container>
+        <div class="workspace-icon" [style.background]="getWorkspaceGradient(workspace.type)">
+          @if (workspace.avatar) {
+            <img [src]="workspace.avatar" [alt]="workspace.name" />
+          } @else {
+            <span class="workspace-letter">{{ workspace.name.charAt(0).toUpperCase() }}</span>
+          }
+        </div>
 
-    <span class="workspace-name">{{ workspace.name }}</span>
+        <span class="workspace-name">{{ workspace.name }}</span>
+      </ng-container>
+    } @else {
+      <span>選擇工作區</span>
+    }
+  </button>
+} @else {
+  <button
+    mat-button
+    class="workspace-trigger"
+    [matMenuTriggerFor]="workspaceMenu"
+    (menuOpened)="onMenuOpened()"
+    (menuClosed)="onMenuClosed()"
+    aria-label="切換工作區"
+    aria-haspopup="true"
+    [attr.aria-expanded]="isMenuOpen()"
+  >
+    @if (currentWorkspace(); as workspace) {
+      <ng-container>
+        <div class="workspace-icon" [style.background]="getWorkspaceGradient(workspace.type)">
+          @if (workspace.avatar) {
+            <img [src]="workspace.avatar" [alt]="workspace.name" />
+          } @else {
+            <span class="workspace-letter">{{ workspace.name.charAt(0).toUpperCase() }}</span>
+          }
+        </div>
 
-    <mat-icon class="dropdown-icon" [class.rotated]="isMenuOpen()">unfold_more</mat-icon>
-  } @else {
-    <span>選擇工作區</span>
-  }
-</button>
+        <span class="workspace-name">{{ workspace.name }}</span>
+      </ng-container>
+    } @else {
+      <span>選擇工作區</span>
+    }
+
+    @if (currentWorkspace()) {
+      <mat-icon class="dropdown-icon" [class.rotated]="isMenuOpen()">unfold_more</mat-icon>
+    }
+  </button>
+}
 
 <mat-menu #workspaceMenu="matMenu" class="workspace-menu" xPosition="before" yPosition="below">
   <div class="search-container" (click)="$event.stopPropagation()">
@@ -66,7 +95,7 @@
             </div>
             <div class="item-info">
               <div class="item-name">{{ workspace.name }}</div>
-              <div class="item-meta">{{ workspace.type }} · {{ workspace.memberCount ?? 0 }} members</div>
+              <div class="item-meta">{{ workspace.type }} · {{ workspace.memberCount }} members</div>
             </div>
             <button
               mat-icon-button
@@ -106,7 +135,7 @@
               </div>
               <div class="item-info">
                 <div class="item-name">{{ workspace.name }}</div>
-                <div class="item-meta">{{ workspace.type }} · {{ workspace.memberCount ?? 0 }} members</div>
+                <div class="item-meta">{{ workspace.type }} · {{ workspace.memberCount }} members</div>
               </div>
               <button
                 mat-icon-button
