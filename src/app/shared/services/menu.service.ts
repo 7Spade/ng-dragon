@@ -1,7 +1,7 @@
 import { Injectable, inject, computed, Signal } from '@angular/core';
 import { User } from '@angular/fire/auth';
-import { ContextStore } from '../../core/context/stores/context.store';
-import { AuthStore } from '../../core/auth/stores/auth.store';
+import { ContextStore } from '@application/store/context/stores/context.store';
+import { AuthStore } from '@application/store/auth/stores/auth.store';
 import {
   DynamicMenu,
   MenuItem,
@@ -11,7 +11,7 @@ import {
   MODULE_LABELS,
   WorkspaceModule,
 } from '../models/menu.model';
-import { AppContext } from '../../core/context/models/context.model';
+import { AppContext } from '@domain/context/entities/context.entity';
 
 @Injectable({
   providedIn: 'root',

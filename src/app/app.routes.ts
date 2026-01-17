@@ -1,69 +1,69 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './core/auth/guards/auth.guard';
+import { authGuard } from './application/guards/auth/auth.guard';
 
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: '/account/auth/login',
+    redirectTo: '/login',
     pathMatch: 'full',
   },
   {
     path: 'login',
-    redirectTo: '/account/auth/login',
-    pathMatch: 'full',
+    loadComponent: () =>
+      import('./presentation/features/account/auth/login/login.component').then(
+        (m) => m.AccountLoginComponent
+      ),
   },
   {
     path: 'register',
-    redirectTo: '/account/auth/register',
-    pathMatch: 'full',
+    loadComponent: () =>
+      import('./presentation/features/account/auth/register/register.component').then(
+        (m) => m.AccountRegisterComponent
+      ),
   },
   {
     path: 'forgot-password',
-    redirectTo: '/account/auth/forgot-password',
-    pathMatch: 'full',
+    loadComponent: () =>
+      import('./presentation/features/account/auth/forgot-password/forgot-password.component').then(
+        (m) => m.AccountForgotPasswordComponent
+      ),
   },
   {
     path: 'account',
     children: [
       {
         path: 'auth/login',
-        loadComponent: () =>
-          import('./features/account/auth/login/login.component').then(
-            (m) => m.AccountLoginComponent
-          ),
+        redirectTo: '/login',
+        pathMatch: 'full',
       },
       {
         path: 'auth/register',
-        loadComponent: () =>
-          import('./features/account/auth/register/register.component').then(
-            (m) => m.AccountRegisterComponent
-          ),
+        redirectTo: '/register',
+        pathMatch: 'full',
       },
       {
         path: 'auth/forgot-password',
-        loadComponent: () =>
-          import('./features/account/auth/forgot-password/forgot-password.component').then(
-            (m) => m.AccountForgotPasswordComponent
-          ),
+        redirectTo: '/forgot-password',
+        pathMatch: 'full',
       },
       {
         path: 'auth/reset-password',
         loadComponent: () =>
-          import('./features/account/auth/reset-password/reset-password.component').then(
+          import('./presentation/features/account/auth/reset-password/reset-password.component').then(
             (m) => m.AccountResetPasswordComponent
           ),
       },
       {
         path: 'auth/verify-email',
         loadComponent: () =>
-          import('./features/account/auth/verify-email/verify-email.component').then(
+          import('./presentation/features/account/auth/verify-email/verify-email.component').then(
             (m) => m.AccountVerifyEmailComponent
           ),
       },
       {
         path: 'auth/logout',
         loadComponent: () =>
-          import('./features/account/auth/logout/logout.component').then(
+          import('./presentation/features/account/auth/logout/logout.component').then(
             (m) => m.AccountLogoutComponent
           ),
       },
@@ -71,7 +71,7 @@ export const routes: Routes = [
         path: 'profile',
         canActivate: [authGuard],
         loadComponent: () =>
-          import('./features/account/profile/profile.component').then(
+          import('./presentation/features/account/profile/profile.component').then(
             (m) => m.AccountProfileComponent
           ),
       },
@@ -79,7 +79,7 @@ export const routes: Routes = [
         path: 'settings',
         canActivate: [authGuard],
         loadComponent: () =>
-          import('./features/account/settings/settings.component').then(
+          import('./presentation/features/account/settings/settings.component').then(
             (m) => m.AccountSettingsComponent
           ),
       },
@@ -89,7 +89,7 @@ export const routes: Routes = [
     path: 'dashboard',
     canActivate: [authGuard],
     loadComponent: () =>
-      import('./features/dashboard/dashboard.component').then(
+      import('./presentation/features/dashboard/dashboard.component').then(
         (m) => m.DashboardComponent
       ),
   },
@@ -100,63 +100,63 @@ export const routes: Routes = [
       {
         path: 'my',
         loadComponent: () =>
-          import('./features/workspace/my/my-workspace.component').then(
+          import('./presentation/features/workspace/my/my-workspace.component').then(
             (m) => m.MyWorkspaceComponent
           ),
       },
       {
         path: 'overview',
         loadComponent: () =>
-          import('./features/workspace/overview/overview.component').then(
+          import('./presentation/features/workspace/overview/overview.component').then(
             (m) => m.OverviewComponent
           ),
       },
       {
         path: 'documents',
         loadComponent: () =>
-          import('./features/workspace/documents/documents.component').then(
+          import('./presentation/features/workspace/documents/documents.component').then(
             (m) => m.DocumentsComponent
           ),
       },
       {
         path: 'tasks',
         loadComponent: () =>
-          import('./features/workspace/tasks/tasks.component').then(
+          import('./presentation/features/workspace/tasks/tasks.component').then(
             (m) => m.TasksComponent
           ),
       },
       {
         path: 'members',
         loadComponent: () =>
-          import('./features/workspace/members/members.component').then(
+          import('./presentation/features/workspace/members/members.component').then(
             (m) => m.MembersComponent
           ),
       },
       {
         path: 'permissions',
         loadComponent: () =>
-          import('./features/workspace/permissions/permissions.component').then(
+          import('./presentation/features/workspace/permissions/permissions.component').then(
             (m) => m.PermissionsComponent
           ),
       },
       {
         path: 'audit',
         loadComponent: () =>
-          import('./features/workspace/audit/audit.component').then(
+          import('./presentation/features/workspace/audit/audit.component').then(
             (m) => m.AuditComponent
           ),
       },
       {
         path: 'settings',
         loadComponent: () =>
-          import('./features/workspace/settings/settings.component').then(
+          import('./presentation/features/workspace/settings/settings.component').then(
             (m) => m.SettingsComponent
           ),
       },
       {
         path: 'journal',
         loadComponent: () =>
-          import('./features/workspace/journal/journal.component').then(
+          import('./presentation/features/workspace/journal/journal.component').then(
             (m) => m.JournalComponent
           ),
       },
@@ -164,6 +164,6 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    redirectTo: '/account/auth/login',
+    redirectTo: '/login',
   },
 ];

@@ -1,5 +1,7 @@
 # Shared Layer 檔案樹結構 (Material Design 3 版本)
 
+> **術語說明**: 請參考 [專業術語對照表 (GLOSSARY.md)](./GLOSSARY.md) 了解本文件使用的標準術語。
+
 Shared Layer 是整個應用的共享層,提供可重用的組件、指令、管道、驗證器等。
 
 根據您的架構和 **Angular 20 + Angular Material 20 (Material Design 3) + CDK** 技術棧,以下是 `src/app/shared` 的完整檔案樹:

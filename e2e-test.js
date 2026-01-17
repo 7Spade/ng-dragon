@@ -105,7 +105,7 @@ async function runE2ETests() {
     // Test 5: Account Switcher - Verify Chinese Labels
     await test('Account Switcher: Verify Chinese section headers (個人帳號, 組織, 團隊, 合作夥伴)', async () => {
       // Click account switcher button
-      const accountButton = await page.locator('button:has-text("ac7x"), .account-switcher-trigger').first();
+      const accountButton = await page.locator('button:has-text("demo"), .account-switcher-trigger').first();
       await accountButton.click();
       await page.waitForTimeout(1000);
       

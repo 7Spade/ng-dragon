@@ -20,10 +20,10 @@ A modern **Angular 20** application built with **zone-less change detection**, *
 This project is built around a **business-first architecture**, not a framework-first one.
 
 ```
-domain        → Defines the World
-application   → Orchestrates the World
-infrastructure→ Connects to the World
-ui            → Views the World
+domain         → Defines the World
+application    → Orchestrates the World
+infrastructure → Connects to the World
+presentation   → Views the World
 ```
 
 Each layer has **clear responsibility**, **strict dependency rules**, and **explicit intent**.
@@ -48,21 +48,22 @@ Each layer has **clear responsibility**, **strict dependency rules**, and **expl
 
 ```
 src/app/
-├─ ui/               # Presentation only (components, pages, layouts)
+├─ presentation/     # UI components, pages, layouts (Material/CDK)
 ├─ application/      # Use cases, orchestration, signal stores
 ├─ domain/           # Pure business rules (no Angular, no Firebase)
-└─ infrastructure/   # External systems (Firebase, API, storage)
+├─ infrastructure/   # External systems (Firebase, API, storage)
+└─ shared/           # Cross-cutting shared resources
 ```
 
 ### Dependency Direction (Golden Rule)
 
 ```
-ui → application → domain
-ui → application → infrastructure
+presentation → application → domain
+presentation → application → infrastructure
 
 ❌ domain → application
 ❌ domain → infrastructure
-❌ ui → infrastructure (direct)
+❌ presentation → infrastructure (direct)
 ```
 
 Dependencies **must always point inward**.
@@ -103,7 +104,7 @@ Dependencies **must always point inward**.
 
 ---
 
-### 👀 ui — Views the World (How the system is presented)
+### 👀 presentation — Views the World (How the system is presented)
 
 * Pages, components, layouts
 * Routing
@@ -114,40 +115,47 @@ Dependencies **must always point inward**.
 
 ---
 
+## 📚 Documentation
+
+### Architecture & Standards
+
+* **[Project Structure & Naming Conventions](./.github/instructions/project-structure.instructions.md)** - Comprehensive guide to project organization, naming patterns, and dependency rules
+* **[Terminology Glossary](./docs/DDD/GLOSSARY.md)** - Standard terminology reference to avoid synonym confusion
+
+### Layer Documentation
+
+* **[Domain Layer](./docs/DDD/domain.md)** - Domain entities, value objects, and business rules
+* **[Application Layer](./docs/DDD/application.md)** - State management, commands, queries, and orchestration
+* **[Infrastructure Layer](./docs/DDD/infrastructure.md)** - Firebase integration, repositories, and external services
+* **[Shared Layer](./docs/DDD/shared.md)** - Reusable components, directives, pipes, and utilities
+
+### UI Specifications
+
+* **[Workspace Layout](./docs/ui/workspace-layout-spec/README.md)** - Workspace layout components and state management
+* **[Identity Switcher](./docs/ui/switcher-ui-spec/00-開發步驟總覽.md)** - Identity and workspace switcher components
+
+---
+
 ## 🗂️ Project Structure
 
 ```
 src/
 ├─ app/
-│  ├─ ui/
-│  │  ├─ pages/
-│  │  ├─ components/
+│  ├─ presentation/
 │  │  ├─ layouts/
-│  │  └─ presenters/
+│  │  └─ features/
 │  │
 │  ├─ application/
-│  │  ├─ auth/
-│  │  │  ├─ auth.store.ts
-│  │  │  ├─ auth.facade.ts
-│  │  │  └─ auth.use-cases.ts
-│  │  ├─ workspace/
-│  │  └─ bootstrap/
+│  │  └─ store/
 │  │
 │  ├─ domain/
-│  │  ├─ account/
-│  │  │  ├─ account.entity.ts
-│  │  │  ├─ account.types.ts
-│  │  │  └─ account.policy.ts
-│  │  ├─ workspace/
-│  │  └─ shared/
+│  │  └─ ... (models)
 │  │
 │  ├─ infrastructure/
-│  │  ├─ firebase/
-│  │  │  ├─ auth.adapter.ts
-│  │  │  ├─ firestore.adapter.ts
-│  │  │  └─ index.ts
-│  │  ├─ storage/
-│  │  └─ env/
+│  │  └─ ... (services)
+│  │
+│  ├─ shared/
+│  │  └─ ... (components/services/utils)
 │  │
 │  ├─ app.config.ts      # zone-less configuration
 │  ├─ app.routes.ts
@@ -234,6 +242,11 @@ npm run start
 
 Open `http://localhost:4200`
 
+### Demo credentials (non-production)
+
+- Email: `demo@test.com`
+- Password: `123123`
+
 ---
 
 ## 🔐 Firebase Configuration
@@ -255,9 +268,9 @@ When adding new code:
 * Business meaning → `domain`
 * State / orchestration → `application`
 * External systems → `infrastructure`
-* Rendering / interaction → `ui`
+* Rendering / interaction → `presentation`
 
-If unsure → **do not put it in UI**.
+If unsure → **do not put it in Presentation**.
 
 ---
 
