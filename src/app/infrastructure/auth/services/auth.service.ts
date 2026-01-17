@@ -1,4 +1,4 @@
-import { Injectable, inject, isDevMode } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {
   Auth,
   signInWithEmailAndPassword,
@@ -20,7 +20,7 @@ export class AuthService {
   private demoUser = new BehaviorSubject<User | null>(this.loadDemoUser());
 
   private isDemoAuthEnabled(): boolean {
-    return !environment.production && isDevMode();
+    return !environment.production;
   }
 
   private loadDemoUser(): User | null {
