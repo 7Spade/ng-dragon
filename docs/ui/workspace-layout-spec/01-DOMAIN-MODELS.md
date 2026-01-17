@@ -39,7 +39,7 @@ src/app/domain/
 
 ### 1. Workspace Entity
 
-**檔案**: `src/app/domain/entities/workspace.entity.ts`
+**檔案**: `src/app/domain/workspace.entity.ts`
 
 ```typescript
 /**
@@ -101,7 +101,7 @@ export interface CreateWorkspaceDto {
 
 ### 2. Module Entity
 
-**檔案**: `src/app/domain/entities/module.entity.ts`
+**檔案**: `src/app/domain/module.entity.ts`
 
 ```typescript
 /**
@@ -228,7 +228,7 @@ export const DEFAULT_MODULES: ModuleMetadata[] = [
 
 ### 3. Account Entity
 
-**檔案**: `src/app/domain/entities/account.entity.ts`
+**檔案**: `src/app/domain/account.entity.ts`
 
 ```typescript
 /**
@@ -269,7 +269,7 @@ export interface AccountPreferences {
 
 ### 4. Member Entity
 
-**檔案**: `src/app/domain/entities/member.entity.ts`
+**檔案**: `src/app/domain/member.entity.ts`
 
 ```typescript
 /**
@@ -334,7 +334,7 @@ export interface InviteMemberDto {
 
 ### 5. Document Entity
 
-**檔案**: `src/app/domain/entities/document.entity.ts`
+**檔案**: `src/app/domain/document.entity.ts`
 
 ```typescript
 /**
@@ -406,7 +406,7 @@ export interface DocumentFilter {
 
 ### 6. Task Entity
 
-**檔案**: `src/app/domain/entities/task.entity.ts`
+**檔案**: `src/app/domain/task.entity.ts`
 
 ```typescript
 /**
@@ -492,7 +492,7 @@ export interface TaskFilter {
 
 ### 7. Notification Entity
 
-**檔案**: `src/app/domain/entities/notification.entity.ts`
+**檔案**: `src/app/domain/notification.entity.ts`
 
 ```typescript
 /**
@@ -806,7 +806,7 @@ export abstract class ModuleRepository {
 
 ```bash
 # 建立目錄結構
-mkdir -p src/app/domain/entities
+mkdir -p src/app/domain
 mkdir -p src/app/domain/value-objects
 mkdir -p src/app/domain/repositories
 mkdir -p src/app/domain/services

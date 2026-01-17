@@ -7,7 +7,7 @@
 ## 📁 文件結構
 
 ```
-src/app/infrastructure/state/
+src/app/application/store/
 ├── workspace/
 │   ├── workspace.store.ts
 │   └── workspace.effects.ts
@@ -58,7 +58,7 @@ src/app/infrastructure/state/
 
 ### 1. Workspace Store
 
-**檔案**: `src/app/infrastructure/state/workspace/workspace.store.ts`
+**檔案**: `src/app/application/store/workspace/workspace.store.ts`
 
 ```typescript
 import { computed, inject } from '@angular/core';
@@ -67,8 +67,8 @@ import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { pipe, switchMap, tap, catchError, of } from 'rxjs';
 import { tapResponse } from '@ngrx/operators';
 
-import { Workspace } from '../../../domain/entities/workspace.entity';
-import { WorkspaceRepository } from '../../../domain/repositories/workspace.repository';
+import { Workspace } from '@/domain/workspace/entities';
+import { IWorkspaceRepository } from '@/domain/workspace/repositories';
 
 /**
  * 工作區狀態介面
@@ -262,7 +262,7 @@ export const WorkspaceStore = signalStore(
 
 ### 2. Module Store
 
-**檔案**: `src/app/infrastructure/state/module/module.store.ts`
+**檔案**: `src/app/application/store/module/module.store.ts`
 
 ```typescript
 import { computed, inject } from '@angular/core';
@@ -425,7 +425,7 @@ export const ModuleStore = signalStore(
 
 ### 3. Account Store
 
-**檔案**: `src/app/infrastructure/state/account/account.store.ts`
+**檔案**: `src/app/application/store/account/account.store.ts`
 
 ```typescript
 import { computed } from '@angular/core';
@@ -553,7 +553,7 @@ export const AccountStore = signalStore(
 
 ### 4. Sidebar Store (UI State)
 
-**檔案**: `src/app/infrastructure/state/ui/sidebar.store.ts`
+**檔案**: `src/app/application/store/ui/sidebar.store.ts`
 
 ```typescript
 import { computed } from '@angular/core';
@@ -657,7 +657,7 @@ export const SidebarStore = signalStore(
 
 ### 5. Notification Store
 
-**檔案**: `src/app/infrastructure/state/ui/notification.store.ts`
+**檔案**: `src/app/application/store/ui/notification.store.ts`
 
 ```typescript
 import { computed, inject } from '@angular/core';
@@ -827,7 +827,7 @@ export const NotificationStore = signalStore(
 
 ## 🔗 索引檔案
 
-**檔案**: `src/app/infrastructure/state/index.ts`
+**檔案**: `src/app/application/store/index.ts`
 
 ```typescript
 // Store exports
@@ -844,7 +844,7 @@ export { NotificationStore } from './ui/notification.store';
 
 ```typescript
 import { Component, inject, effect } from '@angular/core';
-import { WorkspaceStore } from '@/infrastructure/state';
+import { WorkspaceStore } from '@/application/store';
 
 @Component({
   selector: 'app-workspace-list',
@@ -886,10 +886,10 @@ yarn add @ngrx/signals @ngrx/operators
 ### Step 2: 建立 Store 目錄結構
 
 ```bash
-mkdir -p src/app/infrastructure/state/workspace
-mkdir -p src/app/infrastructure/state/module
-mkdir -p src/app/infrastructure/state/account
-mkdir -p src/app/infrastructure/state/ui
+mkdir -p src/app/application/store/workspace
+mkdir -p src/app/application/store/module
+mkdir -p src/app/application/store/account
+mkdir -p src/app/application/store/ui
 ```
 
 ### Step 3: 建立 Store 檔案

@@ -9,7 +9,7 @@ status: draft
 - **Presentation**: `AccountLoginComponent` renders the login UI with Angular Material form controls and reacts to `AuthStore` signals.
 - **Application**: `AuthStore` coordinates authentication state using `@ngrx/signals` and exposes `login()` plus computed flags.
 - **Domain**: Entities live under `src/app/domain/**/entities`.
-- **Infrastructure**: `AuthService` wraps AngularFire Auth, including a non-production fallback for demo credentials.
+- **Infrastructure**: `AuthService` wraps AngularFire Auth and forwards auth operations to Firebase.
 - **Routing**: `/login` is the canonical entry point; legacy `/account/auth/*` routes redirect to top-level equivalents.
 
 ## Layered Structure
@@ -66,4 +66,4 @@ Use path aliases to keep references clear and avoid ambiguous relative imports:
 ## Testing Strategy
 
 - Run `npm run lint` and `npm run build`.
-- Playwright login flow to confirm `/` → `/login` redirect and successful demo login.
+- Playwright login flow to confirm `/` → `/login` redirect and successful authentication with a configured test account.

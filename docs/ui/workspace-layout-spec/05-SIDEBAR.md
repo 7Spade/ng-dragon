@@ -54,10 +54,10 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatBadgeModule } from '@angular/material/badge';
 
 // Stores
-import { ModuleStore } from '@/infrastructure/state/module/module.store';
-import { SidebarStore } from '@/infrastructure/state/ui/sidebar.store';
-import { WorkspaceStore } from '@/infrastructure/state/workspace/workspace.store';
-import { AccountStore } from '@/infrastructure/state/account/account.store';
+import { ModuleStore } from '@/application/store/module/module.store';
+import { SidebarStore } from '@/application/store/ui/sidebar.store';
+import { WorkspaceStore } from '@/application/store/workspace/workspace.store';
+import { AccountStore } from '@/application/store/account/account.store';
 
 // Child Components
 import { ModuleItemComponent } from './components/module-item/module-item.component';
@@ -504,7 +504,7 @@ import { CommonModule } from '@angular/common';
 import { MatSidenavModule } from '@angular/material/sidenav';
 
 // Stores
-import { SidebarStore } from '@/infrastructure/state/ui/sidebar.store';
+import { SidebarStore } from '@/application/store/ui/sidebar.store';
 
 // Components
 import { SidebarComponent } from './sidebar.component';

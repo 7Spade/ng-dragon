@@ -2,5 +2,5 @@
 
 ### Changed
 - Login route now resolves directly to `/login` with Material Design 3 UI.
-- Demo login fallback updated to accept `demo@test.com` / `123123` in non-production.
+- Removed demo login fallback; authentication now relies on Firebase auth state.
 - Migrated codebase to DDD-aligned folders (`domain`, `application`, `infrastructure`, `presentation`, `shared`).
