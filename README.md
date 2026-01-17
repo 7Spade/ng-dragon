@@ -115,6 +115,27 @@ Dependencies **must always point inward**.
 
 ---
 
+## 📚 Documentation
+
+### Architecture & Standards
+
+* **[Project Structure & Naming Conventions](./.github/instructions/project-structure.instructions.md)** - Comprehensive guide to project organization, naming patterns, and dependency rules
+* **[Terminology Glossary](./docs/DDD/GLOSSARY.md)** - Standard terminology reference to avoid synonym confusion
+
+### Layer Documentation
+
+* **[Domain Layer](./docs/DDD/domain.md)** - Domain entities, value objects, and business rules
+* **[Application Layer](./docs/DDD/application.md)** - State management, commands, queries, and orchestration
+* **[Infrastructure Layer](./docs/DDD/infrastructure.md)** - Firebase integration, repositories, and external services
+* **[Shared Layer](./docs/DDD/shared.md)** - Reusable components, directives, pipes, and utilities
+
+### UI Specifications
+
+* **[Workspace Layout](./docs/ui/workspace-layout-spec/README.md)** - Workspace layout components and state management
+* **[Identity Switcher](./docs/ui/switcher-ui-spec/00-開發步驟總覽.md)** - Identity and workspace switcher components
+
+---
+
 ## 🗂️ Project Structure
 
 ```
