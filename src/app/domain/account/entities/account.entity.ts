@@ -1,22 +1,34 @@
 /**
- * Account = Identity (User | Organization | Bot | Subunit)
+ * Account = Identity (User | Organization | Team | Partner | Bot)
  * Maps to @angular/fire/auth (Authentication | Token | Session | Claims)
  */
 
-export type AccountType = 'user' | 'organization' | 'bot' | 'team' | 'partner';
+export enum AccountType {
+  User = 'user',
+  Organization = 'organization',
+  Team = 'team',
+  Partner = 'partner',
+  Bot = 'bot',
+}
 
 export interface Account {
   id: string;
   type: AccountType;
+  name?: string;
   email?: string;
   displayName?: string;
+  avatar?: string;
   photoURL?: string;
+  orgLogo?: string;
+  companyName?: string;
+  memberCount?: number;
+  partnerLevel?: 'bronze' | 'silver' | 'gold' | 'platinum';
   createdAt: Date;
   updatedAt: Date;
-  
+
   // Claims for authorization
   customClaims?: Record<string, any>;
-  
+
   // Metadata
   metadata?: {
     lastLoginAt?: Date;
@@ -26,21 +38,21 @@ export interface Account {
 }
 
 export interface UserAccount extends Account {
-  type: 'user';
+  type: AccountType.User;
   email: string;
 }
 
 export interface OrganizationAccount extends Account {
-  type: 'organization';
+  type: AccountType.Organization;
   organizationId: string;
 }
 
 export interface BotAccount extends Account {
-  type: 'bot';
+  type: AccountType.Bot;
   serviceAccountId: string;
 }
 
 export interface SubUnitAccount extends Account {
-  type: 'team' | 'partner';
+  type: AccountType.Team | AccountType.Partner;
   parentOrganizationId: string;
 }

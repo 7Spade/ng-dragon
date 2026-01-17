@@ -1,11 +1,42 @@
 export type WorkspaceScope = 'user' | 'organization' | 'team' | 'partner';
 
+export enum WorkspaceType {
+  Project = 'project',
+  Department = 'department',
+  Client = 'client',
+  Campaign = 'campaign',
+  Product = 'product',
+  Internal = 'internal',
+}
+
+export enum WorkspaceStatus {
+  Active = 'active',
+  Archived = 'archived',
+  Deleted = 'deleted',
+}
+
 export interface Workspace {
   id: string;
   name: string;
-  scope: WorkspaceScope;
-  contextId: string;
+  description?: string;
+  type: WorkspaceType;
+  status: WorkspaceStatus;
+
+  avatar?: string;
+  color?: string;
+  icon?: string;
+
   ownerId: string;
+  accountId?: string;
+  contextId?: string;
+  scope?: WorkspaceScope;
+  memberCount: number;
+
+  createdAt: Date;
+  updatedAt: Date;
+  lastAccessedAt?: Date;
+  archivedAt?: Date;
+
   capabilities: string[];
 }
 
@@ -60,4 +91,17 @@ export interface RoleMatrixRow {
   role: string;
   capabilities: Capability[];
   description?: string;
+}
+
+export interface WorkspaceGroup {
+  title: string;
+  workspaces: Workspace[];
+}
+
+export interface WorkspacePreferences {
+  userId: string;
+  workspaceId: string;
+  isFavorite: boolean;
+  lastAccessed: Date;
+  viewOrder?: number;
 }

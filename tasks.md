@@ -1,16 +1,17 @@
 ---
-status: complete
+status: draft
 ---
 
 # Tasks
 
-- [x] Inventory current structure and map to DDD docs.
-- [x] Create DDD folder scaffold (`domain`, `application`, `infrastructure`, `presentation`).
-- [x] Migrate domain models from `core/**/models` → `domain/**/entities`.
-- [x] Migrate application stores from `core/**/stores` → `application/store/**`.
-- [x] Migrate infrastructure services from `core/**/services` → `infrastructure/**/services`.
-- [x] Migrate presentation features from `features` → `presentation/features`.
-- [x] Migrate shared layouts to `presentation/core`.
-- [x] Update path aliases and imports (`@domain`, `@application`, `@infrastructure`, `@presentation`, `@shared`).
-- [x] Update docs/README/CHANGELOG/specs for new structure.
-- [x] Validate lint/build and E2E login flow post-migration.
+- [ ] Inventory switcher/context-related files and align docs (requirements/design/tasks).
+- [ ] Extend domain account/workspace entities for switcher requirements.
+- [ ] Implement AccountStore and WorkspaceStore switcher state (signals, patchState).
+- [ ] Add persistence + keyboard shortcut services.
+- [ ] Build AccountSwitcher UI with grouped accounts, loading, feedback, ARIA, and shortcuts.
+- [ ] Build WorkspaceSwitcher UI with search, favorites, archived groups, and menu interactions.
+- [ ] Add command palette dialog and global shortcut (Ctrl+K).
+- [ ] Implement responsive behavior (breakpoints, mobile bottom sheet).
+- [ ] Apply performance optimizations (virtual scroll, lazy load command palette).
+- [ ] Update global header + sidebar layouts per workspace-layout-spec.
+- [ ] Update documentation (README/CHANGELOG/specs) and run lint/build/E2E checks.

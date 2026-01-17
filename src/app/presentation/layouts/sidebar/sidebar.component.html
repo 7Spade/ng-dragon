@@ -1,0 +1,36 @@
+<aside class="sidebar" [class.expanded]="expanded()" [class.collapsed]="!expanded()">
+  <nav class="sidebar-nav">
+    <mat-nav-list
+      class="module-list"
+      cdkDropList
+      [cdkDropListDisabled]="!isDragging()"
+      (cdkDropListDropped)="onDrop($event)"
+    >
+      @if (workspaceId(); as activeWorkspaceId) {
+        @for (module of modules(); track module.id) {
+          <div cdkDrag>
+            <app-module-item
+              [module]="module"
+              [expanded]="expanded()"
+              [workspaceId]="activeWorkspaceId"
+              (navigate)="navigateToModule(module.route)"
+            />
+          </div>
+        }
+      }
+    </mat-nav-list>
+  </nav>
+
+  <div class="sidebar-footer">
+    <button
+      mat-icon-button
+      class="collapse-button"
+      (click)="toggleSidebar()"
+      [matTooltip]="expanded() ? '收合側邊欄' : '展開側邊欄'"
+      matTooltipPosition="right"
+      aria-label="切換側邊欄"
+    >
+      <mat-icon>{{ expanded() ? 'chevron_left' : 'chevron_right' }}</mat-icon>
+    </button>
+  </div>
+</aside>

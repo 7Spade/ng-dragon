@@ -105,60 +105,70 @@ export const routes: Routes = [
           ),
       },
       {
-        path: 'overview',
-        loadComponent: () =>
-          import('./presentation/features/workspace/overview/overview.component').then(
-            (m) => m.OverviewComponent
-          ),
-      },
-      {
-        path: 'documents',
-        loadComponent: () =>
-          import('./presentation/features/workspace/documents/documents.component').then(
-            (m) => m.DocumentsComponent
-          ),
-      },
-      {
-        path: 'tasks',
-        loadComponent: () =>
-          import('./presentation/features/workspace/tasks/tasks.component').then(
-            (m) => m.TasksComponent
-          ),
-      },
-      {
-        path: 'members',
-        loadComponent: () =>
-          import('./presentation/features/workspace/members/members.component').then(
-            (m) => m.MembersComponent
-          ),
-      },
-      {
-        path: 'permissions',
-        loadComponent: () =>
-          import('./presentation/features/workspace/permissions/permissions.component').then(
-            (m) => m.PermissionsComponent
-          ),
-      },
-      {
-        path: 'audit',
-        loadComponent: () =>
-          import('./presentation/features/workspace/audit/audit.component').then(
-            (m) => m.AuditComponent
-          ),
-      },
-      {
-        path: 'settings',
-        loadComponent: () =>
-          import('./presentation/features/workspace/settings/settings.component').then(
-            (m) => m.SettingsComponent
-          ),
-      },
-      {
-        path: 'journal',
-        loadComponent: () =>
-          import('./presentation/features/workspace/journal/journal.component').then(
-            (m) => m.JournalComponent
-          ),
+        path: ':workspaceId',
+        children: [
+          {
+            path: '',
+            redirectTo: 'overview',
+            pathMatch: 'full',
+          },
+          {
+            path: 'overview',
+            loadComponent: () =>
+              import('./presentation/features/workspace/overview/overview.component').then(
+                (m) => m.OverviewComponent
+              ),
+          },
+          {
+            path: 'documents',
+            loadComponent: () =>
+              import('./presentation/features/workspace/documents/documents.component').then(
+                (m) => m.DocumentsComponent
+              ),
+          },
+          {
+            path: 'tasks',
+            loadComponent: () =>
+              import('./presentation/features/workspace/tasks/tasks.component').then(
+                (m) => m.TasksComponent
+              ),
+          },
+          {
+            path: 'members',
+            loadComponent: () =>
+              import('./presentation/features/workspace/members/members.component').then(
+                (m) => m.MembersComponent
+              ),
+          },
+          {
+            path: 'permissions',
+            loadComponent: () =>
+              import('./presentation/features/workspace/permissions/permissions.component').then(
+                (m) => m.PermissionsComponent
+              ),
+          },
+          {
+            path: 'audit',
+            loadComponent: () =>
+              import('./presentation/features/workspace/audit/audit.component').then(
+                (m) => m.AuditComponent
+              ),
+          },
+          {
+            path: 'settings',
+            loadComponent: () =>
+              import('./presentation/features/workspace/settings/settings.component').then(
+                (m) => m.SettingsComponent
+              ),
+          },
+          {
+            path: 'journal',
+            loadComponent: () =>
+              import('./presentation/features/workspace/journal/journal.component').then(
+                (m) => m.JournalComponent
+              ),
+          },
+        ],
       },
     ],
   },

@@ -1,0 +1,198 @@
+@if (isMobile()) {
+  <button
+    mat-button
+    class="workspace-trigger"
+    (click)="onTriggerClick()"
+    aria-label="切換工作區"
+    aria-haspopup="true"
+    [attr.aria-expanded]="false"
+  >
+    @if (currentWorkspace(); as workspace) {
+      <ng-container>
+        <div class="workspace-icon" [style.background]="getWorkspaceGradient(workspace.type)">
+          @if (workspace.avatar) {
+            <img [src]="workspace.avatar" [alt]="workspace.name" />
+          } @else {
+            <span class="workspace-letter">{{ workspace.name.charAt(0).toUpperCase() }}</span>
+          }
+        </div>
+
+        <span class="workspace-name">{{ workspace.name }}</span>
+      </ng-container>
+    } @else {
+      <span>選擇工作區</span>
+    }
+  </button>
+} @else {
+  <button
+    mat-button
+    class="workspace-trigger"
+    [matMenuTriggerFor]="workspaceMenu"
+    (menuOpened)="onMenuOpened()"
+    (menuClosed)="onMenuClosed()"
+    aria-label="切換工作區"
+    aria-haspopup="true"
+    [attr.aria-expanded]="isMenuOpen()"
+  >
+    @if (currentWorkspace(); as workspace) {
+      <ng-container>
+        <div class="workspace-icon" [style.background]="getWorkspaceGradient(workspace.type)">
+          @if (workspace.avatar) {
+            <img [src]="workspace.avatar" [alt]="workspace.name" />
+          } @else {
+            <span class="workspace-letter">{{ workspace.name.charAt(0).toUpperCase() }}</span>
+          }
+        </div>
+
+        <span class="workspace-name">{{ workspace.name }}</span>
+      </ng-container>
+    } @else {
+      <span>選擇工作區</span>
+    }
+
+    @if (currentWorkspace()) {
+      <mat-icon class="dropdown-icon" [class.rotated]="isMenuOpen()">unfold_more</mat-icon>
+    }
+  </button>
+}
+
+<mat-menu #workspaceMenu="matMenu" class="workspace-menu" xPosition="before" yPosition="below">
+  <div class="search-container" (click)="$event.stopPropagation()">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>搜尋工作區</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input
+        matInput
+        placeholder="搜尋工作區..."
+        [ngModel]="searchQuery()"
+        (ngModelChange)="onSearchChange($event)"
+        #searchInput
+      />
+      @if (searchQuery()) {
+        <button matSuffix mat-icon-button (click)="clearSearch()">
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </mat-form-field>
+  </div>
+
+  @if (useVirtualScroll()) {
+    <cdk-virtual-scroll-viewport itemSize="64" class="workspace-list">
+      @for (workspace of filteredWorkspaces(); track workspace.id) {
+        <button
+          mat-menu-item
+          class="workspace-item"
+          [class.active]="workspace.id === currentWorkspace()?.id"
+          (click)="onSwitchWorkspace(workspace)"
+        >
+          <div class="workspace-item-content">
+            <div class="item-icon" [style.background]="getWorkspaceGradient(workspace.type)">
+              @if (workspace.avatar) {
+                <img [src]="workspace.avatar" [alt]="workspace.name" />
+              } @else {
+                <span class="icon-letter">{{ workspace.name.charAt(0).toUpperCase() }}</span>
+              }
+            </div>
+            <div class="item-info">
+              <div class="item-name">{{ workspace.name }}</div>
+              <div class="item-meta">{{ workspace.type }} · {{ workspace.memberCount }} members</div>
+            </div>
+            <button
+              mat-icon-button
+              class="favorite-button"
+              (click)="onToggleFavorite($event, workspace.id)"
+              [attr.aria-label]="isFavorite(workspace.id) ? '取消最愛' : '加入最愛'"
+            >
+              <mat-icon [class.favorited]="isFavorite(workspace.id)">
+                {{ isFavorite(workspace.id) ? 'star' : 'star_border' }}
+              </mat-icon>
+            </button>
+            @if (workspace.id === currentWorkspace()?.id) {
+              <mat-icon class="check-icon">check</mat-icon>
+            }
+          </div>
+        </button>
+      }
+    </cdk-virtual-scroll-viewport>
+  } @else {
+    @for (group of groupedWorkspaces(); track group.title) {
+      <div class="menu-section">
+        <div class="section-title">{{ group.title }}</div>
+        @for (workspace of group.workspaces; track workspace.id) {
+          <button
+            mat-menu-item
+            class="workspace-item"
+            [class.active]="workspace.id === currentWorkspace()?.id"
+            (click)="onSwitchWorkspace(workspace)"
+          >
+            <div class="workspace-item-content">
+              <div class="item-icon" [style.background]="getWorkspaceGradient(workspace.type)">
+                @if (workspace.avatar) {
+                  <img [src]="workspace.avatar" [alt]="workspace.name" />
+                } @else {
+                  <span class="icon-letter">{{ workspace.name.charAt(0).toUpperCase() }}</span>
+                }
+              </div>
+              <div class="item-info">
+                <div class="item-name">{{ workspace.name }}</div>
+                <div class="item-meta">{{ workspace.type }} · {{ workspace.memberCount }} members</div>
+              </div>
+              <button
+                mat-icon-button
+                class="favorite-button"
+                (click)="onToggleFavorite($event, workspace.id)"
+                [attr.aria-label]="isFavorite(workspace.id) ? '取消最愛' : '加入最愛'"
+              >
+                <mat-icon [class.favorited]="isFavorite(workspace.id)">
+                  {{ isFavorite(workspace.id) ? 'star' : 'star_border' }}
+                </mat-icon>
+              </button>
+              @if (workspace.id === currentWorkspace()?.id) {
+                <mat-icon class="check-icon">check</mat-icon>
+              }
+            </div>
+          </button>
+        }
+      </div>
+      <mat-divider></mat-divider>
+    }
+  }
+
+  <div class="menu-section archived-section">
+    <button mat-button class="section-header" (click)="toggleArchived()">
+      <span class="section-title">已封存 ({{ archivedWorkspaces().length }})</span>
+      <mat-icon class="expand-icon" [class.expanded]="showArchived()">expand_more</mat-icon>
+    </button>
+    @if (showArchived()) {
+      @for (workspace of archivedWorkspaces(); track workspace.id) {
+        <button
+          mat-menu-item
+          class="workspace-item"
+          [class.active]="workspace.id === currentWorkspace()?.id"
+          (click)="onSwitchWorkspace(workspace)"
+        >
+          <div class="workspace-item-content">
+            <div class="item-icon" [style.background]="getWorkspaceGradient(workspace.type)">
+              @if (workspace.avatar) {
+                <img [src]="workspace.avatar" [alt]="workspace.name" />
+              } @else {
+                <span class="icon-letter">{{ workspace.name.charAt(0).toUpperCase() }}</span>
+              }
+            </div>
+            <div class="item-info">
+              <div class="item-name">{{ workspace.name }}</div>
+              <div class="item-meta">Archived</div>
+            </div>
+          </div>
+        </button>
+      }
+    }
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <button mat-menu-item class="create-workspace" (click)="onCreateWorkspace()">
+    <mat-icon>add</mat-icon>
+    <span>建立新工作區</span>
+  </button>
+</mat-menu>

@@ -1,12 +1,14 @@
 ---
+name: ngrx-signals
+description: @ngrx/signals state management for Angular 20+ using pure reactive patterns with signalStore, rxMethod, and computed signals. Use when implementing reactive state, creating stores, managing async operations, or building signal-based architecture. Replaces traditional NgRx with simpler, more performant signal-based approach.
+license: MIT
+---
 
-📘 @ngrx/signals‑20 SKILL.md（技能清單）
-
-# @ngrx/signals (v20) — SKILL.md
+# @ngrx/signals (v20) Skill
 
 ## 🎯 Summary
-**@ngrx/signals** 提供一種基於 Angular Signals 的反應式狀態管理方案，用於建立可預測、可測試與可擴展的 Reactivity Store。  
-適用於 Angular v20 與 NgRx 20 生態。1
+**@ngrx/signals** provides signal-based reactive state management for Angular 20+, enabling predictable, testable, and scalable reactive stores.  
+Designed for the NgRx 20 ecosystem with first-class Signal support.
 
 ---
 
@@ -15,158 +17,114 @@
 pnpm install @ngrx/signals@latest
 # or
 ng add @ngrx/signals
+```
 
-確保專案已升級到 Angular v20 & NgRx v20。
-
+Ensure your project is upgraded to Angular v20 & NgRx v20.
 
 ---
 
-🚀 基本使用技能
+## 🚀 Basic Usage
 
-1️⃣ Create a SignalStore
+### 1️⃣ Create a SignalStore
 
-使用 signalStore(...) 定義 store
+Use `signalStore(...)` to define a store:
+- Include `withState` to manage initial state
+- Use `withMethods` / `rxMethod` to encapsulate logic
+- Signals automatically track dependencies and update UI
 
-內含 withState 管理初始狀態
+**Example:**
 
-使用 withMethods / withRxMethod 封裝邏輯
-
-Signals 自動追蹤依賴並更新 UI
-
-
-範例：
-
+```typescript
 const CounterStore = signalStore(
   withState({ count: 0 }),
-  withMethods({
-    increment: ({ patchState }) => () => patchState(state => ({ count: state.count+1 }))
-  })
+  withMethods((store) => ({
+    increment: () => patchState(store, (state) => ({ 
+      count: state.count + 1 
+    }))
+  }))
 );
-
-
----
-
-🔄 Core Concepts
-
-🧠 Signals & Reactivity
-
-Signals 是可呼叫的 getter function
-
-自動追蹤依賴並觸發更新（OnPush friendly）
-
-
-📦 State Management
-
-利用 signalStore + withState 定義可讀/可寫狀態
-
-patchState 更新片段狀態
-
-Derived signals（linkedSignal / computed）建立衍生狀態
-
-
+```
 
 ---
 
-🚦 Advanced Skills
+## 🔄 Core Concepts
 
-🔹 Entity Management
+### 🧠 Signals & Reactivity
+- Signals are callable getter functions
+- Automatically track dependencies and trigger updates (OnPush friendly)
 
-使用 @ngrx/signals/entities plugin
-
-Methods: prependEntity, upsertEntity, removeEntity, etc
-（強化集合資料管理）
-
-
-🔹 withLinkedState
-
-建立衍生訊號，當源 signal 改變時自動更新
-
-避免手動 effect / subscription
-
-
+### 📦 State Management
+- Use `signalStore` + `withState` to define readable/writable state
+- `patchState` updates partial state
+- Derived signals (`computed`) create derived state
 
 ---
 
-🧪 Testing Skills
+## 🚦 Advanced Skills
 
-新增 @ngrx/signals/testing（測試專用 API）
+### 🔹 Entity Management
+- Use `@ngrx/signals/entities` plugin
+- Methods: `addEntity`, `updateEntity`, `removeEntity`, etc.
+- Enhanced collection management
 
-使用 unprotected 解除封裝狀態用於快速測試設定
-（讓 store 更易於測試）
-
-
-
----
-
-⭐ Advanced Patterns
-
-👩‍💻 Event‑Driven Architecture
-
-使用 withReducer + withEffects
-
-透過 Events 插件建立 Flux 風格事件驅動設計（Experimental）
-
-
-📜 Interop with RxJS
-
-optional RxJS interoperability
-
-可透過 rxMethod 呼叫非同步邏輯
-
-
+### 🔹 Computed State
+- Create derived signals when source signal changes
+- Avoid manual effects/subscriptions
 
 ---
 
-📁 Recommended Project Structure
+## 🧪 Testing Skills
+- Use `@ngrx/signals/testing` for testing utilities
+- Makes stores easier to test with helper functions
 
+---
+
+## ⭐ Advanced Patterns
+
+### 👩‍💻 Event-Driven Architecture
+- Experimental Events plugin for Flux-style design
+- Use with caution in production
+
+### 📜 Interop with RxJS
+- Optional RxJS interoperability
+- Use `rxMethod` for async operations
+
+---
+
+## 📁 Recommended Project Structure
+
+```
 src/
 ├── app/
 │   ├── stores/
-│   │   ├── counter.store.ts       # 單一 store
-│   │   ├── users.store.ts         # 實作 @ngrx/signals state
-│   │   └── index.ts               # store exports
+│   │   ├── counter.store.ts       # Single store
+│   │   ├── users.store.ts         # Entity store
+│   │   └── index.ts               # Exports
 │   ├── features/
-│   │   ├── users/
-│   │   │   ├── ui/
-│   │   │   │   ├── user-list.component.ts
-│   │   │   │   └── user-detail.component.ts
-│   │   │   └── users.store.ts     # feature store
-│   │   └── ...
-│   ├── services/
-│   │   └── api.service.ts
-│   └── app.module.ts
-└── skill/
-    └── @ngrx-signals‑SKILL.md      # 📌 存放技能書的地方
-
+│   │   └── users/
+│   │       ├── ui/
+│   │       │   ├── user-list.component.ts
+│   │       │   └── user-detail.component.ts
+│   │       └── users.store.ts     # Feature store
+│   └── services/
+│       └── api.service.ts
+```
 
 ---
 
-📚 Recommended Learning Path
+## 📚 Learning Path
 
-1. ➤ Learn Angular Signals fundamentals (Angular guide)
-
-
-2. ➤ Install & init @ngrx/signals store
-
-
+1. ➤ Learn Angular Signals fundamentals
+2. ➤ Install & initialize @ngrx/signals
 3. ➤ Build simple feature store
-
-
-4. ➤ Add entity management & linkedState
-
-
-5. ➤ Use advanced patterns (Events, Rx interop)
-
-
+4. ➤ Add entity management
+5. ➤ Use advanced patterns (Events, RxJS interop)
 6. ➤ Write tests using @ngrx/signals/testing
 
-
-
-
 ---
 
-📝 Notes
+## 📝 Notes
 
-@ngrx/signals 正在快速進化中，而 Events / Flux plugin 目前標為實驗性功能。
-
-主要官方 API 文檔在 NgRx API Reference。
+- @ngrx/signals is evolving rapidly
+- Events/Flux plugin is experimental
+- Official docs: [NgRx Signals API Reference](https://ngrx.io/guide/signals)

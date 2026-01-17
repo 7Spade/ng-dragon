@@ -44,7 +44,7 @@ export const DocumentStore = signalStore(
           switchMap(() => {
             const workspace = workspaceStore.activeWorkspace();
             if (!workspace) return of<DocumentAsset[]>([]);
-            return storageService.list(workspace.contextId);
+            return storageService.list(workspace.contextId ?? workspace.id);
           }),
           tap((docs) => patchState(store, { items: docs, error: null })),
           catchError((error) => {
@@ -61,7 +61,7 @@ export const DocumentStore = signalStore(
             const workspace = workspaceStore.activeWorkspace();
             const user = authStore.user();
             if (!workspace || !user) return of(null);
-            return storageService.upload(workspace.contextId, file, user.uid);
+            return storageService.upload(workspace.contextId ?? workspace.id, file, user.uid);
           }),
           tap((doc) => {
             if (doc) {

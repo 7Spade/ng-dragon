@@ -1,0 +1,189 @@
+<button
+  mat-button
+  class="account-trigger"
+  [matMenuTriggerFor]="accountMenu"
+  (menuOpened)="onMenuOpened()"
+  (menuClosed)="onMenuClosed()"
+  aria-label="切換身份"
+  aria-haspopup="true"
+  [attr.aria-expanded]="isMenuOpen()"
+  [attr.aria-controls]="isMenuOpen() ? 'account-menu' : null"
+>
+  <div class="avatar-container">
+    @if (avatarUrl(); as avatar) {
+      <img [src]="avatar" [alt]="displayName()" class="avatar" loading="lazy" />
+    } @else {
+      <mat-icon class="avatar-icon">
+        {{ getAccountTypeIcon(accountType() || AccountType.User) }}
+      </mat-icon>
+    }
+    @if (accountType() && accountType() !== AccountType.User) {
+      <span class="badge" [attr.data-type]="accountType()"></span>
+    }
+  </div>
+
+  @if (!isMobile() && !isTablet()) {
+    <span class="account-name">{{ displayName() }}</span>
+  }
+
+  @if (!accountStore.loading()) {
+    <mat-icon class="dropdown-icon" [class.rotated]="isMenuOpen()">expand_more</mat-icon>
+  } @else {
+    <mat-spinner diameter="16" class="loading-spinner"></mat-spinner>
+  }
+</button>
+
+<div aria-live="polite" aria-atomic="true" class="sr-only">{{ announceMessage() }}</div>
+
+<mat-menu
+  #accountMenu="matMenu"
+  class="account-menu"
+  id="account-menu"
+  xPosition="before"
+  yPosition="below"
+>
+  <div class="menu-section">
+    <div class="section-title">個人帳號</div>
+    @if (groupedAccounts().user.length > 0) {
+      @for (account of groupedAccounts().user; track account.id) {
+        <button
+          mat-menu-item
+          class="account-item"
+          [class.active]="isCurrentAccount(account.id)"
+          [attr.aria-current]="isCurrentAccount(account.id) ? 'true' : null"
+          (click)="onSwitchAccount(account)"
+          [disabled]="accountStore.loading()"
+        >
+          <div class="account-item-content">
+            <div class="item-avatar">
+              @if (account.photoURL) {
+                <img [src]="account.photoURL" [alt]="account.name || account.displayName || ''" />
+              } @else {
+                <mat-icon>person</mat-icon>
+              }
+            </div>
+            <div class="item-info">
+              <div class="item-name">{{ account.displayName || account.name }}</div>
+              <div class="item-meta">User</div>
+            </div>
+            @if (isCurrentAccount(account.id)) {
+              <mat-icon class="check-icon">check</mat-icon>
+            }
+          </div>
+        </button>
+      }
+    } @else {
+      <div class="empty-state">無可用帳號</div>
+    }
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <div class="menu-section">
+    <div class="section-title">組織</div>
+    @if (groupedAccounts().organizations.length > 0) {
+      @for (org of groupedAccounts().organizations; track org.id) {
+        <button
+          mat-menu-item
+          class="account-item"
+          [class.active]="isCurrentAccount(org.id)"
+          [attr.aria-current]="isCurrentAccount(org.id) ? 'true' : null"
+          (click)="onSwitchAccount(org)"
+          [disabled]="accountStore.loading()"
+        >
+          <div class="account-item-content">
+            <div class="item-avatar">
+              @if (org.orgLogo) {
+                <img [src]="org.orgLogo" [alt]="org.name || ''" />
+              } @else {
+                <mat-icon>business</mat-icon>
+              }
+            </div>
+            <div class="item-info">
+              <div class="item-name">{{ org.name }}</div>
+              <div class="item-meta">Organization · {{ org.memberCount ?? 0 }} members</div>
+            </div>
+            @if (isCurrentAccount(org.id)) {
+              <mat-icon class="check-icon">check</mat-icon>
+            }
+          </div>
+        </button>
+      }
+    } @else {
+      <div class="empty-state">尚未加入任何組織</div>
+    }
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <div class="menu-section">
+    <div class="section-title">團隊</div>
+    @if (groupedAccounts().teams.length > 0) {
+      @for (team of groupedAccounts().teams; track team.id) {
+        <button
+          mat-menu-item
+          class="account-item"
+          [class.active]="isCurrentAccount(team.id)"
+          [attr.aria-current]="isCurrentAccount(team.id) ? 'true' : null"
+          (click)="onSwitchAccount(team)"
+          [disabled]="accountStore.loading()"
+        >
+          <div class="account-item-content">
+            <div class="item-avatar">
+              <mat-icon>groups</mat-icon>
+            </div>
+            <div class="item-info">
+              <div class="item-name">{{ team.name }}</div>
+              <div class="item-meta">Team · {{ team.memberCount ?? 0 }} members</div>
+            </div>
+            @if (isCurrentAccount(team.id)) {
+              <mat-icon class="check-icon">check</mat-icon>
+            }
+          </div>
+        </button>
+      }
+    } @else {
+      <div class="empty-state">尚未加入任何團隊</div>
+    }
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <div class="menu-section">
+    <div class="section-title">合作夥伴</div>
+    @if (groupedAccounts().partners.length > 0) {
+      @for (partner of groupedAccounts().partners; track partner.id) {
+        <button
+          mat-menu-item
+          class="account-item"
+          [class.active]="isCurrentAccount(partner.id)"
+          [attr.aria-current]="isCurrentAccount(partner.id) ? 'true' : null"
+          (click)="onSwitchAccount(partner)"
+          [disabled]="accountStore.loading()"
+        >
+          <div class="account-item-content">
+            <div class="item-avatar">
+              <mat-icon>handshake</mat-icon>
+            </div>
+            <div class="item-info">
+              <div class="item-name">{{ partner.companyName || partner.name }}</div>
+              <div class="item-meta">Partner · {{ partner.partnerLevel || 'standard' }}</div>
+            </div>
+            @if (isCurrentAccount(partner.id)) {
+              <mat-icon class="check-icon">check</mat-icon>
+            }
+          </div>
+        </button>
+      }
+    } @else {
+      <div class="empty-state">尚未建立合作夥伴關係</div>
+    }
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <button mat-menu-item class="manage-accounts">
+    <mat-icon>settings</mat-icon>
+    <span>管理帳號...</span>
+  </button>
+</mat-menu>
