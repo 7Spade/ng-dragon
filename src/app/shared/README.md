@@ -8,8 +8,7 @@
 - 職責分離，保持單一用途
 
 ## 常見子目錄
-- components/    → 可重用 UI 組件
-- layouts/       → App Header / Footer / Sidebar 等通用布局
+- (moved) presentation/core → App Header / Footer / Sidebar 等通用布局
 - services/      → 全局 service (AvatarService, MenuService)
 - models/        → TypeScript 型別 / interface / DTO
 - enums/         → 列舉型別

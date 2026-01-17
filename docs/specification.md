@@ -3,9 +3,9 @@
 目的：提供清晰、可執行的專案結構與命名規範，提升可維護性並讓自動補完工具（如 Copilot）產生更穩定、可預期的建議。
 
 核心要點：
-- 資料夾結構：每個 feature 有自己模組與子目錄（components/pages/services/models）；`core` 放共用 models、services、utils。
+- 資料夾結構：`presentation` 放 UI features；`application` 放 stores；`domain` 放純模型；`infrastructure` 放外部服務；`shared` 放跨層共用資源。
 - 命名：檔案/資料夾用 kebab-case；類別/介面用 PascalCase；檔名後綴明確（`.component.ts`、`.service.ts`、`.module.ts`、`.model.ts`）。
-- 型別與匯出：共用型別放 `core/models`，每個 feature 使用 `index.ts`（barrel）統一導出以簡化 import。
+- 型別與匯出：領域型別放 `domain/**/models`，共用型別放 `shared/models`，每個模組使用 `index.ts`（barrel）統一導出以簡化 import。
 - 註解：在公共 API 與複雜邏輯上使用 TSDoc，並在規範檔中放範例。
 - 工具化：啟用 ESLint + Prettier，並維護 `.github/copilot-instructions.md`（或 `.github/instructions/`）描述專案風格與常見 patterns。
 - 開發原則：函式短小單一職責、明確模組邊界、測試覆蓋關鍵路徑、避免重複型別定義。
@@ -55,29 +55,11 @@ Copilot 是依語意與慣例來生成與補全代碼，因此：
 ```
 src/
 ├─ app/
-│   ├─ core/                   ← 全域共用
-│   │   ├─ models/
-│   │   ├─ services/
-│   │   └─ utils/
-│   │
-│   ├─ features/
-│   │   ├─ auth/
-│   │   │   ├─ components/
-│   │   │   ├─ pages/
-│   │   │   ├─ services/
-│   │   │   ├─ models/
-│   │   │   └─ auth.module.ts
-│   │   │
-│   │   ├─ account/
-│   │   │   ├─ components/
-│   │   │   ├─ pages/
-│   │   │   ├─ services/
-│   │   │   ├─ models/
-│   │   │   └─ account.module.ts
-│   │   │
-│   │   └─ workspace/
-│   │       ├─ components/
-│   │       ├─ pages/
+│   ├─ domain/                 ← 純模型 (no Angular/Firebase)
+│   ├─ application/            ← NgRx Signals stores
+│   ├─ infrastructure/         ← Firebase / API services
+│   ├─ presentation/           ← UI features / layouts
+│   └─ shared/                 ← Cross-cutting shared
 │   │       ├─ services/
 │   │       ├─ models/
 │   │       └─ workspace.module.ts
@@ -227,35 +209,19 @@ Copilot 主要透過檔案路徑與命名推斷語義，所以結構 *語意清�
 ```
 src/
 ├─ app/
-│   ├─ core/                      
-│   │   ├─ services/             
-│   │   ├─ models/               
-│   │   └─ utils/                
-│   │
-│   ├─ features/
-│   │   ├─ auth/
-│   │   │   ├─ components/
-│   │   │   ├─ pages/
-│   │   │   ├─ services/
-│   │   │   ├─ models/
-│   │   │   └─ auth.module.ts
-│   │   │
-│   │   ├─ account/
-│   │   │   ├─ components/
-│   │   │   ├─ pages/
-│   │   │   ├─ services/
-│   │   │   ├─ models/
-│   │   │   └─ account.module.ts
-│   │   │
-│   │   └─ workspace/
-│   │       ├─ components/
-│   │       ├─ pages/
-│   │       ├─ services/
-│   │       ├─ models/
-│   │       └─ workspace.module.ts
-│   │
+│   ├─ domain/
+│   │   └─ ... (models)
+│   ├─ application/
+│   │   └─ store/
+│   ├─ infrastructure/
+│   │   └─ ... (services)
+│   ├─ presentation/
+│   │   ├─ layouts/
+│   │   └─ features/
+│   ├─ shared/
+│   │   └─ ... (components/services/utils)
 │   ├─ app.routes.ts
-│   └─ app.module.ts
+│   └─ app.component.ts
 ```
 
 🔹 每個功能模組都有自己的 components / pages / services / models
@@ -289,7 +255,7 @@ src/
 → Copilot 很容易因為混合命名或 interface 版本不同而生成錯誤建議：
 
 ```
-core/models/
+shared/models/
 ├─ user.model.ts
 ├─ team.model.ts
 └─ index.ts
