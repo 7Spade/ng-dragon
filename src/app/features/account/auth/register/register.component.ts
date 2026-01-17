@@ -18,7 +18,7 @@ import { AuthStore } from '../../../../core/auth/stores/auth.store';
         <button type="submit" [disabled]="registerForm.invalid || authStore.isLoading()">Register</button>
       </form>
       <div class="links">
-        <a routerLink="/account/auth/login">Already have an account? Login</a>
+        <a routerLink="/login">Already have an account? Login</a>
       </div>
     </div>
   `,

@@ -16,7 +16,7 @@ import { AuthStore } from '../../../../core/auth/stores/auth.store';
         <button type="submit" [disabled]="form.invalid || authStore.isLoading()">Send reset link</button>
       </form>
       <div class="links">
-        <a routerLink="/account/auth/login">Back to login</a>
+        <a routerLink="/login">Back to login</a>
       </div>
     </div>
   `,
@@ -38,7 +38,7 @@ export class AccountForgotPasswordComponent {
   onSubmit(): void {
     if (this.form.valid) {
       this.authStore.resetPassword(this.form.value).then(() => {
-        this.router.navigate(['/account/auth/login']);
+        this.router.navigate(['/login']);
       });
     }
   }

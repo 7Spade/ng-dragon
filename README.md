@@ -234,6 +234,11 @@ npm run start
 
 Open `http://localhost:4200`
 
+### Demo credentials (non-production)
+
+- Email: `demo@test.com`
+- Password: `123123`
+
 ---
 
 ## 🔐 Firebase Configuration

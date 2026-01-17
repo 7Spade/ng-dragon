@@ -16,7 +16,7 @@ import { AuthStore } from '../../../../core/auth/stores/auth.store';
         <button type="submit" [disabled]="form.invalid || authStore.isLoading()">Send link</button>
       </form>
       <div class="links">
-        <a routerLink="/account/auth/login">Back to login</a>
+        <a routerLink="/login">Back to login</a>
       </div>
     </div>
   `,

@@ -32,13 +32,13 @@ export class AuthService {
     // Development-only fallback to keep e2e flows stable without relying on remote auth.
     if (
       !environment.production &&
-      email === 'ac7x@pm.me' &&
+      (email === 'ac7x@pm.me' || email === 'demo@test.com') &&
       password === '123123'
     ) {
       return of({
         uid: email,
         email,
-        displayName: 'Mock User',
+        displayName: 'Demo User',
       } as User);
     }
 

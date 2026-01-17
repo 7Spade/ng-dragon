@@ -4,47 +4,47 @@ import { authGuard } from './core/auth/guards/auth.guard';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: '/account/auth/login',
+    redirectTo: '/login',
     pathMatch: 'full',
   },
   {
     path: 'login',
-    redirectTo: '/account/auth/login',
-    pathMatch: 'full',
+    loadComponent: () =>
+      import('./features/account/auth/login/login.component').then(
+        (m) => m.AccountLoginComponent
+      ),
   },
   {
     path: 'register',
-    redirectTo: '/account/auth/register',
-    pathMatch: 'full',
+    loadComponent: () =>
+      import('./features/account/auth/register/register.component').then(
+        (m) => m.AccountRegisterComponent
+      ),
   },
   {
     path: 'forgot-password',
-    redirectTo: '/account/auth/forgot-password',
-    pathMatch: 'full',
+    loadComponent: () =>
+      import('./features/account/auth/forgot-password/forgot-password.component').then(
+        (m) => m.AccountForgotPasswordComponent
+      ),
   },
   {
     path: 'account',
     children: [
       {
         path: 'auth/login',
-        loadComponent: () =>
-          import('./features/account/auth/login/login.component').then(
-            (m) => m.AccountLoginComponent
-          ),
+        redirectTo: '/login',
+        pathMatch: 'full',
       },
       {
         path: 'auth/register',
-        loadComponent: () =>
-          import('./features/account/auth/register/register.component').then(
-            (m) => m.AccountRegisterComponent
-          ),
+        redirectTo: '/register',
+        pathMatch: 'full',
       },
       {
         path: 'auth/forgot-password',
-        loadComponent: () =>
-          import('./features/account/auth/forgot-password/forgot-password.component').then(
-            (m) => m.AccountForgotPasswordComponent
-          ),
+        redirectTo: '/forgot-password',
+        pathMatch: 'full',
       },
       {
         path: 'auth/reset-password',
@@ -164,6 +164,6 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    redirectTo: '/account/auth/login',
+    redirectTo: '/login',
   },
 ];
