@@ -56,6 +56,17 @@ export class WorkspaceService {
     );
   }
 
+  getWorkspacesByAccount(accountId: string): Observable<Workspace[]> {
+    const collectionRef = collection(this.firestore, this.collectionName);
+    const q = query(collectionRef, where('accountId', '==', accountId));
+
+    return from(
+      getDocs(q).then((snapshot) =>
+        snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Workspace))
+      )
+    );
+  }
+
   /**
    * Create a new workspace
    */
@@ -80,5 +91,39 @@ export class WorkspaceService {
   deleteWorkspace(id: string): Observable<void> {
     const docRef = doc(this.firestore, this.collectionName, id);
     return from(deleteDoc(docRef));
+  }
+
+  getUserPreferences(userId: string): Observable<{
+    favoriteWorkspaceIds: string[];
+    recentWorkspaceIds: string[];
+  } | null> {
+    const docRef = doc(this.firestore, 'userPreferences', userId);
+    return from(
+      getDoc(docRef).then((snapshot) => {
+        if (!snapshot.exists()) {
+          return null;
+        }
+        const data = snapshot.data();
+        return {
+          favoriteWorkspaceIds: (data['favoriteWorkspaceIds'] as string[]) ?? [],
+          recentWorkspaceIds: (data['recentWorkspaceIds'] as string[]) ?? [],
+        };
+      })
+    );
+  }
+
+  saveUserPreferences(
+    userId: string,
+    favoriteWorkspaceIds: string[],
+    recentWorkspaceIds: string[]
+  ): Observable<void> {
+    const docRef = doc(this.firestore, 'userPreferences', userId);
+    return from(
+      setDoc(
+        docRef,
+        { favoriteWorkspaceIds, recentWorkspaceIds },
+        { merge: true }
+      )
+    );
   }
 }

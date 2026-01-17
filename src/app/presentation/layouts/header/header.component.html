@@ -1,0 +1,33 @@
+<mat-toolbar class="app-header" [class.elevated]="isScrolled()">
+  <a class="skip-link" href="#maincontent">Skip to main</a>
+  <div class="header-left">
+    <a routerLink="/" class="logo-link" aria-label="Home">
+      <span class="logo-icon">🔥</span>
+      <span class="logo-text">ng-dragon</span>
+    </a>
+    @if (workspaceStore.hasMultiple()) {
+      <app-workspace-switcher />
+    }
+  </div>
+
+  <div class="header-center">
+    <app-global-search />
+  </div>
+
+  <div class="header-right">
+    <button
+      mat-icon-button
+      class="header-icon-button"
+      (click)="openNotifications()"
+      [matBadge]="unreadCount()"
+      [matBadgeHidden]="unreadCount() === 0"
+      matBadgeColor="warn"
+      matBadgeSize="small"
+      aria-label="通知中心"
+    >
+      <mat-icon>notifications</mat-icon>
+    </button>
+    <app-account-switcher />
+    <app-account-menu />
+  </div>
+</mat-toolbar>

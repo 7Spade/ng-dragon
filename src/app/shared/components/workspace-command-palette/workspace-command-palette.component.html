@@ -1,0 +1,23 @@
+<div class="command-palette">
+  <div class="search-container">
+    <input
+      class="search-input"
+      placeholder="搜尋工作區或輸入指令..."
+      aria-label="搜尋工作區或輸入指令"
+      [ngModel]="searchQuery()"
+      (ngModelChange)="onSearchChange($event)"
+      autofocus
+    />
+  </div>
+  <div class="results-container">
+    @for (workspace of filteredWorkspaces(); track workspace.id) {
+      <button class="result-item" (click)="selectWorkspace(workspace.id)">
+        <div class="workspace-icon">{{ workspace.name.charAt(0) }}</div>
+        <div class="workspace-info">
+          <div class="name">{{ workspace.name }}</div>
+          <div class="meta">{{ workspace.type }}</div>
+        </div>
+      </button>
+    }
+  </div>
+</div>

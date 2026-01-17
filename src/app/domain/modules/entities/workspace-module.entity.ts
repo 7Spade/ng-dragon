@@ -12,7 +12,7 @@ export interface WorkspaceModuleDescriptor {
   id: WorkspaceModuleType;
   label: string;
   icon: string;
-  route: string;
+  route: WorkspaceModuleType;
   enabled: boolean;
 }
 
@@ -21,14 +21,14 @@ export interface ModuleState {
 }
 
 export const defaultModules: WorkspaceModuleDescriptor[] = [
-  { id: 'overview', label: 'Overview', icon: '📊', route: '/workspace/overview', enabled: true },
-  { id: 'documents', label: 'Documents', icon: '📄', route: '/workspace/documents', enabled: true },
-  { id: 'tasks', label: 'Tasks', icon: '✅', route: '/workspace/tasks', enabled: true },
-  { id: 'members', label: 'Members', icon: '👥', route: '/workspace/members', enabled: true },
-  { id: 'permissions', label: 'Permissions', icon: '🔒', route: '/workspace/permissions', enabled: true },
-  { id: 'audit', label: 'Audit', icon: '🕑', route: '/workspace/audit', enabled: true },
-  { id: 'settings', label: 'Settings', icon: '⚙️', route: '/workspace/settings', enabled: true },
-  { id: 'journal', label: 'Journal', icon: '📝', route: '/workspace/journal', enabled: true },
+  { id: 'overview', label: 'Overview', icon: '📊', route: 'overview', enabled: true },
+  { id: 'documents', label: 'Documents', icon: '📄', route: 'documents', enabled: true },
+  { id: 'tasks', label: 'Tasks', icon: '✅', route: 'tasks', enabled: true },
+  { id: 'members', label: 'Members', icon: '👥', route: 'members', enabled: true },
+  { id: 'permissions', label: 'Permissions', icon: '🔒', route: 'permissions', enabled: true },
+  { id: 'audit', label: 'Audit', icon: '🕑', route: 'audit', enabled: true },
+  { id: 'settings', label: 'Settings', icon: '⚙️', route: 'settings', enabled: true },
+  { id: 'journal', label: 'Journal', icon: '📝', route: 'journal', enabled: true },
 ];
 
 export const initialModuleState: ModuleState = {

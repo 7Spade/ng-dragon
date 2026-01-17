@@ -1,0 +1,19 @@
+<a
+  [routerLink]="routePath()"
+  routerLinkActive="active"
+  class="module-item"
+  [class.expanded]="expanded"
+  [class.collapsed]="!expanded"
+  [matTooltip]="expanded ? '' : module.label"
+  matTooltipPosition="right"
+  matRipple
+  (click)="handleClick()"
+>
+  <mat-icon class="module-icon">{{ module.icon }}</mat-icon>
+  @if (expanded) {
+    <span class="module-name">{{ module.label }}</span>
+  }
+  @if (expanded && hasBadge()) {
+    <span class="module-badge">{{ badgeCount() }}</span>
+  }
+</a>

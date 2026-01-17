@@ -2,14 +2,20 @@ import { Workspace } from '@domain/workspace/entities/workspace.entity';
 
 export interface WorkspaceState {
   workspaces: Workspace[];
-  currentWorkspace: Workspace | null;
+  favorites: string[];
+  recents: string[];
+  currentWorkspaceId: string | null;
+  searchQuery: string;
   loading: boolean;
   error: string | null;
 }
 
 export const initialWorkspaceState: WorkspaceState = {
   workspaces: [],
-  currentWorkspace: null,
+  favorites: [],
+  recents: [],
+  currentWorkspaceId: null,
+  searchQuery: '',
   loading: false,
   error: null,
 };

@@ -1,0 +1,47 @@
+<button
+  mat-button
+  class="account-menu-button"
+  [matMenuTriggerFor]="accountMenu"
+  aria-label="帳戶選單"
+>
+  @if (photoUrl()) {
+    <img [src]="photoUrl()!" [alt]="displayName()" class="avatar" />
+  } @else {
+    <div class="avatar-fallback">{{ displayName()[0]?.toUpperCase() || '?' }}</div>
+  }
+  <span class="account-name">{{ displayName() }}</span>
+  <mat-icon class="dropdown-icon">arrow_drop_down</mat-icon>
+</button>
+
+<mat-menu #accountMenu="matMenu" class="account-menu">
+  <div class="user-info">
+    @if (photoUrl()) {
+      <img [src]="photoUrl()!" [alt]="displayName()" class="user-avatar" />
+    } @else {
+      <div class="user-avatar-fallback">{{ displayName()[0]?.toUpperCase() || '?' }}</div>
+    }
+    <div class="user-details">
+      <div class="user-name">{{ displayName() }}</div>
+      <div class="user-email">{{ email() }}</div>
+    </div>
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <button mat-menu-item (click)="goToProfile()">
+    <mat-icon>person</mat-icon>
+    <span>個人資料</span>
+  </button>
+
+  <button mat-menu-item (click)="goToSettings()">
+    <mat-icon>settings</mat-icon>
+    <span>設定</span>
+  </button>
+
+  <mat-divider></mat-divider>
+
+  <button mat-menu-item (click)="logout()">
+    <mat-icon>logout</mat-icon>
+    <span>登出</span>
+  </button>
+</mat-menu>

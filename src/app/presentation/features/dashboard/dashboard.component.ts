@@ -2,18 +2,15 @@ import { Component, OnDestroy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthStore } from '@application/store/auth/stores/auth.store';
-import { HeaderComponent } from '@presentation/core/header/header.component';
 import { ContextStore } from '@application/store/context/stores/context.store';
 import { ProjectStore } from '@application/store/project/stores/project.store';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, HeaderComponent, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
   template: `
     <div class="dashboard">
-      <app-header></app-header>
-      
       <main class="dashboard-content">
         <div class="welcome-section">
           <h1>Welcome to Dashboard</h1>

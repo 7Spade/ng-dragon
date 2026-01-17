@@ -1,0 +1,30 @@
+<div class="bottom-sheet">
+  <mat-form-field appearance="outline" class="search-field">
+    <mat-label>搜尋工作區</mat-label>
+    <mat-icon matPrefix>search</mat-icon>
+    <input matInput placeholder="搜尋工作區..." [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)" />
+  </mat-form-field>
+
+  <div class="workspace-list">
+    @for (workspace of filteredWorkspaces(); track workspace.id) {
+      <button
+        mat-button
+        class="workspace-item"
+        [class.active]="workspace.id === currentWorkspace()?.id"
+        (click)="selectWorkspace(workspace.id)"
+      >
+        <div class="workspace-icon" [style.background]="getWorkspaceGradient(workspace.type)">
+          @if (workspace.avatar) {
+            <img [src]="workspace.avatar" [alt]="workspace.name" />
+          } @else {
+            <span>{{ workspace.name.charAt(0).toUpperCase() }}</span>
+          }
+        </div>
+        <div class="workspace-info">
+          <div class="workspace-name">{{ workspace.name }}</div>
+        <div class="workspace-meta">{{ workspace.type }} · {{ workspace.memberCount ?? 0 }} members</div>
+        </div>
+      </button>
+    }
+  </div>
+</div>
