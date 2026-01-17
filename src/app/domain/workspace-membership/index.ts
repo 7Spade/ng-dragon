@@ -1,5 +1,5 @@
 /**
- * Workspace Domain
+ * Workspace Membership Domain
  */
 
 // Value Objects
@@ -10,6 +10,3 @@ export * from './enums';
 
 // Entities
 export * from './entities';
-
-// Aggregates
-export * from './aggregates';
