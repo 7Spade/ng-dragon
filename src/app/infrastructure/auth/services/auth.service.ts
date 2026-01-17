@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, isDevMode } from '@angular/core';
 import {
   Auth,
   signInWithEmailAndPassword,
@@ -19,7 +19,17 @@ export class AuthService {
   private auth = inject(Auth);
   private demoUser = new BehaviorSubject<User | null>(this.loadDemoUser());
 
+  private isDemoAuthEnabled(): boolean {
+    return !environment.production && isDevMode();
+  }
+
   private loadDemoUser(): User | null {
+    if (!this.isDemoAuthEnabled()) {
+      if (typeof window !== 'undefined') {
+        window.localStorage.removeItem('demo-auth');
+      }
+      return null;
+    }
     if (typeof window === 'undefined') return null;
     const raw = window.localStorage.getItem('demo-auth');
     if (!raw) return null;
@@ -38,6 +48,12 @@ export class AuthService {
   }
 
   private persistDemoUser(user: User | null): void {
+    if (!this.isDemoAuthEnabled()) {
+      if (typeof window !== 'undefined') {
+        window.localStorage.removeItem('demo-auth');
+      }
+      return;
+    }
     if (typeof window === 'undefined') return;
     if (!user) {
       window.localStorage.removeItem('demo-auth');
@@ -66,7 +82,7 @@ export class AuthService {
    * Sign in with email and password
    */
   login(email: string, password: string): Observable<User> {
-    if (!environment.production && email === 'demo@test.com' && password === '123123') {
+    if (this.isDemoAuthEnabled() && email === 'demo@test.com' && password === '123123') {
       const demo = {
         uid: 'demo-user',
         email,
