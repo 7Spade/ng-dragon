@@ -242,10 +242,9 @@ npm run start
 
 Open `http://localhost:4200`
 
-### Demo credentials (non-production)
+### Test credentials
 
-- Email: `demo@test.com`
-- Password: `123123`
+Use a real Firebase Auth account created in your project to sign in.
 
 ---
 

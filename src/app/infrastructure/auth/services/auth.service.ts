@@ -9,8 +9,7 @@ import {
   User,
   authState,
 } from '@angular/fire/auth';
-import { Observable, from, of } from 'rxjs';
-import { environment } from '../../../../environments/environment';
+import { Observable, from } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -29,19 +28,6 @@ export class AuthService {
    * Sign in with email and password
    */
   login(email: string, password: string): Observable<User> {
-    // Development-only fallback to keep e2e flows stable without relying on remote auth.
-    if (
-      !environment.production &&
-      (email === 'ac7x@pm.me' || email === 'demo@test.com') &&
-      password === '123123'
-    ) {
-      return of({
-        uid: email,
-        email,
-        displayName: 'Demo User',
-      } as User);
-    }
-
     return from(
       signInWithEmailAndPassword(this.auth, email, password).then(
         (credential) => credential.user
@@ -75,10 +61,6 @@ export class AuthService {
    * Sign out the current user
    */
   logout(): Observable<void> {
-    if (!environment.production) {
-      return of(void 0);
-    }
-
     return from(signOut(this.auth));
   }
 }
