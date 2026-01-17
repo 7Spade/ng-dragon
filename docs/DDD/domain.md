@@ -1,5 +1,7 @@
 # Domain Layer 檔案樹結構
 
+> **術語說明**: 請參考 [專業術語對照表 (GLOSSARY.md)](./GLOSSARY.md) 了解本文件使用的標準術語。
+
 根據您的多工作區團隊協作系統架構,以下是 `src/app/domain` 的完整檔案樹:
 
 ```

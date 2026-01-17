@@ -1,5 +1,7 @@
 # Infrastructure Layer 檔案樹結構
 
+> **術語說明**: 請參考 [專業術語對照表 (GLOSSARY.md)](./GLOSSARY.md) 了解本文件使用的標準術語。
+
 按照開發順序,下一層應該是 **Infrastructure Layer (基礎設施層)**,因為它提供了 Domain 和 Application 層所需的具體實現。
 
 根據您的架構,以下是 `src/app/infrastructure` 的完整檔案樹:
