@@ -180,6 +180,13 @@ Step 10: Completion Checklist
 
 ## 🤖 Copilot Guidance Summary
 
+**For complete Copilot resources, see:**
+
+* **[Copilot Index](./.github/COPILOT_INDEX.md)** - Comprehensive guide to all resources
+* **[Quick Reference](./.github/COPILOT_QUICK_REFERENCE.md)** - Common patterns and code snippets  
+* **[Troubleshooting](./.github/COPILOT_TROUBLESHOOTING.md)** - Solutions to common issues
+* **[Configuration](./.github/copilot.yml)** - Copilot behavior settings
+
 **When generating code:**
 1. Identify the correct layer first
 2. Check dependency direction

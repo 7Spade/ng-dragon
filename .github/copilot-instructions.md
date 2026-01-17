@@ -135,6 +135,16 @@ When generating code:
 
 ---
 
+## CI/CD CONSTRAINTS
+
+### Testing Strategy
+- **Real Firebase login**: local / staging environments only
+- **CI environment**: Cannot access Firebase Auth
+- **CI tests**: Must mock authentication or skip auth-required tests
+- **Do NOT** generate real login flows for CI environment
+
+---
+
 ## DOCUMENTATION NAVIGATION
 
 For comprehensive guidance, refer to the structured documentation:
