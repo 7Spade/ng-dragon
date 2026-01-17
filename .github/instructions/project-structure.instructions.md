@@ -33,43 +33,86 @@ This project follows **Clean Architecture** with strict layer boundaries and dep
 
 ## Project Structure
 
+> **Note**: This section shows the high-level organization. For complete detailed file trees, refer to the layer-specific documentation files in `docs/DDD/`.
+
+### High-Level Layer Organization
+
 ```
 src/app/
 ├── presentation/           # UI Layer (Angular Components)
-│   ├── layouts/            # Layout components
-│   ├── features/           # Feature modules
-│   └── pages/              # Page components
+│   ├── layouts/            # 布局組件
+│   ├── features/           # Feature Modules (功能模組)
+│   ├── shared/             # Shared Components (共享組件)
+│   ├── core/               # Core Module (核心模組)
+│   └── theme/              # Material Design 3 主題配置
 │
 ├── application/            # Application Layer (Orchestration)
 │   ├── store/              # NgRx Signals Stores
-│   ├── commands/           # Command handlers
-│   ├── queries/            # Query handlers
-│   ├── services/           # Application services
-│   └── mappers/            # Data mappers
+│   ├── effects/            # rxMethod Effects (副作用處理)
+│   ├── commands/           # Command Handlers (命令處理器)
+│   ├── queries/            # Query Handlers (查詢處理器)
+│   ├── services/           # Application Services (應用服務)
+│   ├── mappers/            # Data Mappers (資料映射器)
+│   ├── validators/         # Validators (驗證器)
+│   ├── guards/             # Route Guards (路由守衛)
+│   ├── interceptors/       # HTTP Interceptors (HTTP 攔截器)
+│   ├── pipes/              # Custom Pipes (自訂管道)
+│   ├── directives/         # Custom Directives (自訂指令)
+│   ├── models/             # Application Models (應用模型)
+│   ├── utils/              # Utility Functions (工具函數)
+│   └── constants/          # Constants (常數)
 │
 ├── domain/                 # Domain Layer (Business Logic)
-│   ├── account/            # Account domain
-│   ├── workspace/          # Workspace domain
-│   ├── modules/            # Module domains
-│   ├── events/             # Domain events
-│   ├── commands/           # Domain commands
-│   ├── queries/            # Domain queries
-│   └── repositories/       # Repository interfaces
+│   ├── shared/             # 共享領域概念
+│   ├── account/            # Account 身份層領域
+│   ├── workspace-membership/  # 工作區成員關係領域
+│   ├── workspace/          # Workspace 工作區層領域
+│   ├── modules/            # Module 功能模組層領域
+│   ├── events/             # 事件系統領域
+│   ├── commands/           # 命令領域
+│   ├── queries/            # 查詢領域
+│   ├── repositories/       # 儲存庫介面
+│   └── services/           # 領域服務介面
 │
 ├── infrastructure/         # Infrastructure Layer (External Systems)
-│   ├── firebase/           # Firebase integration
-│   ├── persistence/        # Repository implementations
-│   ├── storage/            # File storage
-│   ├── auth/               # Authentication
-│   └── event-sourcing/     # Event store
+│   ├── firebase/           # Firebase 整合層
+│   ├── persistence/        # 資料持久化層 (Repository 實作)
+│   ├── storage/            # 檔案儲存層
+│   ├── auth/               # 認證層
+│   ├── domain-services/    # Domain Services 實作
+│   ├── event-sourcing/     # 事件溯源層
+│   ├── caching/            # 快取層
+│   ├── logging/            # 日誌層
+│   ├── monitoring/         # 監控層
+│   ├── external-services/  # 外部服務整合
+│   ├── adapters/           # Adapters (適配器模式)
+│   ├── dto/                # DTOs (資料傳輸物件)
+│   ├── providers/          # Dependency Injection Providers
+│   └── errors/             # Infrastructure 錯誤
 │
 └── shared/                 # Shared Layer (Utilities)
-    ├── components/         # Shared components
-    ├── directives/         # Shared directives
-    ├── pipes/              # Shared pipes
-    ├── services/           # Shared services
-    └── utils/              # Utility functions
+    ├── components/         # Shared Components (共享組件)
+    ├── directives/         # Shared Directives
+    ├── pipes/              # Shared Pipes
+    ├── validators/         # Shared Validators (表單驗證器)
+    ├── services/           # Shared Services (共享服務)
+    ├── models/             # Shared Models (共享模型)
+    ├── utils/              # Shared Utilities (工具函數)
+    ├── constants/          # Shared Constants (共享常數)
+    ├── enums/              # Shared Enums (共享列舉)
+    ├── types/              # Shared Types (共享型別)
+    └── interfaces/         # Shared Interfaces (共享介面)
 ```
+
+### Complete Layer Structures
+
+For complete and detailed file trees of each layer (including all subdirectories and files), refer to:
+
+- **[Domain Layer](../../docs/DDD/domain.md)** - Complete entities, value objects, aggregates, events, and repository interfaces
+- **[Application Layer](../../docs/DDD/application.md)** - Complete stores, handlers, services, and orchestration logic
+- **[Infrastructure Layer](../../docs/DDD/infrastructure.md)** - Complete Firebase integration, repositories, and external services
+- **[Presentation Layer](../../docs/DDD/interfaces-Material%20版本(使用).md)** - Complete UI components, layouts, and features
+- **[Shared Layer](../../docs/DDD/shared.md)** - Complete shared components, directives, pipes, and utilities
 
 ## Naming Conventions
 
