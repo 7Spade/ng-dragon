@@ -10,7 +10,7 @@ import {
   WorkspaceModuleDescriptor,
   WorkspaceModuleType,
   initialModuleState,
-} from '@domain/modules/models/workspace-module.model';
+} from '@domain/modules/entities/workspace-module.entity';
 
 /**
  * ModuleStore

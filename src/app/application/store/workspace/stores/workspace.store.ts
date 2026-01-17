@@ -8,7 +8,7 @@ import {
 import { computed, inject } from '@angular/core';
 import { AuthStore } from '@application/store/auth/stores/auth.store';
 import { ContextStore } from '@application/store/context/stores/context.store';
-import { Workspace, WorkspaceScope } from '@domain/workspace/models/workspace.model';
+import { Workspace, WorkspaceScope } from '@domain/workspace/entities/workspace.entity';
 import { EventBusStore } from '@application/store/event-bus/stores/event-bus.store';
 
 interface WorkspaceState {

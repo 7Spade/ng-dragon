@@ -11,7 +11,7 @@ import {
 } from '@angular/fire/firestore';
 import { Observable, from, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import { CreateProjectPayload, Project, applyProjectScopes } from '@domain/project/models/project.model';
+import { CreateProjectPayload, Project, applyProjectScopes } from '@domain/project/entities/project.entity';
 
 @Injectable({
   providedIn: 'root',

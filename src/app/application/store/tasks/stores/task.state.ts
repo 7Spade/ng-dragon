@@ -3,7 +3,7 @@
  * Following modern NgRx Signals patterns
  */
 
-import { Task, Workflow, TaskFilter, ViewMode } from '@domain/tasks/models/task.model';
+import { Task, Workflow, TaskFilter, ViewMode } from '@domain/tasks/entities/task.entity';
 
 export interface TaskState {
   tasks: Task[];

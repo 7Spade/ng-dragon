@@ -1,4 +1,4 @@
-import { Team } from '@domain/team/models/team.model';
+import { Team } from '@domain/team/entities/team.entity';
 
 export interface TeamState {
   teams: Team[];

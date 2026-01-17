@@ -8,7 +8,7 @@ status: draft
 
 - **Presentation**: `AccountLoginComponent` renders the login UI with Angular Material form controls and reacts to `AuthStore` signals.
 - **Application**: `AuthStore` coordinates authentication state using `@ngrx/signals` and exposes `login()` plus computed flags.
-- **Domain**: Shared models live under `src/app/domain/**/models`.
+- **Domain**: Entities live under `src/app/domain/**/entities`.
 - **Infrastructure**: `AuthService` wraps AngularFire Auth, including a non-production fallback for demo credentials.
 - **Routing**: `/login` is the canonical entry point; legacy `/account/auth/*` routes redirect to top-level equivalents.
 
@@ -17,6 +17,7 @@ status: draft
 ```
 src/app/
 ├─ domain/
+│  └─ **/entities/
 ├─ application/
 │  └─ store/
 ├─ infrastructure/

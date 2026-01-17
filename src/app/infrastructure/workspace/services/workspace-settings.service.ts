@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { WorkspaceSettings } from '@domain/workspace/models/workspace.model';
+import { WorkspaceSettings } from '@domain/workspace/entities/workspace.entity';
 
 const defaultSettings: WorkspaceSettings = {
   notifications: true,

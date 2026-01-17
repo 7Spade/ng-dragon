@@ -12,7 +12,7 @@ import {
   where,
 } from '@angular/fire/firestore';
 import { Observable, from } from 'rxjs';
-import { Workspace } from '@domain/workspace/models/workspace.model';
+import { Workspace } from '@domain/workspace/entities/workspace.entity';
 
 /**
  * WorkspaceService

@@ -7,7 +7,7 @@ import {
   getDownloadURL,
 } from '@angular/fire/storage';
 import { from, map, mergeMap, Observable, of } from 'rxjs';
-import { DocumentAsset } from '@domain/workspace/models/workspace.model';
+import { DocumentAsset } from '@domain/workspace/entities/workspace.entity';
 
 @Injectable({
   providedIn: 'root',

@@ -6,7 +6,7 @@ status: complete
 
 - [x] Inventory current structure and map to DDD docs.
 - [x] Create DDD folder scaffold (`domain`, `application`, `infrastructure`, `presentation`).
-- [x] Migrate domain models from `core/**/models` → `domain/**/models`.
+- [x] Migrate domain models from `core/**/models` → `domain/**/entities`.
 - [x] Migrate application stores from `core/**/stores` → `application/store/**`.
 - [x] Migrate infrastructure services from `core/**/services` → `infrastructure/**/services`.
 - [x] Migrate presentation features from `features` → `presentation/features`.

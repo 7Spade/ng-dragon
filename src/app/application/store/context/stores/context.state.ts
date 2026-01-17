@@ -1,4 +1,4 @@
-import { ContextState } from '@domain/context/models/context.model';
+import { ContextState } from '@domain/context/entities/context.entity';
 
 export const initialContextState: ContextState = {
   current: null,

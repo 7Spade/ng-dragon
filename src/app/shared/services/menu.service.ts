@@ -11,7 +11,7 @@ import {
   MODULE_LABELS,
   WorkspaceModule,
 } from '../models/menu.model';
-import { AppContext } from '@domain/context/models/context.model';
+import { AppContext } from '@domain/context/entities/context.entity';
 
 @Injectable({
   providedIn: 'root',

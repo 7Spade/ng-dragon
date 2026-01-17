@@ -7,7 +7,7 @@ import {
 } from '@ngrx/signals';
 import { computed, inject } from '@angular/core';
 import { PermissionsService } from '@infrastructure/workspace/services/permissions.service';
-import { Capability, RoleMatrixRow } from '@domain/workspace/models/workspace.model';
+import { Capability, RoleMatrixRow } from '@domain/workspace/entities/workspace.entity';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { catchError, of, pipe, switchMap, tap } from 'rxjs';
 

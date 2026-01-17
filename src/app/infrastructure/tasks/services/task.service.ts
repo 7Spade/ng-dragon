@@ -25,7 +25,7 @@ import {
 } from '@angular/fire/firestore';
 import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
-import { Task, Workflow, TaskFilter } from '@domain/tasks/models/task.model';
+import { Task, Workflow, TaskFilter } from '@domain/tasks/entities/task.entity';
 
 @Injectable({ providedIn: 'root' })
 export class TaskService {

@@ -14,7 +14,7 @@ import {
 } from '@angular/fire/firestore';
 import { Observable, from, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
-import { Organization } from '@domain/organization/models/organization.model';
+import { Organization } from '@domain/organization/entities/organization.entity';
 
 /**
  * OrganizationService

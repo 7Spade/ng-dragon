@@ -9,7 +9,7 @@ import {
 import { computed, inject } from '@angular/core';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { pipe, switchMap, tap, catchError, of } from 'rxjs';
-import { CreateProjectPayload, Project, applyProjectScopes } from '@domain/project/models/project.model';
+import { CreateProjectPayload, Project, applyProjectScopes } from '@domain/project/entities/project.entity';
 import { ProjectService } from '@infrastructure/project/services/project.service';
 import { AuthStore } from '@application/store/auth/stores/auth.store';
 

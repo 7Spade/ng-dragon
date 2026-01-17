@@ -16,15 +16,15 @@ import {
   OrganizationContext,
   TeamContext,
   PartnerContext,
-} from '@domain/context/models/context.model';
+} from '@domain/context/entities/context.entity';
 import { AuthStore } from '@application/store/auth/stores/auth.store';
 import { OrganizationService } from '@infrastructure/organization/services/organization.service';
 import { TeamService } from '@infrastructure/team/services/team.service';
 import { PartnerService } from '@infrastructure/partner/services/partner.service';
 import { EventBusStore } from '@application/store/event-bus/stores/event-bus.store';
-import { Organization, OrganizationSettings } from '@domain/organization/models/organization.model';
-import { Team } from '@domain/team/models/team.model';
-import { Partner } from '@domain/partner/models/partner.model';
+import { Organization, OrganizationSettings } from '@domain/organization/entities/organization.entity';
+import { Team } from '@domain/team/entities/team.entity';
+import { Partner } from '@domain/partner/entities/partner.entity';
 
 const defaultOrganizationSettings: OrganizationSettings = {
   allowPartnerInvitation: true,

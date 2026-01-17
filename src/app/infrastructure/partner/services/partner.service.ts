@@ -14,7 +14,7 @@ import {
 } from '@angular/fire/firestore';
 import { Observable, from, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
-import { Partner } from '@domain/partner/models/partner.model';
+import { Partner } from '@domain/partner/entities/partner.entity';
 
 /**
  * PartnerService

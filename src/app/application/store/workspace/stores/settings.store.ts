@@ -6,7 +6,7 @@ import {
   withState,
 } from '@ngrx/signals';
 import { computed, inject } from '@angular/core';
-import { WorkspaceSettings } from '@domain/workspace/models/workspace.model';
+import { WorkspaceSettings } from '@domain/workspace/entities/workspace.entity';
 import { WorkspaceSettingsService } from '@infrastructure/workspace/services/workspace-settings.service';
 import { WorkspaceStore } from '@application/store/workspace/stores/workspace.store';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';

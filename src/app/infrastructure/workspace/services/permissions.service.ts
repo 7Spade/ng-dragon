@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { Capability, RoleMatrixRow } from '@domain/workspace/models/workspace.model';
+import { Capability, RoleMatrixRow } from '@domain/workspace/entities/workspace.entity';
 
 const defaultRoles: RoleMatrixRow[] = [
   {

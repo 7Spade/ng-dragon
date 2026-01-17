@@ -10,7 +10,7 @@ import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { pipe, switchMap, tap, catchError, of } from 'rxjs';
 import { TaskService } from '@infrastructure/tasks/services/task.service';
 import { initialTaskState, TaskState } from './task.state';
-import { Task, TaskFilter, ViewMode, TaskTreeNode, GanttTaskData, TimelineEvent } from '@domain/tasks/models/task.model';
+import { Task, TaskFilter, ViewMode, TaskTreeNode, GanttTaskData, TimelineEvent } from '@domain/tasks/entities/task.entity';
 
 export const TaskStore = signalStore(
   { providedIn: 'root' },

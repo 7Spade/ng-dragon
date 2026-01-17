@@ -6,7 +6,7 @@ import {
   withState,
 } from '@ngrx/signals';
 import { computed } from '@angular/core';
-import { EventBusEvent, EventBusState, initialEventBusState } from '@domain/event-bus/models/event-bus.model';
+import { EventBusEvent, EventBusState, initialEventBusState } from '@domain/event-bus/entities/event-bus.entity';
 
 /**
  * EventBusStore

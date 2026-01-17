@@ -1,4 +1,4 @@
-import { Organization } from '@domain/organization/models/organization.model';
+import { Organization } from '@domain/organization/entities/organization.entity';
 
 export interface OrganizationState {
   currentOrganization: Organization | null;

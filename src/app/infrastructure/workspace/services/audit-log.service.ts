@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { AuditEntry } from '@domain/workspace/models/workspace.model';
+import { AuditEntry } from '@domain/workspace/entities/workspace.entity';
 
 @Injectable({
   providedIn: 'root',

@@ -8,7 +8,7 @@ import {
 import { computed, inject } from '@angular/core';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { pipe, switchMap, tap, catchError, of } from 'rxjs';
-import { DocumentAsset } from '@domain/workspace/models/workspace.model';
+import { DocumentAsset } from '@domain/workspace/entities/workspace.entity';
 import { DocumentStorageService } from '@infrastructure/workspace/services/document-storage.service';
 import { WorkspaceStore } from '@application/store/workspace/stores/workspace.store';
 import { AuthStore } from '@application/store/auth/stores/auth.store';

@@ -1,7 +1,7 @@
 import { Component, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PermissionStore } from '@application/store/workspace/stores/permission.store';
-import { Capability } from '@domain/workspace/models/workspace.model';
+import { Capability } from '@domain/workspace/entities/workspace.entity';
 
 @Component({
   selector: 'app-permissions',

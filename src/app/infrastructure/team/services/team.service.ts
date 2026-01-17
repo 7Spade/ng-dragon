@@ -14,7 +14,7 @@ import {
 } from '@angular/fire/firestore';
 import { Observable, from, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
-import { Team } from '@domain/team/models/team.model';
+import { Team } from '@domain/team/entities/team.entity';
 
 /**
  * TeamService

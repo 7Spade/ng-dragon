@@ -1,4 +1,4 @@
-import { Account } from '@domain/account/models/account.model';
+import { Account } from '@domain/account/entities/account.entity';
 
 export interface AccountState {
   currentAccount: Account | null;

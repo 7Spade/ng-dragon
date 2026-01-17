@@ -1,4 +1,4 @@
-import { Partner } from '@domain/partner/models/partner.model';
+import { Partner } from '@domain/partner/entities/partner.entity';
 
 export interface PartnerState {
   partners: Partner[];

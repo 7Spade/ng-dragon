@@ -1,4 +1,4 @@
-import { Workspace } from '@domain/workspace/models/workspace.model';
+import { Workspace } from '@domain/workspace/entities/workspace.entity';
 
 export interface WorkspaceState {
   workspaces: Workspace[];
