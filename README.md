@@ -282,6 +282,15 @@ This structure is intentionally designed to:
 * Encourage correct abstractions
 * Make AI-assisted coding predictable and safe
 
+### Copilot Resources
+
+For optimal AI-assisted development:
+
+* **[Copilot Index](./.github/COPILOT_INDEX.md)** - Complete guide to all Copilot resources
+* **[Quick Reference](./.github/COPILOT_QUICK_REFERENCE.md)** - Common patterns and snippets
+* **[Troubleshooting](./.github/COPILOT_TROUBLESHOOTING.md)** - Solutions to common issues
+* **[Main Instructions](./.github/copilot-instructions.md)** - Core architecture rules
+
 ---
 
 ## 📄 License

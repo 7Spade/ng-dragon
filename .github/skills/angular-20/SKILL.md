@@ -1,23 +1,16 @@
 ---
-
-📌 Angular 20 技能 Skill (SKILL.md)
-
----
 name: angular-20
-description: >
-  Angular 20 knowledge and best practices. Use this skill when asked about Angular 20 development,
-  architecture, components, routing, state management, performance, testing, and deployment.
+description: Angular 20 knowledge and best practices. Use this skill when asked about Angular 20 development, architecture, components, routing, state management, performance, testing, and deployment. Includes standalone components, signals, and modern Angular patterns.
 license: MIT
 ---
 
-# Angular 20 Skill for AI Agents
+# Angular 20 Skill for AI Agents
 
 ## 🧩 Purpose
-This skill provides structured guidance and best practices for Angular 20 development, including typical workflows,
-common patterns, quality standards, and example templates.
+This skill provides structured guidance and best practices for Angular 20 development, including typical workflows, common patterns, quality standards, and example templates.
 
 ## 🛠️ Angular 20 Core Concepts
-- Angular 20 features & changes  
+- Angular 20 features & changes  
 - TypeScript-first architecture  
 - Standalone components  
 - Signals and reactivity  
@@ -25,93 +18,118 @@ common patterns, quality standards, and example templates.
 - Angular CLI workflows
 
 ## 📚 Key Tasks & When to Use
-### 1) Create a new Angular 20 app
+
+### 1) Create a new Angular 20 app
 Use Angular CLI to bootstrap projects, follow style/architecture rules:
 ```bash
 ng new your-app --routing --style=scss
+```
 
-2) Component & Template Patterns
+### 2) Component & Template Patterns
+- Use standalone components where possible
+- Keep templates clean & concise
+- Enforce accessibility (a11y) guidelines
 
-Use standalone components where possible
+### 3) 🚦 Routing & Navigation
+- Setup RouterModule with routes
+- Use lazy-loaded routes for large modules
+- Implement prefetching strategies for performance
 
-Keep templates clean & concise
+### 4) 🔄 State & Reactivity
+- Prefer Signals for local state
+- Consider @ngrx/signals for global state
+- Manage effects/rx workflows carefully
 
-Enforce accessibility (a11y) guidelines
+### 5) 📦 HTTP & REST
+- Use HttpClient with typed responses
+- Centralize API service layer with error handling
 
+### 6) 📑 Testing
+- Unit test with Jasmine/Karma or Jest
+- E2E tests with Playwright
 
-🚦 Routing & Navigation
+### 7) 🎯 Performance
+- Use AOT compilation
+- Optimize bundle with `ng build`
+- Use OnPush change detection where applicable
 
-Setup RouterModule.forRoot(routes)
+### 8) 🚀 Deployment
+- Build artifacts: `ng build`
+- Serve with static hosts / CDNs
+- Configure environment-specific settings
 
-Use lazy-loaded routes for large modules
+## 📌 Examples & Code Snippets
 
-Prefetching strategies for performance
+### Example Standalone Component
+```typescript
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
+@Component({
+  selector: 'app-example',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
+    @if (showContent()) {
+      <div>Content here</div>
+    }
+  `
+})
+export class ExampleComponent {
+  showContent = signal(true);
+}
+```
 
-🔄 State & Reactivity
+### Example Reactive Form
+```typescript
+import { Component, inject } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
-Prefer Signals for local state
+@Component({
+  selector: 'app-form',
+  standalone: true,
+  imports: [ReactiveFormsModule],
+  template: `
+    <form [formGroup]="form">
+      <input formControlName="name" />
+    </form>
+  `
+})
+export class FormComponent {
+  private fb = inject(FormBuilder);
+  
+  form = this.fb.group({
+    name: ['', Validators.required]
+  });
+}
+```
 
-Consider NgRx or other patterns for large global stores
+### Example API Service
+```typescript
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 
-Manage effects/rx workflows carefully
-
-
-📦 HTTP & REST
-
-Use HttpClient with typed responses
-
-Centralize API service layer with error handling
-
-
-📑 Testing
-
-Unit test with Jest or Vitest
-
-E2E tests with Playwright or Protractor replacement
-
-
-🎯 Performance
-
-Use AOT compilation
-
-Optimize bundle with ng build --prod
-
-Use onPush change detection where applicable
-
-
-🚀 Deployment
-
-Build artifacts: ng build
-
-Serve with static hosts / CDNs
-
-Configure environment-specific settings
-
-
-📌 Examples & Code Snippets
-
-Example standalone component
-
-Example reactive form
-
-Example API service
-
+@Injectable({ providedIn: 'root' })
+export class ApiService {
+  private http = inject(HttpClient);
+  
+  getData(): Observable<any[]> {
+    return this.http.get<any[]>('/api/data');
+  }
+}
+```
 
 Refer to official Angular docs and community standards for evolving best practices.
 
 ---
 
-## 📂 推薦存放路徑（讓 Copilot agent 正確載入）
+## 📂 Installation Path
 
-🎯 **專案內技能（對這個 Repo 專用）**
+### 🎯 Project-specific skill
+`.github/skills/angular-20/SKILL.md`
 
-/.github/skills/angular-20/SKILL.md
+### 🎯 Personal global skill
+`~/.github/skills/angular-20/SKILL.md`
 
-🎯 **個人全局技能（跨專案共用）**
-
-~/.copilot/skills/angular-20/SKILL.md
-
-💡 Copilot agent 會根據你 prompt 的內容，自動決定何時載入這份技能文件。技能必須放在 `skills` 子資料夾並命名為 `SKILL.md`。1
-
----
+💡 Copilot will automatically load this skill based on your prompt content.
