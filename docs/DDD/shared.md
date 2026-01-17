@@ -1413,3 +1413,234 @@ export function pluck<T, K extends keyof T>(array: T[], key: K): T[K][] {
 - 依賴關係正確
 - 可以逐步測試
 - 複雜組件可以使用基礎組件
+---
+
+## Phase 3 實作完成記錄
+
+**完成時間**: 2026-01-17
+
+### 已實作 Validators (13 個驗證器)
+
+#### Synchronous Validators (9)
+1. **emailValidator** - Email 格式驗證
+2. **urlValidator** - URL 格式驗證
+3. **phoneValidator** - 電話號碼格式驗證
+4. **slugValidator** - Slug 格式驗證 (小寫字母數字連字號)
+5. **passwordStrengthValidator** - 密碼強度驗證 (可配置複雜度要求)
+6. **minValidator** / **maxValidator** / **rangeValidator** - 數值範圍驗證
+7. **matchValidator** / **matchFieldValidator** - 欄位匹配驗證 (例: 確認密碼)
+8. **noWhitespaceValidator** / **noLeadingTrailingWhitespaceValidator** - 空白字元驗證
+9. **patternValidator** - 自訂正則表達式驗證 (帶自訂錯誤訊息)
+
+#### Asynchronous Validators (4)
+1. **uniqueEmailValidator** - Email 唯一性驗證 (含 debounce)
+2. **uniqueUsernameValidator** - 使用者名稱唯一性驗證
+3. **uniqueWorkspaceNameValidator** - Workspace 名稱唯一性驗證
+4. **uniqueWorkspaceSlugValidator** - Workspace Slug 唯一性驗證
+
+> **Note**: Async validators 包含 placeholder 實作,將在 Infrastructure Layer 完成後整合實際 repository
+
+### 已實作 Pipes (15 個管道)
+
+#### Date Pipes (2)
+1. **DateAgoPipe** - 相對時間顯示 (例: "2 hours ago", "3 days ago")
+2. **FormatDatePipe** - 日期格式化 (支援 short/medium/long/full/iso)
+
+#### Number Pipes (3)
+3. **FormatNumberPipe** - 數字格式化 (千位分隔符、小數位數)
+4. **FormatCurrencyPipe** - 貨幣格式化 (支援多幣別)
+5. **FormatPercentagePipe** - 百分比格式化
+
+#### File Pipes (3)
+6. **FormatFileSizePipe** - 檔案大小格式化 (KB, MB, GB)
+7. **FileExtensionPipe** - 取得副檔名
+8. **FileNamePipe** - 取得檔名 (不含副檔名)
+
+#### String Pipes (3)
+9. **TruncatePipe** - 字串截斷 (可自訂後綴)
+10. **CapitalizePipe** - 首字母大寫
+11. **SlugifyPipe** - 轉換為 URL slug 格式
+
+#### Array Pipes (3)
+12. **FilterPipe** - 陣列過濾 (基於 predicate 函數)
+13. **SortByPipe** - 陣列排序 (支援 asc/desc)
+14. **GroupByPipe** - 陣列分組 (基於 key selector)
+
+#### Safe Pipes (2)
+15. **SafeHtmlPipe** - 繞過 HTML 清理 (僅用於可信內容)
+16. **SafeUrlPipe** - 繞過 URL 清理 (僅用於可信 URL)
+
+### 已實作 Directives (9 個指令)
+
+#### Basic Directives (5)
+1. **AutoFocusDirective** (`appAutoFocus`) - 自動聚焦元素
+2. **ClickOutsideDirective** (`appClickOutside`) - 點擊外部事件
+3. **DebounceClickDirective** (`appDebounceClick`) - 防抖動點擊
+4. **LetDirective** (`appLet`) - 建立區域範本變數
+5. **LoadingDirective** (`appLoading`) - 顯示/隱藏載入狀態
+
+#### Advanced Directives (4)
+6. **TooltipDirective** (`appTooltip`) - 自訂工具提示 (支援四個方向)
+7. **CopyToClipboardDirective** (`appCopyToClipboard`) - 複製文字到剪貼簿
+8. **InfiniteScrollDirective** (`appInfiniteScroll`) - 無限捲動
+9. **IntersectionObserverDirective** (`appIntersectionObserver`) - 視窗交集觀察
+
+### 檔案結構
+
+```
+src/app/shared/
+├── validators/
+│   ├── sync/                    # 9 個同步驗證器
+│   │   ├── email.validator.ts
+│   │   ├── url.validator.ts
+│   │   ├── phone.validator.ts
+│   │   ├── slug.validator.ts
+│   │   ├── password-strength.validator.ts
+│   │   ├── min-max.validator.ts
+│   │   ├── match.validator.ts
+│   │   ├── whitespace.validator.ts
+│   │   ├── pattern.validator.ts
+│   │   └── index.ts
+│   ├── async/                   # 4 個非同步驗證器
+│   │   ├── unique-email.validator.ts
+│   │   ├── unique-username.validator.ts
+│   │   ├── unique-workspace-name.validator.ts
+│   │   ├── unique-workspace-slug.validator.ts
+│   │   └── index.ts
+│   └── index.ts
+├── pipes/                       # 15 個管道
+│   ├── date-ago.pipe.ts
+│   ├── format-date.pipe.ts
+│   ├── format-number.pipe.ts
+│   ├── format-currency.pipe.ts
+│   ├── format-percentage.pipe.ts
+│   ├── format-file-size.pipe.ts
+│   ├── file-extension.pipe.ts
+│   ├── file-name.pipe.ts
+│   ├── truncate.pipe.ts
+│   ├── capitalize.pipe.ts
+│   ├── slugify.pipe.ts
+│   ├── filter.pipe.ts
+│   ├── sort-by.pipe.ts
+│   ├── group-by.pipe.ts
+│   ├── safe-html.pipe.ts
+│   ├── safe-url.pipe.ts
+│   └── index.ts
+├── directives/                  # 9 個指令
+│   ├── auto-focus.directive.ts
+│   ├── click-outside.directive.ts
+│   ├── debounce-click.directive.ts
+│   ├── let.directive.ts
+│   ├── loading.directive.ts
+│   ├── tooltip.directive.ts
+│   ├── copy-to-clipboard.directive.ts
+│   ├── infinite-scroll.directive.ts
+│   ├── intersection-observer.directive.ts
+│   └── index.ts
+└── index.ts                     # 統一匯出點
+```
+
+### 技術特點
+
+1. **Pure TypeScript + Angular**
+   - Standalone components/pipes/directives
+   - 零 framework 依賴於 validators
+   - 使用 Angular 20 最新特性
+
+2. **Material Design 3 整合**
+   - Directives 支援 Material Components
+   - Pipes 支援 Material 數據顯示
+   - UI constants 符合 MD3 規範
+
+3. **NgRx Signals 就緒**
+   - Validators 可用於 Reactive Forms with Signals
+   - Pipes 支援 signal-based data
+   - Directives 相容 zone-less Angular
+
+4. **完整的錯誤處理**
+   - Validators 提供詳細錯誤訊息
+   - Async validators 包含 debounce
+   - Pipes 處理 null/undefined 安全
+
+### 使用範例
+
+#### Validators 範例
+```typescript
+// Reactive Form with validators
+const form = new FormGroup({
+  email: ['', [
+    Validators.required,
+    emailValidator()
+  ], [
+    uniqueEmailValidator()
+  ]],
+  password: ['', [
+    Validators.required,
+    passwordStrengthValidator({
+      minLength: 8,
+      requireUppercase: true,
+      requireNumbers: true
+    })
+  ]],
+  confirmPassword: ['', [Validators.required]]
+}, {
+  validators: matchValidator('password', 'confirmPassword')
+});
+```
+
+#### Pipes 範例
+```html
+<!-- Date formatting -->
+<span>{{ createdAt | dateAgo }}</span>
+<!-- Output: "2 hours ago" -->
+
+<!-- Number formatting -->
+<span>{{ price | formatCurrency:'USD' }}</span>
+<!-- Output: "$1,234.56" -->
+
+<!-- File size -->
+<span>{{ fileSize | formatFileSize }}</span>
+<!-- Output: "1.18 MB" -->
+
+<!-- Array operations -->
+<div *ngFor="let item of items | sortBy:'name':'asc' | filter:isActive">
+  {{ item.name }}
+</div>
+```
+
+#### Directives 範例
+```html
+<!-- Auto focus -->
+<input appAutoFocus />
+
+<!-- Tooltip -->
+<button appTooltip="Click to save" [tooltipPosition]="'top'">
+  Save
+</button>
+
+<!-- Copy to clipboard -->
+<button appCopyToClipboard="Text to copy" (copied)="onCopied($event)">
+  Copy
+</button>
+
+<!-- Infinite scroll -->
+<div appInfiniteScroll (scrolled)="loadMore()">
+  <!-- Content -->
+</div>
+```
+
+### 下階段 Phase 4
+
+**待實作模組** (依開發順序建議):
+1. **Services** (shared/services/)
+   - Dialog, Snackbar, Toast 等服務
+   - HTTP, Storage, Auth 等封裝
+2. **UI Components** (shared/components/ui/)
+   - Avatar, Button, Chip 等基礎組件
+3. **Form Components** (shared/components/form/)
+   - Input, Select, Datepicker 等表單組件
+4. **Data Display Components** (shared/components/data-display/)
+   - DataTable, Tree, Timeline 等
+5. **其他 Components** (navigation, feedback, layout, media, charts)
+
+---
