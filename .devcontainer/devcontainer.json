@@ -10,23 +10,23 @@
     // Node feature：確保 Node / pnpm 版本一致
     "ghcr.io/devcontainers/features/node:2": {
       "version": "22",          // 指定 Node.js 版本
-      "installPnpm": true       // 自動安裝 pnpm
+      "installPnpm": false       // 自動安裝 pnpm
     }
   },
 
   // 掛載快取（加速 pnpm install）
   "mounts": [
     // 將本機 .pnpm-store 掛成 container cache，重建不重抓依賴
-    "source=${localWorkspaceFolder}/.pnpm-store,target=/home/vscode/.pnpm-store,type=cache"
+    "source=${localWorkspaceFolder}/.npm-cache,target=/home/vscode/.npm-cache,type=cache"
   ],
 
   // Container 建立完成後執行的指令
   "postCreateCommand": [
     // 使用 lockfile 安裝依賴，避免版本漂移
-    "pnpm install --frozen-lockfile --prefer-frozen-lockfile --reporter=append-only",
+    "npm install --legacy-peer-deps",
 
     // 預先 build，避免第一次啟動慢
-    "pnpm build"
+    "npm run build"
   ],
 
   // VS Code 專用設定（只在 container 生效）
@@ -72,14 +72,15 @@
           "**/node_modules/**": true,   // node_modules 不監聽
           "**/dist/**": true,           // build 產物不監聽
           "**/.angular/**": true,       // Angular cache 不監聽
-          "**/.pnpm-store/**": true     // pnpm store 不監聽
+          "**/.npm-cache/**": true     // npm cache 不監聽
         },
 
         // 搜尋時排除大型目錄
         "search.exclude": {
           "**/node_modules": true,      // 搜尋時忽略 node_modules
           "**/dist": true,              // 忽略 build 輸出
-          "**/.angular": true           // 忽略 Angular cache
+          "**/.angular": true,           // 忽略 Angular cache
+          "**/.npm-cache": true         // 忽略 npm cache
         },
 
         // 限制 TypeScript Server 記憶體，避免暴走拖慢 Copilot

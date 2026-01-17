@@ -1,4 +1,18 @@
+.angular
+dist
+node_modules
+/.idea/
+# .copilot-tracking/
 
+# Firebase
+.firebase
+*-debug.log
+.runtimeconfig.json
+
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
 
 #Ignore vscode AI rules
 .github\instructions\codacy.instructions.md
