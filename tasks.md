@@ -4,10 +4,13 @@ status: complete
 
 # Tasks
 
-- [x] Audit routing/auth/login flow for current behavior.
-- [x] Adjust routing to make `/login` the canonical login entry.
-- [x] Update demo login fallback credentials for local auth.
-- [x] Apply Angular Material theme and login UI updates.
-- [x] Sync auth-related links to `/login`.
-- [x] Update documentation (requirements/design/tasks, README/CHANGELOG if needed).
-- [x] Validate with lint/build and Playwright login flow.
+- [x] Inventory current structure and map to DDD docs.
+- [x] Create DDD folder scaffold (`domain`, `application`, `infrastructure`, `presentation`).
+- [x] Migrate domain models from `core/**/models` → `domain/**/models`.
+- [x] Migrate application stores from `core/**/stores` → `application/store/**`.
+- [x] Migrate infrastructure services from `core/**/services` → `infrastructure/**/services`.
+- [x] Migrate presentation features from `features` → `presentation/features`.
+- [x] Migrate shared layouts to `presentation/core`.
+- [x] Update path aliases and imports (`@domain`, `@application`, `@infrastructure`, `@presentation`, `@shared`).
+- [x] Update docs/README/CHANGELOG/specs for new structure.
+- [x] Validate lint/build and E2E login flow post-migration.
